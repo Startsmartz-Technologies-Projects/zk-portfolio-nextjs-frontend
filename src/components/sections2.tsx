@@ -4,6 +4,7 @@ import { IMG } from "./sections1";
 import { CERTIFICATIONS } from "../data/certifications";
 import { PROJECTS as ALL_PROJECTS } from "@/src/data/projects-data";
 import { SERVICE_IMAGE_BY_TITLE } from "@/src/data/brand-assets";
+import { SERVICES } from "@/src/data/services-data";
 
 // About, Projects, Services, Business Network, Certifications
 
@@ -23,7 +24,7 @@ export function About() {
             style={{ backgroundImage: `url(${IMG.aboutMain})` }}
           >
             <div className="overlay-card">
-              <div className="big">12</div>
+              <div className="big">15+</div>
               <div className="lbl">Years delivering public & private works</div>
             </div>
           </div>
@@ -143,20 +144,11 @@ export function Projects() {
 }
 
 export function Services() {
-  const svcs = [
-    { icon: "building", t: "Building Construction" },
-    { icon: "road", t: "Road Works" },
-    { icon: "bridge", t: "Bridge & Culvert Works" },
-    { icon: "earth", t: "Earthwork & Site Development" },
-    { icon: "drain", t: "Drainage Work" },
-    { icon: "concrete", t: "Structural Concrete Work" },
-    { icon: "foundation", t: "Foundation Work" },
-    { icon: "renov", t: "Renovation & Maintenance" },
-    { icon: "finish", t: "Finishing Work" },
-    { icon: "special", t: "Other Special Work" },
-    { icon: "equip", t: "Construction Equipment Support" },
-    { icon: "building", t: "Consulting & Project Management", hilite: true },
-  ];
+  const svcs = SERVICES.map((service) => ({
+    icon: service.icon,
+    t: service.title,
+    slug: service.slug,
+  }));
   return (
     <section
       id="services"
@@ -178,7 +170,7 @@ export function Services() {
           {svcs.map((s, i) => (
             <Link
               key={i}
-              href={`/service-details?service=${encodeURIComponent(s.t)}`}
+              href={`/service-details/${s.slug}`}
               className="svc"
               style={{ textDecoration: "none" }}
             >

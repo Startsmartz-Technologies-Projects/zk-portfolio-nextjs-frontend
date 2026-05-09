@@ -3,123 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { Arrow, ArrowUpRight, SvcIcon } from "./site-ui";
-
-const SIMG = {
-  hero: "https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?w=2200&q=80&auto=format&fit=crop",
-  machine: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80&auto=format&fit=crop",
-  cta: "https://images.unsplash.com/photo-1590644875981-3b4dbbd8b8ac?w=2000&q=80&auto=format&fit=crop",
-};
-
-const SERVICE_DATA = {
-  title: "Building Construction",
-  subtitle:
-    "From high-rise commercial towers to institutional and residential projects - executed nationwide with structural integrity, safety compliance and on-time delivery.",
-  meta: [
-    { k: "Service Category", v: "Construction" },
-    { k: "Project Scale", v: "2 - 20 storeys" },
-    { k: "Delivery Reach", v: "All 64 districts" },
-    { k: "Typical Timeline", v: "12 - 36 months" },
-  ],
-  overview: {
-    title: "Premium building construction, engineered for performance.",
-    lead: "Zakir Enterprise delivers commercial, institutional and residential buildings across Bangladesh.",
-    body: [
-      "From foundation to final finishing, every Zakir Enterprise build is delivered by an integrated team of civil engineers, site managers, quality controllers and skilled tradespeople.",
-      "Our building works cover reinforced concrete frames, steel and composite structures, MEP coordination, external facades and finishing trades.",
-    ],
-    bullets: [
-      "RCC & steel frame buildings",
-      "Commercial & office towers",
-      "Institutional & public works",
-      "Residential apartments",
-      "MEP coordination",
-      "Premium interior finishing",
-    ],
-  },
-  scope: [
-    { icon: "building", title: "Planning & Design Coordination", body: "Feasibility studies, BoQ development and constructability reviews." },
-    { icon: "earth", title: "Site Preparation & Earthworks", body: "Survey, clearing, excavation, dewatering, compaction and logistics setup." },
-    { icon: "foundation", title: "Foundation & Substructure", body: "Pile foundations, raft, pile-cap, basement walls and waterproofing." },
-    { icon: "concrete", title: "Superstructure Execution", body: "Reinforced concrete frames, slabs, columns and shear walls." },
-    { icon: "finish", title: "Finishing & MEP Fit-out", body: "Masonry, plastering, tiling, joinery and coordinated MEP installations." },
-    { icon: "special", title: "Quality, Safety & Handover", body: "Testing, snagging, commissioning and structured handover." },
-  ],
-  process: [
-    { tag: "Phase 01", title: "Consult & Scope", body: "Client brief, site assessment and requirement mapping." },
-    { tag: "Phase 02", title: "Plan & Estimate", body: "Detailed BoQ, schedule and transparent quotation." },
-    { tag: "Phase 03", title: "Mobilize Site", body: "Site setup, workforce deployment and logistics activation." },
-    { tag: "Phase 04", title: "Execute & Monitor", body: "Execution with milestone reporting and QA/QC checks." },
-    { tag: "Phase 05", title: "Commission & Handover", body: "Testing, closure and formal handover." },
-  ],
-  benefits: [
-    { icon: "building", title: "A Decade of Delivery", body: "100+ projects delivered across sectors." },
-    { icon: "special", title: "Quality Assurance Discipline", body: "Structured QA/QC checkpoints and compliance sign-offs." },
-    { icon: "equip", title: "Safety-First Site Culture", body: "HSE-trained supervision and strict site safety policy." },
-    { icon: "road", title: "On-Time Milestone Delivery", body: "Milestone-driven planning with active logistics control." },
-    { icon: "drain", title: "Skilled Workforce at Scale", body: "250+ direct engineers, managers and tradespeople." },
-    { icon: "renov", title: "Nationwide Project Capability", body: "Execution across all 64 districts of Bangladesh." },
-  ],
-  machine: [
-    { t: "Tower & Mobile Cranes", d: "50T-120T lifting capacity fleet." },
-    { t: "Concrete Batching Plants", d: "Controlled-mix supply and slump testing." },
-    { t: "Formwork Systems", d: "Modern aluminium and plywood systems." },
-    { t: "Structural Steel Fabrication", d: "In-house welding and erection tools." },
-    { t: "MEP Coordination Tools", d: "BIM-assisted coordination and checklists." },
-    { t: "Testing & QA Labs", d: "Cube, rebar, soil and concrete testing." },
-  ],
-  related: [
-    {
-      img: "https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=1200&q=80&auto=format&fit=crop",
-      cat: "Commercial",
-      loc: "Gulshan - Dhaka",
-      type: "Ongoing - 2025",
-      title: "14-Storey Commercial Tower",
-      line: "Premium RCC office tower with curtain-wall facade and full MEP fit-out for a corporate client.",
-    },
-    {
-      img: "https://images.unsplash.com/photo-1508450859948-4e04fabaa4ea?w=1200&q=80&auto=format&fit=crop",
-      cat: "Institutional",
-      loc: "Chattogram",
-      type: "Delivered - 2024",
-      title: "Government Training Complex",
-      line: "Five-block academic complex delivered ahead of schedule.",
-    },
-    {
-      img: "https://images.unsplash.com/photo-1621352452648-c717c4eba35f?w=1200&q=80&auto=format&fit=crop",
-      cat: "Residential",
-      loc: "Banani - Dhaka",
-      type: "Delivered - 2023",
-      title: "Premium Residential Apartments",
-      line: "Twelve-storey private apartments with structured basement parking.",
-    },
-  ],
-  faq: [
-    {
-      q: "What types of buildings does Zakir Enterprise take on?",
-      a: "We deliver commercial towers, institutional complexes, government buildings and premium residential projects.",
-    },
-    {
-      q: "How do you handle project pricing and quotations?",
-      a: "After a site visit and scope review, we submit a detailed BoQ-based quotation with milestone-linked terms.",
-    },
-    {
-      q: "What is your typical delivery timeline for a building project?",
-      a: "Most mid-rise buildings fall between 12 and 36 months depending on scope and conditions.",
-    },
-    {
-      q: "What is your typical delivery timeline for a building project?",
-      a: "Most mid-rise buildings fall between 12 and 36 months depending on scope and conditions.",
-    },
-    {
-      q: "What is your typical delivery timeline for a building project?",
-      a: "Most mid-rise buildings fall between 12 and 36 months depending on scope and conditions.",
-    },
-    {
-      q: "What is your typical delivery timeline for a building project?",
-      a: "Most mid-rise buildings fall between 12 and 36 months depending on scope and conditions.",
-    },
-  ],
-};
+import type { ServiceRecord } from "@/src/data/services-data";
+import { fetchServiceBySlug, fetchServices } from "@/src/lib/services-api";
 
 function SvcSubnav() {
   const [active, setActive] = React.useState("overview");
@@ -248,12 +133,65 @@ function SvcFAQ({ items }: { items: Array<{ q: string; a: string }> }) {
   );
 }
 
-export function ServiceDetailsPageContent() {
-  const d = SERVICE_DATA;
+export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string }) {
+  const [service, setService] = React.useState<ServiceRecord | null>(null);
+  const [isLoadingService, setIsLoadingService] = React.useState(true);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+
+    const loadService = async () => {
+      try {
+        const data = await fetchServiceBySlug(serviceSlug, controller.signal);
+        setService(data);
+      } catch {
+        try {
+          const allServices = await fetchServices(controller.signal);
+          setService(allServices[0] ?? null);
+        } catch {
+          setService(null);
+        }
+      } finally {
+        setIsLoadingService(false);
+      }
+    };
+
+    setIsLoadingService(true);
+    loadService();
+
+    return () => controller.abort();
+  }, [serviceSlug]);
+
+  if (isLoadingService && !service) {
+    return (
+      <section className="section-pad">
+        <div className="container">
+          <h2>Loading service details...</h2>
+          <p>Please wait while we load this service page.</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!service) {
+    return (
+      <section className="section-pad">
+        <div className="container">
+          <h2>Service not found.</h2>
+          <p>The requested service could not be loaded.</p>
+          <Link href="/#services" className="btn btn-dark">
+            Back to Services <Arrow />
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const d = service;
   return (
     <>
       <section className="svc-hero">
-        <div className="svc-hero-bg" style={{ backgroundImage: `url(${SIMG.hero})` }} />
+        <div className="svc-hero-bg" style={{ backgroundImage: `url(${d.heroImage})` }} />
         <div className="container svc-hero-inner">
           <div className="breadcrumb">
             <Link href="/">Home</Link>
@@ -264,7 +202,9 @@ export function ServiceDetailsPageContent() {
           </div>
           <div className="svc-hero-title-row">
             <div>
-              <span className="microlabel on-dark">Construction Service - 04 / 12</span>
+              <span className="microlabel on-dark">
+                Construction Service - {String(d.serviceNo).padStart(2, "0")} / {String(d.totalServices).padStart(2, "0")}
+              </span>
               <h1 style={{ marginTop: 24 }}>
                 {d.title.split(" ").slice(0, -1).join(" ")} <span className="accent">{d.title.split(" ").slice(-1)}</span>
               </h1>
@@ -406,7 +346,7 @@ export function ServiceDetailsPageContent() {
             </p>
           </div>
           <div className="machinery-wrap">
-            <div className="machinery-image" style={{ backgroundImage: `url(${SIMG.machine})` }}>
+            <div className="machinery-image" style={{ backgroundImage: `url(${d.machineImage})` }}>
               <div className="machine-badge">Owned Fleet - Trained Operators</div>
               <div className="machine-overlay">
                 <div className="big">120+</div>
@@ -442,7 +382,7 @@ export function ServiceDetailsPageContent() {
               <h2>Recent work in this service line.</h2>
             </div>
             <p className="head-right">
-              A selection of recent and ongoing executions under Building Construction - delivered across government, commercial and private sectors.
+              A selection of recent and ongoing executions under {d.title} - delivered across government, commercial and private sectors.
             </p>
           </div>
           <div className="related-grid">
@@ -476,7 +416,7 @@ export function ServiceDetailsPageContent() {
       <SvcFAQ items={d.faq} />
 
       <section id="svc-cta" className="svc-cta">
-        <div className="svc-cta-bg" style={{ backgroundImage: `url(${SIMG.cta})` }} />
+        <div className="svc-cta-bg" style={{ backgroundImage: `url(${d.ctaImage})` }} />
         <div className="container">
           <div className="svc-cta-inner">
             <div>
@@ -527,7 +467,7 @@ export function ServiceDetailsPageContent() {
 
       <div className="mobile-sticky-cta">
         <div className="caption">
-          Zakir Enterprise<span>Building Construction</span>
+          Zakir Enterprise<span>{d.title}</span>
         </div>
         <a href="#svc-cta" className="btn btn-primary">
           Get Quote <Arrow />

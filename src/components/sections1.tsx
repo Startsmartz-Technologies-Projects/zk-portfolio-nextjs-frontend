@@ -18,13 +18,13 @@ export const IMG = {
   heroBridge:
     "https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?w=2000&q=80&auto=format&fit=crop",
   expGov:
-    "https://images.unsplash.com/photo-1590644365607-1c9c3f380cd7?w=1000&q=80&auto=format&fit=crop",
+    "https://res.cloudinary.com/dk4csiouq/image/upload/v1778307817/Picture22_iwei3q.jpg",
   expCom:
-    "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=1000&q=80&auto=format&fit=crop",
+    "https://res.cloudinary.com/dk4csiouq/image/upload/v1778306310/Picture1_nb2vhy.jpg",
   expPriv:
-    "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=1000&q=80&auto=format&fit=crop",
+    "https://res.cloudinary.com/dk4csiouq/image/upload/v1777110616/21_jdwj2x.jpg",
   aboutMain:
-    "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80&auto=format&fit=crop",
+    "https://res.cloudinary.com/dk4csiouq/image/upload/v1778308523/WhatsApp_Image_2026-05-09_at_12.32.27_PM_evnsal.jpg",
   proj1:
     "https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=1200&q=80&auto=format&fit=crop",
   proj2:
@@ -217,7 +217,7 @@ export function Expertise() {
               <div className="exp-body">
                 <h3>{c.title}</h3>
                 <p>{c.body}</p>
-                <Link href="/service-details" className="exp-link">
+                <Link href="/service-details/heavy-civil-infrastructure-development" className="exp-link">
                   Explore Sector <Arrow />
                 </Link>
               </div>

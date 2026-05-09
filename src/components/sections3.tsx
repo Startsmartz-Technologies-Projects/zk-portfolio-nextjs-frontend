@@ -210,11 +210,11 @@ export function Footer() {
           <div className="footer-col">
             <h5>Services</h5>
             <ul>
-              <li><Link href="/service-details?service=Building%20Construction">Building Construction</Link></li>
-              <li><Link href="/service-details?service=Road%20Works">Road & Bridge Works</Link></li>
-              <li><Link href="/service-details?service=Earthwork%20%26%20Site%20Development">Site Development</Link></li>
-              <li><Link href="/service-details?service=Foundation%20Work">Structural & Foundation</Link></li>
-              <li><Link href="/service-details?service=Construction%20Equipment%20Support">Equipment Support</Link></li>
+              <li><Link href="/service-details/heavy-civil-infrastructure-development">Heavy Civil Infrastructure</Link></li>
+              <li><Link href="/service-details/integrated-road-and-highway-construction">Road & Highway Construction</Link></li>
+              <li><Link href="/service-details/bridge-culvert-and-structural-engineering-works">Bridge & Structural Works</Link></li>
+              <li><Link href="/service-details/piling-rcc-and-structural-construction">Piling, RCC & Structural</Link></li>
+              <li><Link href="/service-details/heavy-equipment-supply-rental-and-operation">Equipment Supply & Rental</Link></li>
             </ul>
           </div>
           <div className="footer-col">

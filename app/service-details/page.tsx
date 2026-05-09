@@ -1,13 +1,5 @@
-import { Nav } from "@/src/components/nav";
-import { Footer } from "@/src/components/footer";
-import { ServiceDetailsPageContent } from "@/src/components/service-details-page-content";
+import { redirect } from "next/navigation";
 
 export default function ServiceDetailsPage() {
-  return (
-    <>
-      <Nav />
-      <ServiceDetailsPageContent />
-      <Footer />
-    </>
-  );
+  redirect("/service-details/heavy-civil-infrastructure-development");
 }
