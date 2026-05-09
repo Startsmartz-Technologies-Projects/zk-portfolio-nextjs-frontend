@@ -352,7 +352,7 @@ function BdFinalCTA() {
           <div className="bd-final-cta-right">
             <p>From tender to handover, Zakir Enterprise delivers infrastructure that performs for its full design life. Ten years, 100+ projects, zero foundation claims.</p>
             <div className="bd-final-cta-btns">
-              <a href="Let's Collaborate.html" className="btn btn-primary">Request Quotation <BdA/></a>
+              <a href="Let's Collaborate.html" className="btn btn-primary">Let's Collaborate <BdA/></a>
               <a href="Zakir Enterprise.html#projects" className="btn btn-outline-light">Explore Projects</a>
             </div>
           </div>

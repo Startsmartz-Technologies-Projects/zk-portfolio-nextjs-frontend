@@ -248,57 +248,83 @@
   width: 20px; height: 1px; background: var(--lime);
 }
 
-/* ——— Timeline ——— */
-.timeline-section { padding: 120px 0; background: var(--black); color: #fff; position: relative; overflow: hidden; }
-.timeline-section h2 { color: #fff; }
-.timeline-section .section-head .head-right { color: rgba(255,255,255,0.7); }
-.timeline-section .section-head .num { color: var(--lime); }
-.timeline-rail {
+/* ——— Process (aligned with concern detail) ——— */
+.cd-section-head {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 60px;
+  align-items: end;
+  margin-bottom: 56px;
+}
+.cd-section-head h2 {
+  font-size: clamp(32px, 3.4vw, 50px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1.05;
+  margin-top: 14px;
+}
+.cd-section-head p {
+  color: rgba(255,255,255,0.7);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 40ch;
+}
+
+.cd-process {
+  background: var(--black);
+  color: #fff;
+  padding: 120px 0;
   position: relative;
-  padding: 60px 0 20px;
-  margin-top: 30px;
 }
-.timeline-rail::before {
-  content: "";
-  position: absolute;
-  top: 90px; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25) 10%, rgba(255,255,255,0.25) 90%, transparent);
-}
-.timeline-grid {
+.cd-process-track {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 20px;
-  position: relative;
+  gap: 0;
 }
-.tl-item {
-  display: flex; flex-direction: column; gap: 14px;
-  position: relative;
-  padding-top: 54px;
+.cd-process-step { padding: 0 14px 0 0; }
+.cd-process-connector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  height: 14px;
 }
-.tl-item .tl-year {
-  font-family: var(--display); font-weight: 800;
-  font-size: 14px;
-  color: var(--gold);
-  letter-spacing: 0.1em;
-}
-.tl-item .tl-dot {
-  position: absolute;
-  top: 84px; left: 0;
-  width: 14px; height: 14px;
+.cd-process-dot {
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: var(--black);
-  border: 2px solid var(--lime);
+  background: var(--lime);
+  flex-shrink: 0;
 }
-.tl-item.active .tl-dot { background: var(--lime); box-shadow: 0 0 0 6px rgba(183,226,42,0.15); }
-.tl-item .tl-title {
-  font-family: var(--display); font-weight: 700;
-  font-size: 17px; color: #fff;
-  line-height: 1.3;
+.cd-process-step.active .cd-process-dot {
+  box-shadow: 0 0 0 6px rgba(183,226,42,0.15);
 }
-.tl-item p {
+.cd-process-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(183,226,42,0.25);
+  margin-left: 8px;
+}
+.cd-process-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--lime);
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+.cd-process-step h4 {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px;
+}
+.cd-process-step p {
   color: rgba(255,255,255,0.6);
-  font-size: 13px; line-height: 1.55; margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* ——— Leadership message ——— */
@@ -405,10 +431,10 @@
 }
 .team-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(17,17,17,0.08); }
 .team-photo {
-  aspect-ratio: 3/4;
+  aspect-ratio: 1;
   background-size: cover; background-position: center;
-  filter: grayscale(100%) contrast(1.05);
-  transition: filter .4s;
+  /* filter: grayscale(100%) contrast(1.05); */
+  /* transition: filter .4s; */
   position: relative;
 }
 .team-card:hover .team-photo { filter: grayscale(0%); }
@@ -628,16 +654,74 @@
 }
 .trust-logo:hover span { color: var(--black); }
 
+
+/* Final CTA (shared style used by About page) */
+.trust-cta {
+  padding: 100px 0;
+  background: var(--black);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.trust-cta::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.trust-cta::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 240px;
+  height: 240px;
+  border: 1px solid rgba(183, 226, 42, 0.2);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.trust-cta-inner {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.trust-cta h2 {
+  font-size: clamp(40px, 4.5vw, 64px);
+  color: #fff;
+  letter-spacing: -0.02em;
+  max-width: 16ch;
+}
+.trust-cta h2 .accent { color: var(--lime); }
+.trust-cta h2 .gold { color: var(--gold); font-style: italic; font-weight: 500; }
+.trust-cta p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  margin: 22px 0 32px;
+  max-width: 44ch;
+}
+.trust-cta-buttons {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
 /* ——— Responsive ——— */
 @media (max-width: 1200px) {
   .ae-grid, .why-grid { grid-template-columns: repeat(3, 1fr); }
   .team-grid { grid-template-columns: repeat(3, 1fr); }
-  .timeline-grid { grid-template-columns: repeat(3, 1fr); gap: 40px 20px; }
+  .cd-process-track { grid-template-columns: repeat(3, 1fr); gap: 24px 14px; }
   .ach-grid { grid-template-columns: repeat(5, 1fr); }
 }
 @media (max-width: 1024px) {
   .about-hero-grid, .story-grid, .leader-msg-grid, .culture-grid { grid-template-columns: 1fr; gap: 50px; }
+  .trust-cta-inner { grid-template-columns: 1fr; gap: 50px; }
   .mvv-grid { grid-template-columns: 1fr; }
+  .cd-section-head { grid-template-columns: 1fr; gap: 20px; }
   .ach-grid { grid-template-columns: repeat(2, 1fr); }
   .ach-cell:nth-child(-n+4) { border-bottom: 1px solid rgba(255,255,255,0.15); }
   .ach-cell:nth-child(even) { border-right: none; }
@@ -647,8 +731,10 @@
   .ae-grid, .why-grid, .team-grid { grid-template-columns: 1fr 1fr; }
   .story-stats { grid-template-columns: 1fr 1fr; gap: 0; }
   .story-stats .item:nth-child(2) { border-right: none; }
-  .timeline-grid { grid-template-columns: 1fr; }
+  .cd-process-track { grid-template-columns: 1fr; }
   .culture-bullets { grid-template-columns: 1fr; }
   .trust-logos { grid-template-columns: 1fr 1fr; }
   .about-hero-visual .stamp { left: 0; }
 }
+
+

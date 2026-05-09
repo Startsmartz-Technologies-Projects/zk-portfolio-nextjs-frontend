@@ -1,5 +1,5 @@
-// @ts-nocheck
-// Shared UI helpers + icon set (inline SVGs Ã¢â‚¬â€ simple, not representational)
+﻿// @ts-nocheck
+// Shared UI helpers + icon set (inline SVGs - simple, not representational)
 
 export const Arrow = ({ size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
@@ -55,4 +55,5 @@ export const Social = ({ k }) => {
   };
   return <svg {...common}><path d={p[k]}/></svg>;
 };
+
 

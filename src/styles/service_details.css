@@ -95,7 +95,7 @@
 
 /* ───── Section subnav (sticky) ───── */
 .svc-subnav {
-  position: sticky; top: 72px;
+  position: sticky; top: 92px;
   background: #fff;
   border-bottom: 1px solid var(--line);
   z-index: 40;
@@ -787,14 +787,16 @@
   .machinery-image { aspect-ratio: 4/3; min-height: 360px;}
   .machinery-image .machine-badge, .machinery-image .machine-overlay { left: 20px; right: auto; }
   .machinery-image .machine-overlay { right: 20px; left: auto; }
-  .svc-subnav { display: none; }
-  .mobile-sticky-cta { display: flex; }
+  .svc-subnav { display: block; }
+  .mobile-sticky-cta { display: none; }
   .machine-list { grid-template-columns: 1fr; }
   .machine-item:nth-child(odd), .machine-item:nth-child(even) {
     padding: 20px 0; border-right: none;
   }
 }
 @media (max-width: 720px) {
+  .svc-subnav { display: none; }
+  .mobile-sticky-cta { display: flex; }
   .scope-grid, .benefits-grid, .related-grid { grid-template-columns: 1fr; }
   .overview-keybullets { grid-template-columns: 1fr; }
 }

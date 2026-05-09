@@ -1,8 +1,8 @@
 import { Nav } from "@/src/components/nav";
 import { Footer } from "@/src/components/footer";
-import { ProjectDetailContent } from "@/src/components/project-detail-content";
+import { ConcernDetailPageContent } from "@/src/components/concern-detail-page-content";
 
-export default async function ProjectDetailPage({
+export default async function ConcernDetailByIdPage({
   params,
 }: {
   params: Promise<{ id: string }> | { id: string };
@@ -11,12 +11,12 @@ export default async function ProjectDetailPage({
     typeof (params as Promise<{ id: string }>)?.then === "function"
       ? await (params as Promise<{ id: string }>)
       : (params as { id: string });
-  const projectId = decodeURIComponent(resolvedParams.id);
+  const concernId = decodeURIComponent(resolvedParams.id);
 
   return (
     <>
       <Nav />
-      <ProjectDetailContent projectId={projectId} />
+      <ConcernDetailPageContent concernId={concernId} />
       <Footer />
     </>
   );

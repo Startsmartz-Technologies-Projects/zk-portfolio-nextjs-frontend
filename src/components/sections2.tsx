@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Arrow as A2, ArrowUpRight as AUR, SvcIcon } from "./site-ui";
 import { IMG } from "./sections1";
+import { CERTIFICATIONS } from "../data/certifications";
+import { PROJECTS as ALL_PROJECTS } from "@/src/data/projects-data";
+import { SERVICE_IMAGE_BY_TITLE } from "@/src/data/brand-assets";
+import { SERVICES } from "@/src/data/services-data";
 
 // About, Projects, Services, Business Network, Certifications
 
@@ -15,31 +19,50 @@ export function About() {
     <section id="about" className="section-pad" data-screen-label="05 About">
       <div className="container">
         <div className="about-grid">
-          <div className="about-img" style={{ backgroundImage: `url(${IMG.aboutMain})` }}>
+          <div
+            className="about-img"
+            style={{ backgroundImage: `url(${IMG.aboutMain})` }}
+          >
             <div className="overlay-card">
-              <div className="big">12</div>
+              <div className="big">15+</div>
               <div className="lbl">Years delivering public & private works</div>
             </div>
           </div>
           <div className="about-copy">
             <span className="microlabel">About Zakir Enterprise</span>
-            <h2 style={{marginTop: 18}}>Building more than structures ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â <span style={{color:"var(--gold)", fontStyle:"italic", fontWeight:500}}>building trust.</span></h2>
+            <h2 style={{ marginTop: 18 }}>
+              Building more than structures{" "}
+              <span
+                style={{
+                  color: "var(--gold)",
+                  fontStyle: "italic",
+                  fontWeight: 500,
+                }}
+              >
+                building trust.
+              </span>
+            </h2>
             <p className="lead">
-              Zakir Enterprise is a Bangladesh-based construction company committed to
-              quality, safety and long-term value. We bring practical expertise, disciplined
-              execution and dependable project delivery to every assignment.
+              Zakir Enterprise is a Bangladesh-based construction company
+              committed to quality, safety and long-term value. We bring
+              practical expertise, disciplined execution and dependable project
+              delivery to every assignment.
             </p>
-            <p className="lead" style={{fontSize:15, color:"var(--body)"}}>
-              Our teams operate across all 64 districts with an experienced core of engineers
-              and site managers capable of handling contracts from municipal works to large
-              commercial developments.
+            <p className="lead" style={{ fontSize: 15, color: "var(--body)" }}>
+              Our teams operate across all 64 districts with an experienced core
+              of engineers and site managers capable of handling contracts from
+              municipal works to large commercial developments.
             </p>
             <ul className="about-points">
-              {points.map(p => <li key={p}>{p}</li>)}
+              {points.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
             </ul>
-            <div style={{display:"flex", gap:14, flexWrap:"wrap"}}>
-              <Link href="/about" className="btn btn-dark">Learn More About Us <A2/></Link>
-              <Link href="/about" className="btn btn-ghost">Download Company Profile <AUR/></Link>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <Link href="/about" className="btn btn-dark">
+                Learn More About Us <A2 />
+              </Link>
+              {/* <Link href="/about" className="btn btn-ghost">Download Company Profile <AUR/></Link> */}
             </div>
             <div className="sig">
               <div className="sig-mark">ZH</div>
@@ -56,16 +79,20 @@ export function About() {
 }
 
 export function Projects() {
-  const projects = [
-    { cat: "Building Construction", title: "14-Storey Commercial Tower, Gulshan", size: "82,000 sqft", img: IMG.proj1, tall: true, num: "PÃƒâ€šÃ‚Â·001" },
-    { cat: "Road Works", title: "District Highway Upgrade, Cumilla", size: "24 KM", img: IMG.proj2, num: "PÃƒâ€šÃ‚Â·002" },
-    { cat: "Bridge & Culvert", title: "Girder Bridge, Padma Feeder Route", size: "180 m span", img: IMG.proj3, num: "PÃƒâ€šÃ‚Â·003" },
-    { cat: "Site Development", title: "Industrial Park Earthworks, Mymensingh", size: "120 acres", img: IMG.proj4, num: "PÃƒâ€šÃ‚Â·004" },
-    { cat: "Structural Concrete", title: "RCC Framework, EPZ Warehouse Facility", size: "45,000 sqft", img: IMG.proj5, num: "PÃƒâ€šÃ‚Â·005" },
-    { cat: "Foundation Work", title: "Deep Pile Foundation, Riverside Development", size: "340 piles", img: IMG.proj6, num: "PÃƒâ€šÃ‚Â·006" },
-  ];
+  const projects = ALL_PROJECTS.slice(0, 6).map((project, index) => ({
+    cat: project.cat,
+    title: project.title,
+    size: project.location,
+    img: project.img,
+    num: project.id.replace(/^P/, "P-"),
+    href: `/projects/${encodeURIComponent(project.id)}`,
+    tall: index === 0,
+  }));
   return (
-    <section className="section-pad section-soft" data-screen-label="06 Projects">
+    <section
+      className="section-pad section-soft"
+      data-screen-label="06 Projects"
+    >
       <div className="container">
         <div className="section-head">
           <div>
@@ -73,28 +100,43 @@ export function Projects() {
             <h2>Work that stands on its ground.</h2>
           </div>
           <p className="head-right">
-            A selection of recent completions across public infrastructure, commercial
-            structures and foundation works ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â engineered to last, delivered on time.
+            A selection of recent completions across public infrastructure,
+            commercial structures and foundation works engineered to last,
+            delivered on time.
           </p>
         </div>
         <div className="projects-grid">
-          {projects.map((p, i) => (
-            <Link key={p.title} href="/projects/gulshan-commercial-tower" className={`project ${p.tall ? "tall" : ""}`} style={{ textDecoration: "none", color: "inherit" }}>
-              <div className="p-img" style={{ backgroundImage: `url(${p.img})` }} />
-              <span className="p-num">{p.num}</span>
+          {projects.map((p) => (
+            <Link
+              key={p.num}
+              href={p.href}
+              className={`project ${p.tall ? "tall" : ""}`}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <div
+                className="p-img"
+                style={{ backgroundImage: `url(${p.img})` }}
+              />
+
               <span className="p-size">{p.size}</span>
               <div className="p-body">
                 <div>
                   <div className="p-cat">{p.cat}</div>
                   <h3>{p.title}</h3>
                 </div>
-                <div className="p-arrow"><AUR/></div>
+                <div className="p-arrow">
+                  <AUR />
+                </div>
               </div>
             </Link>
           ))}
         </div>
-        <div style={{display:"flex", justifyContent:"center", marginTop: 50}}>
-          <Link href="/projects" className="btn btn-dark">View All Projects <A2/></Link>
+        <div
+          style={{ display: "flex", justifyContent: "center", marginTop: 50 }}
+        >
+          <Link href="/projects" className="btn btn-dark">
+            View All Projects <A2 />
+          </Link>
         </div>
       </div>
     </section>
@@ -102,22 +144,17 @@ export function Projects() {
 }
 
 export function Services() {
-  const svcs = [
-    { icon: "building",   t: "Building Construction" },
-    { icon: "road",       t: "Road Works" },
-    { icon: "bridge",     t: "Bridge & Culvert Works" },
-    { icon: "earth",      t: "Earthwork & Site Development" },
-    { icon: "drain",      t: "Drainage Work" },
-    { icon: "concrete",   t: "Structural Concrete Work" },
-    { icon: "foundation", t: "Foundation Work" },
-    { icon: "renov",      t: "Renovation & Maintenance" },
-    { icon: "finish",     t: "Finishing Work" },
-    { icon: "special",    t: "Other Special Work" },
-    { icon: "equip",      t: "Construction Equipment Support" },
-    { icon: "building",   t: "Consulting & Project Management", hilite: true },
-  ];
+  const svcs = SERVICES.map((service) => ({
+    icon: service.icon,
+    t: service.title,
+    slug: service.slug,
+  }));
   return (
-    <section id="services" className="section-pad" data-screen-label="07 Services">
+    <section
+      id="services"
+      className="section-pad"
+      data-screen-label="07 Services"
+    >
       <div className="container">
         <div className="section-head">
           <div>
@@ -125,19 +162,38 @@ export function Services() {
             <h2>A full-spectrum construction partner.</h2>
           </div>
           <p className="head-right">
-            Eleven core service lines ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â each handled by specialized teams with the equipment,
-            methodology and accountability the work demands.
+            Eleven core service lines each handled by specialized teams with the
+            equipment, methodology and accountability the work demands.
           </p>
         </div>
         <div className="services-grid">
           {svcs.map((s, i) => (
-            <Link key={i} href={`/service-details?service=${encodeURIComponent(s.t)}`} className="svc" style={{ textDecoration: "none" }}>
+            <Link
+              key={i}
+              href={`/service-details/${s.slug}`}
+              className="svc"
+              style={{ textDecoration: "none" }}
+            >
               <div className="svc-top">
-                <span className="svc-num">{String(i+1).padStart(2,'0')}</span>
-                <div className="svc-icon"><SvcIcon kind={s.icon}/></div>
+                <span className="svc-num">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="svc-icon">
+                  {SERVICE_IMAGE_BY_TITLE[s.t] ? (
+                    <img
+                      src={SERVICE_IMAGE_BY_TITLE[s.t]}
+                      alt={s.t}
+                      className="svc-icon-img"
+                    />
+                  ) : (
+                    <SvcIcon kind={s.icon} />
+                  )}
+                </div>
               </div>
               <h4>{s.t}</h4>
-              <div className="svc-arrow"><A2 size={12}/></div>
+              <div className="svc-arrow">
+                <A2 size={12} />
+              </div>
             </Link>
           ))}
         </div>
@@ -148,13 +204,40 @@ export function Services() {
 
 export function Network() {
   const concerns = [
-    { logo: "ZE", cat: "Core", name: "Zakir Enterprise", body: "Construction & infrastructure execution ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â parent concern." },
-    { logo: "ZC", cat: "Materials", name: "Zakir Concrete Works", body: "Ready-mix concrete, precast elements and structural aggregate supply." },
-    { logo: "ZT", cat: "Logistics", name: "Zakir Transport & Equipment", body: "Heavy machinery, hauling and on-site equipment rental across regions." },
-    { logo: "ZD", cat: "Development", name: "Zakir Real Estate", body: "Mixed-use and residential development projects in urban Bangladesh." },
+    {
+      logo: "ZE",
+      cat: "Core",
+      name: "Zakir Enterprise",
+      slug: "zakir-enterprise",
+      body: "Construction & infrastructure execution  parent concern.",
+    },
+    {
+      logo: "ZC",
+      cat: "Materials",
+      name: "Zakir Concrete Works",
+      slug: "zakir-concrete-works",
+      body: "Ready-mix concrete, precast elements and structural aggregate supply.",
+    },
+    {
+      logo: "ZT",
+      cat: "Logistics",
+      name: "Zakir Transport & Equipment",
+      slug: "zakir-transport-equipment",
+      body: "Heavy machinery, hauling and on-site equipment rental across regions.",
+    },
+    {
+      logo: "ZD",
+      cat: "Development",
+      name: "Zakir Real Estate",
+      slug: "zakir-real-estate",
+      body: "Mixed-use and residential development projects in urban Bangladesh.",
+    },
   ];
   return (
-    <section className="section-pad section-soft" data-screen-label="08 Network">
+    <section
+      className="section-pad section-soft"
+      data-screen-label="08 Network"
+    >
       <div className="container">
         <div className="section-head">
           <div>
@@ -162,20 +245,29 @@ export function Network() {
             <h2>Our business network.</h2>
           </div>
           <p className="head-right">
-            A family of concerns covering construction, materials, logistics and development ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â
-            vertically aligned to keep quality and schedule under one roof.
+            A family of concerns covering construction, materials, logistics and
+            development vertically aligned to keep quality and schedule under
+            one roof.
           </p>
         </div>
         <div className="network-grid">
-          {concerns.map(c => (
+          {concerns.map((c) => (
             <div key={c.logo} className="concern">
               <div>
                 <div className="concern-logo">{c.logo}</div>
-                <div className="concern-cat" style={{marginTop:18}}>{c.cat}</div>
+                <div className="concern-cat" style={{ marginTop: 18 }}>
+                  {c.cat}
+                </div>
                 <h4>{c.name}</h4>
                 <p>{c.body}</p>
               </div>
-              <Link href="/concern-detail" className="exp-link" style={{fontSize:11}}>Visit Concern <A2 size={12}/></Link>
+              <Link
+                href={`/concern-detail/${c.slug}`}
+                className="exp-link"
+                style={{ fontSize: 11 }}
+              >
+                Visit Concern <A2 size={12} />
+              </Link>
             </div>
           ))}
         </div>
@@ -185,18 +277,14 @@ export function Network() {
 }
 
 export function Certifications() {
-  const certs = [
-    { seal: "ISO\n9001", t: "Quality Management System", id: "ID Ãƒâ€šÃ‚Â· ISO-9001:2015", valid: "Valid through 2027" },
-    { seal: "ISO\n14001", t: "Environmental Standards", id: "ID Ãƒâ€šÃ‚Â· ISO-14001:2015", valid: "Valid through 2027" },
-    { seal: "ISO\n45001", t: "Occupational Health & Safety", id: "ID Ãƒâ€šÃ‚Â· ISO-45001:2018", valid: "Valid through 2026" },
-    { seal: "LGED", t: "Enlisted Civil Contractor", id: "Class Ãƒâ€šÃ‚Â· 01 (Nationwide)", valid: "Renewed annually" },
-    { seal: "RHD", t: "Roads & Highways Division", id: "Category Ãƒâ€šÃ‚Â· A ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Civil", valid: "Renewed annually" },
-    { seal: "BWDB", t: "Water Development Board", id: "Enlistment Ãƒâ€šÃ‚Â· Grade A", valid: "Renewed annually" },
-    { seal: "PWD", t: "Public Works Department", id: "Category Ãƒâ€šÃ‚Â· 1 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Civil & Elect", valid: "Renewed annually" },
-    { seal: "BAB", t: "Bangladesh Assoc. of Builders", id: "Member Ãƒâ€šÃ‚Â· Active", valid: "Since 2016" },
-  ];
+  const certs = CERTIFICATIONS.slice(0, 4);
+
   return (
-    <section id="certifications" className="section-pad" data-screen-label="09 Certifications">
+    <section
+      id="certifications"
+      className="section-pad"
+      data-screen-label="09 Certifications"
+    >
       <div className="container">
         <div className="section-head">
           <div>
@@ -204,27 +292,45 @@ export function Certifications() {
             <h2>Standards you can trust.</h2>
           </div>
           <p className="head-right">
-            Independently verified against international and national standards ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â our
-            certifications are current, audited and available for tender review on request.
+            Independently verified against international and national standards
+            our certifications are current, audited and available for tender
+            review on request.
           </p>
         </div>
-        <div className="certs-grid">
-          {certs.map(c => (
-            <Link key={c.t} href="/certifications" className="cert" style={{ textDecoration: "none", color: "inherit" }}>
-              <div className="cert-seal" style={{whiteSpace:"pre-line", textAlign:"center", lineHeight:1.05}}>{c.seal}</div>
-              <div>
-                <h4>{c.t}</h4>
-                <div className="cert-id">{c.id}</div>
+        <div className="certs-grid certs-grid-one-row">
+          {certs.map((c) => (
+            <Link
+              key={c.id}
+              href={`/certifications?preview=${encodeURIComponent(c.id)}#certs`}
+              className="cert"
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <div
+                className="cert-seal"
+                style={{
+                  whiteSpace: "pre-line",
+                  textAlign: "center",
+                  lineHeight: 1.05,
+                }}
+              >
+                {c.homeSeal}
               </div>
-              <div className="cert-valid">{c.valid}</div>
+              <div>
+                <h4>{c.title}</h4>
+                <div className="cert-id">{c.homeId}</div>
+              </div>
+              <div className="cert-valid">{c.homeValid}</div>
             </Link>
           ))}
         </div>
-        <div style={{display:"flex", justifyContent:"center", marginTop: 40}}>
-          <Link href="/certifications" className="btn btn-dark">View All Certifications <A2/></Link>
+        <div
+          style={{ display: "flex", justifyContent: "center", marginTop: 40 }}
+        >
+          <Link href="/certifications" className="btn btn-dark">
+            View All Certifications <A2 />
+          </Link>
         </div>
       </div>
     </section>
   );
 }
-

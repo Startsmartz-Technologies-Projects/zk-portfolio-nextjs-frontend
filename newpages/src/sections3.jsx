@@ -165,7 +165,7 @@ function CTABanner() {
             <p>From planning to execution, Zakir Enterprise is ready to deliver quality
                work with confidence and professionalism — on schedule, on budget, on standard.</p>
             <div className="cta-btns">
-              <a href="#" className="btn btn-primary">Request Quotation <A3/></a>
+              <a href="#" className="btn btn-primary">Let's Collaborate <A3/></a>
               <a href="#" className="btn btn-outline-light">Discuss Project <AUR3/></a>
             </div>
           </div>
@@ -200,8 +200,8 @@ function Footer() {
               <strong>Head Office</strong>
               House 42, Road 11, Banani,<br/>Dhaka 1213, Bangladesh<br/>
               <strong style={{marginTop:14}}>Get in touch</strong>
-              info@zakirenterprise.com.bd<br/>
-              +880 1700 000 000
+              zakirenterprise307@gmail.com<br/>
+              +8801791026074
             </div>
           </div>
           <div className="footer-col">
@@ -237,7 +237,7 @@ function Footer() {
           <div className="footer-col">
             <h5>Contact</h5>
             <ul>
-              <li><a href="#">Request Quotation</a></li>
+              <li><a href="#">Let's Collaborate</a></li>
               <li><a href="#">Discuss a Project</a></li>
               <li><a href="#">Vendor Enquiries</a></li>
               <li><a href="#">Media Requests</a></li>
