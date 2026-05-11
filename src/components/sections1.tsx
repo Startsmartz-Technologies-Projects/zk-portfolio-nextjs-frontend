@@ -55,7 +55,7 @@ export function Nav({ scrolled }) {
   const items = [
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
-    { label: "Services", href: "/#services" },
+    { label: "Services", href: "/services" },
     { label: "Projects", href: "/projects" },
     { label: "Certifications", href: "/certifications" },
     { label: "News", href: "/news" },

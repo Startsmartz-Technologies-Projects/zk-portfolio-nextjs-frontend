@@ -13,9 +13,9 @@ export function HomePageContent() {
       <About />
       <Projects />
       <Services />
-      <Network />
-      <Certifications />
+      {/* <Network /> */}
       <TrustedBy />
+      <Certifications />
       <Testimonials />
       <Insights />
       <News />

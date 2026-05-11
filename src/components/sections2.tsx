@@ -144,10 +144,13 @@ export function Projects() {
 }
 
 export function Services() {
-  const svcs = SERVICES.map((service) => ({
+  const svcs = SERVICES.slice(0, 6).map((service, index) => ({
     icon: service.icon,
     t: service.title,
     slug: service.slug,
+    subtitle: service.subtitle,
+    heroImage: service.heroImage,
+    num: String(index + 1).padStart(2, "0"),
   }));
   return (
     <section
@@ -166,36 +169,40 @@ export function Services() {
             equipment, methodology and accountability the work demands.
           </p>
         </div>
-        <div className="services-grid">
-          {svcs.map((s, i) => (
-            <Link
-              key={i}
-              href={`/service-details/${s.slug}`}
-              className="svc"
-              style={{ textDecoration: "none" }}
-            >
-              <div className="svc-top">
-                <span className="svc-num">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div className="svc-icon">
-                  {SERVICE_IMAGE_BY_TITLE[s.t] ? (
-                    <img
-                      src={SERVICE_IMAGE_BY_TITLE[s.t]}
-                      alt={s.t}
-                      className="svc-icon-img"
-                    />
-                  ) : (
+        <div className="services-feature-grid">
+          {svcs.map((s) => (
+            <article key={s.slug} className="svc-feature">
+              <div
+                className="svc-feature-media"
+                style={{
+                  backgroundImage: `url(${SERVICE_IMAGE_BY_TITLE[s.t] || s.heroImage})`,
+                }}
+              />
+              <div className="svc-feature-body">
+                <div className="svc-feature-top">
+                  <span className="svc-feature-num">{s.num}</span>
+                  <div className="svc-icon">
                     <SvcIcon kind={s.icon} />
-                  )}
+                  </div>
                 </div>
+                <h4>{s.t}</h4>
+                <p>{s.subtitle}</p>
+                <Link
+                  href={`/service-details/${encodeURIComponent(s.slug)}`}
+                  className="svc-feature-view"
+                >
+                  View Service <A2 size={12} />
+                </Link>
               </div>
-              <h4>{s.t}</h4>
-              <div className="svc-arrow">
-                <A2 size={12} />
-              </div>
-            </Link>
+            </article>
           ))}
+        </div>
+        <div
+          style={{ display: "flex", justifyContent: "center", marginTop: 42 }}
+        >
+          <Link href="/services" className="btn btn-dark">
+            View All Services <A2 />
+          </Link>
         </div>
       </div>
     </section>

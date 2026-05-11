@@ -121,6 +121,28 @@ const SERVICE_SEEDS: ServiceSeed[] = [
     machineImage:
       "https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=1200&q=80&auto=format&fit=crop",
   },
+   {
+    slug: "river-training-dredging-and-canal-development",
+    title: "River Training, Dredging & Canal Development",
+    icon: "renov",
+    subtitle:
+      "Hydraulic improvement and protection works for riverbanks, canals and waterways in erosion-prone and silted corridors.",
+    heroImage:
+      "https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=1400&q=80&auto=format&fit=crop",
+    machineImage:
+      "https://images.unsplash.com/photo-1590590032559-8e03e7e2e9ef?w=1200&q=80&auto=format&fit=crop",
+  },
+    {
+    slug: "heavy-equipment-supply-rental-and-operation",
+    title: "Heavy Equipment Supply, Rental & Operation",
+    icon: "special",
+    subtitle:
+      "Reliable heavy machinery access with trained operators, maintenance assurance and deployment planning for active sites.",
+    heroImage:
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80&auto=format&fit=crop",
+    machineImage:
+      "https://images.unsplash.com/photo-1590644875981-3b4dbbd8b8ac?w=1200&q=80&auto=format&fit=crop",
+  },
   {
     slug: "drainage-sewer-and-water-infrastructure-systems",
     title: "Drainage, Sewer & Water Infrastructure Systems",
@@ -154,17 +176,7 @@ const SERVICE_SEEDS: ServiceSeed[] = [
     machineImage:
       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80&auto=format&fit=crop",
   },
-  {
-    slug: "river-training-dredging-and-canal-development",
-    title: "River Training, Dredging & Canal Development",
-    icon: "renov",
-    subtitle:
-      "Hydraulic improvement and protection works for riverbanks, canals and waterways in erosion-prone and silted corridors.",
-    heroImage:
-      "https://images.unsplash.com/photo-1503435824048-a799a3a84bf7?w=1400&q=80&auto=format&fit=crop",
-    machineImage:
-      "https://images.unsplash.com/photo-1590590032559-8e03e7e2e9ef?w=1200&q=80&auto=format&fit=crop",
-  },
+ 
   {
     slug: "end-to-end-engineering-design-and-project-management",
     title: "End-to-End Engineering, Design & Project Management",
@@ -176,17 +188,7 @@ const SERVICE_SEEDS: ServiceSeed[] = [
     machineImage:
       "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80&auto=format&fit=crop",
   },
-  {
-    slug: "heavy-equipment-supply-rental-and-operation",
-    title: "Heavy Equipment Supply, Rental & Operation",
-    icon: "special",
-    subtitle:
-      "Reliable heavy machinery access with trained operators, maintenance assurance and deployment planning for active sites.",
-    heroImage:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80&auto=format&fit=crop",
-    machineImage:
-      "https://images.unsplash.com/photo-1590644875981-3b4dbbd8b8ac?w=1200&q=80&auto=format&fit=crop",
-  },
+  
   {
     slug: "building-construction-residential-commercial-and-industrial",
     title: "Building Construction (Residential, Commercial & Industrial)",
