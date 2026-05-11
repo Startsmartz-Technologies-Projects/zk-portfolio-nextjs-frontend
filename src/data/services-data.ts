@@ -178,8 +178,8 @@ const SERVICE_SEEDS: ServiceSeed[] = [
   },
  
   {
-    slug: "end-to-end-engineering-design-and-project-management",
-    title: "End-to-End Engineering, Design & Project Management",
+    slug: "finishing-work-and-end-engineering-design",
+    title: "Finishing work and End Engineering Design ",
     icon: "finish",
     subtitle:
       "Integrated engineering management from concept and planning to contractor coordination, control and delivery closeout.",
