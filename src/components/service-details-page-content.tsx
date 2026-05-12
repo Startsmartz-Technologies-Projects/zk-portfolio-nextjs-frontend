@@ -57,7 +57,6 @@ function SvcSubnav() {
     { id: "process", label: "Execution Process" },
     { id: "benefits", label: "Why Choose Us" },
     { id: "capability", label: "Capability" },
-    { id: "projects", label: "Related Projects" },
     { id: "faq", label: "FAQ" },
   ];
   return (
@@ -86,7 +85,7 @@ function SvcSubnav() {
   );
 }
 
-function SvcFAQ({ items }: { items: Array<{ q: string; a: string }> }) {
+function SvcFAQ({ items, title, lead }: { items: Array<{ q: string; a: string }>; title: string; lead: string }) {
   const [open, setOpen] = React.useState(0);
   return (
     <section id="faq" className="section-pad section-soft">
@@ -96,11 +95,8 @@ function SvcFAQ({ items }: { items: Array<{ q: string; a: string }> }) {
             <span className="num" style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.3em", color: "var(--gold)", marginBottom: 14, display: "block" }}>
               FREQUENTLY ASKED / 07
             </span>
-            <h2>Questions from clients and stakeholders.</h2>
-            <p>
-              Clear, practical answers to the most common questions we receive from government bodies, developers, and private clients before engaging on a
-              build.
-            </p>
+            <h2>{title}</h2>
+            <p>{lead}</p>
             <div className="faq-cta-card">
               <h5>Still have a question?</h5>
               <p>Speak with our project team for a detailed discussion on scope, timeline and pricing.</p>
@@ -253,11 +249,9 @@ export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string
           <div className="section-head">
             <div>
               <span className="num">SCOPE OF WORK / 02</span>
-              <h2>End-to-end capability under one delivery team.</h2>
+              <h2>{d.scopeTitle}</h2>
             </div>
-            <p className="head-right">
-              From earliest planning through final handover, we execute every stage in-house with dedicated engineers, equipment and site supervision.
-            </p>
+            <p className="head-right">{d.scopeLead}</p>
           </div>
           <div className="scope-grid">
             {d.scope.map((it, i) => (
@@ -285,11 +279,9 @@ export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string
               <span className="num" style={{ color: "var(--lime)" }}>
                 EXECUTION PROCESS / 03
               </span>
-              <h2>A disciplined five-stage delivery workflow.</h2>
+              <h2>{d.processTitle}</h2>
             </div>
-            <p className="head-right" style={{ color: "rgba(255,255,255,0.65)" }}>
-              Every project we undertake moves through the same structured stages - transparent, measurable and built to keep timelines and quality on track.
-            </p>
+            <p className="head-right" style={{ color: "rgba(255,255,255,0.65)" }}>{d.processLead}</p>
           </div>
           <div className="process-wrap">
             <div className="process-track">
@@ -311,11 +303,9 @@ export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string
           <div className="section-head">
             <div>
               <span className="num">WHY ZAKIR ENTERPRISE / 04</span>
-              <h2>Chosen for delivery discipline, not just lowest bid.</h2>
+              <h2>{d.benefitsTitle}</h2>
             </div>
-            <p className="head-right">
-              Public clients, developers and industrial partners return to us because we execute on commitment - safely, on time, and to specification.
-            </p>
+            <p className="head-right">{d.benefitsLead}</p>
           </div>
           <div className="benefits-grid">
             {d.benefits.map((it, i) => (
@@ -339,11 +329,9 @@ export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string
           <div className="section-head">
             <div>
               <span className="num">EXECUTION STRENGTH / 05</span>
-              <h2>Equipment, methods & site discipline.</h2>
+              <h2>{d.capabilityTitle}</h2>
             </div>
-            <p className="head-right">
-              We operate our own fleet of construction equipment, backed by trained operators, safety systems and quality assurance methods used on every site.
-            </p>
+            <p className="head-right">{d.capabilityLead}</p>
           </div>
           <div className="machinery-wrap">
             <div className="machinery-image" style={{ backgroundImage: `url(${d.machineImage})` }}>
@@ -354,10 +342,8 @@ export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string
               </div>
             </div>
             <div className="machinery-copy">
-              <h3>Operational capability built for scale and compliance.</h3>
-              <p>
-                Our execution strength is grounded in owned equipment, proven construction methods and structured site management - supported by independent quality checks and full compliance documentation for every delivery.
-              </p>
+              <h3>{d.capabilityBodyTitle}</h3>
+              <p>{d.capabilityBodyDesc}</p>
               <div className="machine-list">
                 {d.machine.map((it, i) => (
                   <div key={i} className="machine-item">
@@ -374,46 +360,7 @@ export function ServiceDetailsPageContent({ serviceSlug }: { serviceSlug: string
         </div>
       </section>
 
-      <section id="projects" className="section-pad">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <span className="num">RELATED PROJECTS / 06</span>
-              <h2>Recent work in this service line.</h2>
-            </div>
-            <p className="head-right">
-              A selection of recent and ongoing executions under {d.title} - delivered across government, commercial and private sectors.
-            </p>
-          </div>
-          <div className="related-grid">
-            {d.related.map((it, i) => (
-              <article key={i} className="related-card">
-                <div className="rp-img" style={{ backgroundImage: `url(${it.img})` }} />
-                <span className="rp-type">{it.type}</span>
-                <div className="rp-body">
-                  <div className="rp-meta">
-                    <span>{it.cat}</span>
-                    <span className="dot" />
-                    <span className="loc">{it.loc}</span>
-                  </div>
-                  <h4>{it.title}</h4>
-                  <p className="rp-line">{it.line}</p>
-                  <Link href="/projects" className="rp-link">
-                    View Project <ArrowUpRight size={12} />
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 50 }}>
-            <Link href="/projects" className="btn btn-outline-dark">
-              View All Projects <Arrow />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <SvcFAQ items={d.faq} />
+      <SvcFAQ items={d.faq} title={d.faqTitle} lead={d.faqLead} />
 
       <section id="svc-cta" className="svc-cta">
         <div className="svc-cta-bg" style={{ backgroundImage: `url(${d.ctaImage})` }} />
