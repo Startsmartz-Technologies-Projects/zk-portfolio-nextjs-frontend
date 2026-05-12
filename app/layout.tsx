@@ -6,6 +6,11 @@ import "../src/styles/legacy_pages.css";
 export const metadata: Metadata = {
   title: "Zakir Enterprise",
   description: "Construction and infrastructure portfolio in Next.js",
+  icons: {
+    icon: "https://res.cloudinary.com/dk4csiouq/image/upload/v1777180913/Heading_24_t5zzbn.png",
+    shortcut: "https://res.cloudinary.com/dk4csiouq/image/upload/v1777180913/Heading_24_t5zzbn.png",
+    apple: "https://res.cloudinary.com/dk4csiouq/image/upload/v1777180913/Heading_24_t5zzbn.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -2,9 +2,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { Arrow as AD, ArrowUpRight as AURD, SvcIcon as SIcoD } from "./site-ui";
-import { PROJECTS } from "./projects-page-content";
+import type { ProjectRecord } from "@/src/data/projects-data";
+import { fetchProjects } from "@/src/lib/projects-api";
 
-// Project Detail page - reuses PROJECTS data and proj-card style from projects_page.jsx
+// Project Detail page
 
 function ShareIcon({ k }) {
   const common = {
@@ -104,23 +105,65 @@ function Lightbox({ images, idx, onClose, setIdx }) {
 
 export function ProjectDetailContent({ projectId }: { projectId?: string }) {
   const [lightbox, setLightbox] = React.useState(null);
+  const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
+
+  React.useEffect(() => {
+    const controller = new AbortController();
+
+    const loadProjects = async () => {
+      try {
+        const data = await fetchProjects(controller.signal);
+        setProjects(data);
+      } catch {
+        setProjects([]);
+      } finally {
+        setIsLoadingProjects(false);
+      }
+    };
+
+    loadProjects();
+
+    return () => controller.abort();
+  }, []);
+
   const normalizedProjectId = (projectId || "").trim().toLowerCase();
   const project = React.useMemo(
     () =>
-      PROJECTS.find((p) => p.id.toLowerCase() === normalizedProjectId) ??
-      PROJECTS[0],
-    [normalizedProjectId],
+      projects.find((p) => p.id.toLowerCase() === normalizedProjectId) ??
+      projects[0] ??
+      null,
+    [projects, normalizedProjectId],
   );
-  const detail = project.detail ?? {};
-  const fallbackGallery = React.useMemo(
-    () => [
-      project.img,
-      ...PROJECTS.filter((p) => p.id !== project.id)
-        .slice(0, 6)
-        .map((p) => p.img),
-    ],
-    [project.id, project.img],
-  );
+
+  if (isLoadingProjects && !project) {
+    return (
+      <section className="meta-strip">
+        <div className="container">
+          <p>Loading project...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!project) {
+    return (
+      <section className="meta-strip">
+        <div className="container">
+          <p>Project not found.</p>
+        </div>
+      </section>
+    );
+  }
+
+  const detail = project.detail;
+  const fallbackGallery = [
+    project.img,
+    ...projects
+      .filter((p) => p.id !== project.id)
+      .slice(0, 6)
+      .map((p) => p.img),
+  ];
   const gallerySource =
     Array.isArray(detail.gallery) && detail.gallery.length > 0
       ? detail.gallery
@@ -144,12 +187,9 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
 
   const scopes = Array.isArray(detail.scopes) ? detail.scopes : [];
 
-  const highlights = [
-    // No specific metrics provided in static content, so leave empty or add placeholders if needed
-  ];
+  const highlights = Array.isArray(detail.highlights) ? detail.highlights : [];
 
-  // related - pick 3 from PROJECTS (from projects_page.jsx) excluding current
-  const related = PROJECTS.filter((p) => p.id !== project.id).slice(0, 3);
+  const related = projects.filter((p) => p.id !== project.id).slice(0, 3);
 
   return (
     <>
@@ -165,7 +205,9 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
             <span className="sep">/</span>
             <Link href="/projects">Projects</Link>
             <span className="sep">/</span>
-            <Link href="/projects">{project.cat}</Link>
+            <Link href={`/projects/${encodeURIComponent(project.id)}`}>
+              {project.cat}
+            </Link>
             <span className="sep">/</span>
             <span>{project.title}</span>
           </div>
@@ -200,9 +242,7 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
           <div className="overview-grid">
             <div className="overview-copy">
               <span className="microlabel">Project Overview</span>
-              <h2 style={{ marginTop: 16 }}>
-                {detail.overviewTitle}
-              </h2>
+              <h2 style={{ marginTop: 16 }}>{detail.overviewTitle}</h2>
               <p>{detail.overviewBody}</p>
               <p className="pull">"{detail.pullQuote}"</p>
             </div>
@@ -248,13 +288,6 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
                 <Link href="/lets-collaborate" className="btn btn-dark">
                   Enquire About Project <AD />
                 </Link>
-                <a
-                  href="#"
-                  className="btn btn-ghost"
-                  style={{ padding: "10px 0" }}
-                >
-                  Download Case Study (PDF) <AURD />
-                </a>
               </div>
             </aside>
           </div>
@@ -269,9 +302,7 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
               <span className="num">SCOPE OF WORKS / 04</span>
               <h2>Services delivered on this project.</h2>
             </div>
-            <p className="head-right">
-              {detail.scopeDescription}
-            </p>
+            <p className="head-right">{detail.scopeDescription}</p>
           </div>
           <div className="scope-grid">
             {scopes.map((s) => (
@@ -396,7 +427,14 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
             </p>
           </div>
           <div className="highlights-grid">
-            {/* No specific metrics provided in static content */}
+            {highlights.map((item, index) => (
+              <article key={`${item.title}-${index}`} className="hl-card">
+                <div className="hl-num">{item.num}</div>
+                <div className="hl-unit">{item.unit}</div>
+                <h4>{item.title}</h4>
+                <p>{item.body}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -493,9 +531,7 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
           <div className="trust-cta-inner">
             <div>
               <span className="microlabel on-dark">Start a Conversation</span>
-              <h2 style={{ marginTop: 20 }}>
-                {detail.ctaHeading}
-              </h2>
+              <h2 style={{ marginTop: 20 }}>{detail.ctaHeading}</h2>
             </div>
             <div>
               <div className="trust-cta-buttons">
@@ -516,4 +552,3 @@ export function ProjectDetailContent({ projectId }: { projectId?: string }) {
     </>
   );
 }
-

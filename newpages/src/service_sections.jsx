@@ -344,7 +344,7 @@ function SvcCTA({ service }) {
             <ul>
               <li>
                 <span className="k">Direct line</span>
-                <span className="v">+880 1700 000 000</span>
+                <span className="v">+8801791026074</span>
               </li>
               <li>
                 <span className="k">Email</span>

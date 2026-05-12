@@ -493,7 +493,7 @@ export function LetsCollaboratePageContent() {
             <p>
               <strong>Email</strong>zakirenterprise307@gmail.com
             </p>
-            <div style={{ marginTop: 20, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
               <a href="#" className="btn btn-primary" style={{ padding: "12px 18px", fontSize: 11 }}>
                 Get Directions <Arrow size={12} />
               </a>

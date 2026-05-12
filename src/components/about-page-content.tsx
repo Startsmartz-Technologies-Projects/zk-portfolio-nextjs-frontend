@@ -113,7 +113,7 @@ export function AboutPageContent() {
 
   const timeline = [
     {
-      year: "2009",
+      year: "2010",
       title: "Company Founded",
       p: "Established strong expertise in construction management and project execution",
     },
@@ -227,7 +227,7 @@ export function AboutPageContent() {
       unit: "+",
       lbl: "Successfully Completed Diverse Construction Projects",
     },
-    { n: "16", unit: "+", lbl: "Years Experience" },
+    { n: "15", unit: "+", lbl: "Years Experience" },
     { n: "250", unit: "+", lbl: "Workforce" },
     { n: "64", unit: "", lbl: "Engagements" },
     { n: "98", unit: "%", lbl: "Client Confidence" },
@@ -334,7 +334,7 @@ export function AboutPageContent() {
         <div className="container">
           <div className="story-grid">
             <div className="story-collage">
-              <div className="badge">Since 2009</div>
+              <div className="badge">Since 2010</div>
               <div
                 className="cell tall"
                 style={{ backgroundImage: `url(${ABOUT_IMAGES.story1})` }}
@@ -374,13 +374,13 @@ export function AboutPageContent() {
               <div className="story-stats">
                 <div className="item">
                   <div className="n">
-                    16<span className="plus">+</span>
+                    15<span className="plus">+</span>
                   </div>
                   <div className="lbl">Years of Experience</div>
                 </div>
                 <div className="item">
                   <div className="n">
-                    100<span className="plus">+</span>
+                    50<span className="plus">+</span>
                   </div>
                   <div className="lbl">Projects</div>
                 </div>
@@ -466,7 +466,7 @@ export function AboutPageContent() {
                   <circle cx="12" cy="12" r="1.5" fill="currentColor" />
                 </svg>
               </div>
-              {/* <span className="mvv-label">01 Ãƒâ€šÃ‚Â· Mission</span> */}
+              {/* <span className="mvv-label">01 - Mission</span> */}
               <h3>Mission</h3>
               <p>
                 To deliver high-quality construction and engineering services by
@@ -488,7 +488,7 @@ export function AboutPageContent() {
                   <path d="M5 10 V21 H19 V10" />
                 </svg>
               </div>
-              {/* <span className="mvv-label">02 Ãƒâ€šÃ‚Â· Vision</span> */}
+              {/* <span className="mvv-label">02 - Vision</span> */}
               <h3>Vision</h3>
               <p>
                 To be a leading construction company in Bangladesh, recognized
@@ -509,7 +509,7 @@ export function AboutPageContent() {
                   <polygon points="12,3 21,8 21,16 12,21 3,16 3,8" />
                 </svg>
               </div>
-              {/* <span className="mvv-label">03 Ãƒâ€šÃ‚Â· Values</span> */}
+              {/* <span className="mvv-label">03 - Values</span> */}
               <h3>Core Values</h3>
               <ul className="mvv-values">
                 <li>Quality</li>
@@ -523,34 +523,39 @@ export function AboutPageContent() {
         </div>
       </section>
 
-      {/* 5. Timeline */}
-      <section className="timeline-section" data-screen-label="05 Timeline">
+      {/* 5. Timeline / Process */}
+      <section className="cd-process" data-screen-label="05 Timeline">
         <div className="container">
-          <div className="section-head">
+          <div className="cd-section-head">
             <div>
-              {/* <span className="num">Our Journey of Growth</span> */}
+              <span className="microlabel on-dark">Work Process</span>
               <h2>Our Journey of Growth</h2>
             </div>
-            <p className="head-right">
+            <p>
               Over more than 16 years, Zakir Enterprise has built a strong
               foundation through experience, technical expertise, and successful
-              project execution across Bangladesh..
+              project execution across Bangladesh.
             </p>
           </div>
-          <div className="timeline-rail">
-            <div className="timeline-grid">
-              {timeline.map((t, i) => (
-                <div
-                  key={i}
-                  className={"tl-item " + (t.active ? "active" : "")}
-                >
-                  <div className="tl-dot" />
-                  <div className="tl-year">{t.year}</div>
-                  <div className="tl-title">{t.title}</div>
+          <div className="cd-process-track">
+            {timeline.map((t, i) => (
+              <div
+                key={i}
+                className={"cd-process-step " + (t.active ? "active" : "")}
+              >
+                <div className="cd-process-connector">
+                  <span className="cd-process-dot" />
+                  {i < timeline.length - 1 && (
+                    <span className="cd-process-line" />
+                  )}
+                </div>
+                <div className="cd-process-body">
+                  <div className="cd-process-num">{t.year}</div>
+                  <h4>{t.title}</h4>
                   <p>{t.p}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -573,14 +578,14 @@ export function AboutPageContent() {
               <h2>Commitment to Excellence</h2>
               <div className="leader-quote">
                 <p>
-                  â€œWe are dedicated to delivering construction solutions that
+                  "We are dedicated to delivering construction solutions that
                   reflect quality, integrity, and long-term value for our
-                  clients and communities.â€
+                  clients and communities."
                 </p>
               </div>
               <p className="body">
                 At Zakir Enterprise, we believe construction is more than
-                building structuresâ€”it is about creating lasting value through
+                building structures - it is about creating lasting value through
                 expertise, innovation, and responsible execution. With years of
                 industry experience, our leadership ensures that every project
                 is delivered with professionalism, precision, and
@@ -621,7 +626,7 @@ export function AboutPageContent() {
           </div>
           <div className="team-grid">
             {team.map((p) => (
-              <div key={p.name} className="team-card">
+              <div key={p.name} className="team-card xl:min-w-[300px]">
                 <div
                   className="team-photo "
                   style={{ backgroundImage: `url(${p.img})` }}
@@ -771,27 +776,24 @@ export function AboutPageContent() {
         <div className="container">
           <div className="trust-cta-inner">
             <div>
-              <span className="microlabel on-dark">START YOUR PROJECT</span>
+              <span className="microlabel on-dark">Start the Conversation</span>
               <h2 style={{ marginTop: 20 }}>
-                Let's Build Your Next Project with Confidence
+                Ready to <span className="gold">build</span> with{" "}
                 <span className="accent">confidence?</span>
               </h2>
             </div>
             <div>
               <p>
-                From building construction and infrastructure development to
-                specialized engineering solutions, Zakir Enterprise is equipped
-                to plan, manage, and deliver projects with quality, safety, and
-                efficiency. Let us turn your vision into reality with reliable
-                execution and professional expertise.
+                Partner with Zakir Enterprise for reliable construction and
+                engineering excellence from initial consultation through
+                handover and long-term maintenance.
               </p>
               <div className="trust-cta-buttons">
                 <Link href="/lets-collaborate" className="btn btn-primary">
-                  Request a Consultation
-                  <AA />
+                  Request Consultation <AA />
                 </Link>
                 <Link href="/projects" className="btn btn-outline-light">
-                  Explore Our Services <AURA />
+                  View Portfolio <AURA />
                 </Link>
               </div>
             </div>
@@ -801,4 +803,3 @@ export function AboutPageContent() {
     </>
   );
 }
-

@@ -200,8 +200,8 @@ function Footer() {
               <strong>Head Office</strong>
               House 42, Road 11, Banani,<br/>Dhaka 1213, Bangladesh<br/>
               <strong style={{marginTop:14}}>Get in touch</strong>
-              info@zakirenterprise.com.bd<br/>
-              +880 1700 000 000
+              zakirenterprise307@gmail.com<br/>
+              +8801791026074
             </div>
           </div>
           <div className="footer-col">

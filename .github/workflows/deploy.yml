@@ -16,5 +16,13 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          # Force the action to show us the full SSH handshake logs
+          debug: true
+          # Stops the script if any command fails
+          script_stop: true
+          # Bypasses the "Host key verification failed" error
+          use_insecure_cipher: true
           script: |
+            echo "Successfully connected as $(whoami)"
             bash ~/deploy-portfolio.sh

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Arrow, ArrowUpRight, SvcIcon } from "./site-ui";
 
-const CONCERN = {
+const BASE_CONCERN = {
   name: "Zakir Construction Ltd.",
   short: "Civil & Infrastructure",
   tagline: "Building the backbone of modern Bangladesh.",
@@ -141,33 +141,417 @@ const CONCERN = {
   ],
 };
 
-export function ConcernDetailPageContent() {
+const CONCERNS = {
+  "zakir-enterprise": {
+    ...BASE_CONCERN,
+    name: "Zakir Enterprise",
+    short: "Construction & Infrastructure",
+    tagline: "Integrated delivery across civil works, logistics and development.",
+    intro:
+      "The parent concern of the group, coordinating engineering, project controls and execution governance for nationwide construction delivery.",
+    hero: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=2000&q=80&auto=format&fit=crop",
+    code: "ZE / 00",
+    est: "Est. 2012",
+    facts: [
+      { big: "14", label: "Years in Operation", sub: "Since 2012" },
+      { big: "180+", label: "Projects Delivered", sub: "Cross-sector portfolio" },
+      { big: "64", label: "District Coverage", sub: "Nationwide presence" },
+      { big: "420+", label: "Core Workforce", sub: "Engineers & field teams" },
+      { big: "BDT 650Cr+", label: "Active Portfolio", sub: "Current pipeline" },
+      { big: "4", label: "Strategic Concerns", sub: "Integrated operations" },
+    ],
+    services: [
+      { icon: "building", title: "Program Management", copy: "Multi-package planning, governance and delivery oversight across concern units." },
+      { icon: "road", title: "Infrastructure Delivery", copy: "End-to-end highway, utility and public works execution for institutional clients." },
+      { icon: "bridge", title: "Major Structures", copy: "Bridge and complex structural packages coordinated across design and construction teams." },
+      { icon: "earth", title: "Site Mobilization", copy: "Regional setup, logistics planning and early-stage enabling works at speed." },
+      { icon: "drain", title: "Utility Integration", copy: "Drainage, service corridors and utility interfaces managed through single-point controls." },
+      { icon: "equip", title: "Fleet & Resource Control", copy: "Plant and equipment deployment aligned with live schedule and productivity benchmarks." },
+    ],
+    projects: [
+      {
+        title: "National Corridor Program Office",
+        location: "Dhaka",
+        category: "Program",
+        summary: "Central PMO delivery framework coordinating seven concurrent infrastructure contracts.",
+        image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Western Flood Resilience Package",
+        location: "Khulna Division",
+        category: "Infrastructure",
+        summary: "Integrated embankment, drainage and access road package for climate-resilient mobility.",
+        image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Urban Mobility Flyover Works",
+        location: "Chattogram",
+        category: "Structures",
+        summary: "City-scale transport structure with phased traffic management and rapid handover.",
+        image: "https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "District Utility Upgrade Cluster",
+        location: "Rajshahi & Rangpur",
+        category: "Utilities",
+        summary: "Multi-district pipeline, drainage and service corridor upgrade delivered under one command desk.",
+        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1400&q=80&auto=format&fit=crop",
+      },
+    ],
+    faqs: [
+      {
+        q: "What does Zakir Enterprise coordinate at group level?",
+        a: "It coordinates planning, controls, quality governance and cross-concern resource alignment across major programs.",
+      },
+      {
+        q: "Can the group deliver multi-package projects under one contract strategy?",
+        a: "Yes, the group runs consolidated planning and reporting for complex, multi-scope project portfolios.",
+      },
+      {
+        q: "How quickly can a project mobilization plan be issued?",
+        a: "Typical initial mobilization frameworks are shared within two working days after scope review.",
+      },
+      {
+        q: "Do you provide executive-level project reporting?",
+        a: "Yes, milestone and risk reporting is prepared for client decision-makers at agreed review intervals.",
+      },
+      {
+        q: "Is delivery handled directly or outsourced?",
+        a: "Core delivery is managed through in-house concern units with accountable engineering ownership.",
+      },
+      {
+        q: "How do clients start engagement with the parent concern?",
+        a: "Share project scope through the collaboration page; the program desk will assign a lead team.",
+      },
+    ],
+  },
+  "zakir-concrete-works": {
+    ...BASE_CONCERN,
+    name: "Zakir Concrete Works",
+    short: "Materials & Precast",
+    tagline: "Concrete supply built for consistency, speed and structural reliability.",
+    intro:
+      "Specialized in ready-mix concrete, precast elements and quality-controlled aggregate supply for infrastructure and industrial projects.",
+    hero: "https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=2000&q=80&auto=format&fit=crop",
+    code: "ZCW / 02",
+    est: "Est. 2016",
+    overview: {
+      ...BASE_CONCERN.overview,
+      title: "Concrete that meets spec, batch after batch.",
+      mission: "Provide high-performance concrete systems with tested quality and dependable dispatch.",
+    },
+    facts: [
+      { big: "9", label: "Years of Operations", sub: "Since 2016" },
+      { big: "2", label: "Batching Plants", sub: "Dhaka & Narayanganj" },
+      { big: "160 m3/hr", label: "Combined Capacity", sub: "Peak output" },
+      { big: "1,200+", label: "Mix Designs Delivered", sub: "Commercial & infrastructure" },
+      { big: "24/7", label: "Dispatch Window", sub: "By schedule" },
+      { big: "100%", label: "Batch Test Logging", sub: "Digital traceability" },
+    ],
+    services: [
+      { icon: "concrete", title: "Ready-Mix Concrete", copy: "Pumped and transit-mixed concrete supply across structural and pavement applications." },
+      { icon: "building", title: "Precast Elements", copy: "Precast slabs, drains and custom structural members for accelerated site programs." },
+      { icon: "foundation", title: "High-Strength Mixes", copy: "Engineered M35+ mixes for heavy foundation and industrial load requirements." },
+      { icon: "road", title: "Pavement Concrete", copy: "Mixes tuned for rigid pavement performance under road authority specifications." },
+      { icon: "drain", title: "Drainage Components", copy: "Concrete products for box drains, utility chambers and service network packages." },
+      { icon: "equip", title: "On-Site Pumping Support", copy: "Boom pump and placement teams synchronized with pour windows and QA checkpoints." },
+    ],
+    projects: [
+      {
+        title: "Narayanganj Plant Capacity Upgrade",
+        location: "Narayanganj",
+        category: "Plant",
+        summary: "Capacity expansion project with automated batching controls and moisture correction.",
+        image: "https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Dhaka Elevated Structure Supply",
+        location: "Dhaka",
+        category: "Supply",
+        summary: "Scheduled high-strength concrete supply for urban elevated structural sections.",
+        image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Cumilla Precast Utility Package",
+        location: "Cumilla",
+        category: "Precast",
+        summary: "Production and delivery of precast drainage modules for rapid municipal deployment.",
+        image: "https://images.unsplash.com/photo-1581093588401-fbb62a02f120?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Industrial Foundation Pour Program",
+        location: "Gazipur",
+        category: "Concrete",
+        summary: "Continuous pour planning and quality supervision for heavy industrial raft foundations.",
+        image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1400&q=80&auto=format&fit=crop",
+      },
+    ],
+    faqs: [
+      {
+        q: "What products does Zakir Concrete Works supply?",
+        a: "Ready-mix concrete, precast components, specialized structural mixes and on-site pumping support.",
+      },
+      {
+        q: "Can you support high-volume pours with strict timing?",
+        a: "Yes, dispatch windows are coordinated with production scheduling and placement teams.",
+      },
+      {
+        q: "Do you provide batch-level quality records?",
+        a: "Yes, test logs and production records are maintained for every supply sequence.",
+      },
+      {
+        q: "Are custom mix designs available?",
+        a: "Yes, mixes are tuned to project strength, workability and durability requirements.",
+      },
+      {
+        q: "Which regions are covered for delivery?",
+        a: "Primary service is centered around Dhaka-adjacent industrial and infrastructure zones with planned expansion.",
+      },
+      {
+        q: "How are supply disruptions managed?",
+        a: "Contingency dispatch plans and backup fleet support are used to keep pours on schedule.",
+      },
+    ],
+  },
+  "zakir-transport-equipment": {
+    ...BASE_CONCERN,
+    name: "Zakir Transport & Equipment",
+    short: "Logistics & Plant",
+    tagline: "Heavy movement, site mobilization and machinery uptime under one desk.",
+    intro:
+      "The logistics and equipment concern supporting project mobilization, heavy haulage, fleet management and operator readiness across regions.",
+    hero: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=2000&q=80&auto=format&fit=crop",
+    code: "ZTE / 03",
+    est: "Est. 2015",
+    overview: {
+      ...BASE_CONCERN.overview,
+      title: "Fleet reliability that keeps schedules intact.",
+      mission: "Deliver safe, on-time movement of materials, machinery and teams to every site package.",
+    },
+    facts: [
+      { big: "10", label: "Years in Service", sub: "Since 2015" },
+      { big: "140+", label: "Fleet Assets", sub: "Heavy & support vehicles" },
+      { big: "6", label: "Regional Hubs", sub: "Operational base points" },
+      { big: "98.7%", label: "Fleet Uptime", sub: "Rolling 12-month average" },
+      { big: "24/7", label: "Dispatch Monitoring", sub: "Live coordination desk" },
+      { big: "320+", label: "Operators & Drivers", sub: "Certified workforce" },
+    ],
+    services: [
+      { icon: "equip", title: "Heavy Equipment Rental", copy: "Excavators, rollers, pavers and support machinery with trained operators." },
+      { icon: "earth", title: "Mass Haulage Logistics", copy: "Bulk movement planning for earthworks, aggregates and project materials." },
+      { icon: "road", title: "Road-Ready Transport", copy: "Permit-aware routing and movement plans for oversized plant relocation." },
+      { icon: "foundation", title: "Site Mobilization Support", copy: "Pre-start deployment of equipment, access setup and staging logistics." },
+      { icon: "building", title: "Operator Deployment", copy: "Certified operator assignment with shift planning for critical path activities." },
+      { icon: "drain", title: "Maintenance & Recovery", copy: "Field maintenance units and recovery response to minimize downtime on active sites." },
+    ],
+    projects: [
+      {
+        title: "National Fleet Digitization Program",
+        location: "Dhaka HQ",
+        category: "Operations",
+        summary: "Telemetry and dispatch control integration across high-utilization fleet categories.",
+        image: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Sylhet Earthwork Logistics Chain",
+        location: "Sylhet",
+        category: "Logistics",
+        summary: "End-to-end haulage and machine rotation plan for accelerated earthwork delivery.",
+        image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Bridge Launch Equipment Mobilization",
+        location: "Madaripur",
+        category: "Mobilization",
+        summary: "Heavy movement package for bridge launching systems with phased road permits.",
+        image: "https://images.unsplash.com/photo-1545459720-aac8509eb02c?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Regional Plant Support Framework",
+        location: "Rajshahi & Bogura",
+        category: "Fleet",
+        summary: "Distributed maintenance and standby unit model for remote project continuity.",
+        image: "https://images.unsplash.com/photo-1508450859948-4e04fabaa4ea?w=1400&q=80&auto=format&fit=crop",
+      },
+    ],
+    faqs: [
+      {
+        q: "What equipment does Zakir Transport & Equipment provide?",
+        a: "It provides heavy construction plant, support machinery and certified operators for active projects.",
+      },
+      {
+        q: "Can you handle oversized equipment movement permits?",
+        a: "Yes, route and compliance planning is included in large-scale transport assignments.",
+      },
+      {
+        q: "How is uptime maintained on critical jobs?",
+        a: "Preventive maintenance, standby assets and field recovery teams are deployed by priority schedule.",
+      },
+      {
+        q: "Do you support short-notice mobilization?",
+        a: "Yes, rapid mobilization is available based on fleet availability and location windows.",
+      },
+      {
+        q: "Are operators included with rentals?",
+        a: "Yes, operator deployment is available with machine assignments where required.",
+      },
+      {
+        q: "How do clients request fleet support?",
+        a: "Submit scope and schedule through the project desk for fleet planning and slot confirmation.",
+      },
+    ],
+  },
+  "zakir-real-estate": {
+    ...BASE_CONCERN,
+    name: "Zakir Real Estate",
+    short: "Urban Development",
+    tagline: "Planned residential and mixed-use developments for growing cities.",
+    intro:
+      "Focused on residential and mixed-use development with integrated design coordination, construction oversight and lifecycle asset thinking.",
+    hero: "https://images.unsplash.com/photo-1460317442991-0ec209397118?w=2000&q=80&auto=format&fit=crop",
+    code: "ZRE / 04",
+    est: "Est. 2018",
+    overview: {
+      ...BASE_CONCERN.overview,
+      title: "Development programs designed for long-term livability.",
+      mission: "Develop high-quality urban spaces that balance design value, buildability and end-user comfort.",
+    },
+    facts: [
+      { big: "8", label: "Years in Development", sub: "Since 2018" },
+      { big: "12", label: "Live Projects", sub: "Residential & mixed-use" },
+      { big: "1.8M sqft", label: "Planned GFA", sub: "Pipeline footprint" },
+      { big: "4", label: "Cities Active", sub: "Urban focus markets" },
+      { big: "91%", label: "On-Time Handover", sub: "Recent cycles" },
+      { big: "1000+", label: "Units in Delivery", sub: "Phased completion" },
+    ],
+    services: [
+      { icon: "building", title: "Mixed-Use Development", copy: "Integrated retail, office and residential development planning and delivery." },
+      { icon: "foundation", title: "Residential Projects", copy: "Apartment and gated community projects optimized for usability and durability." },
+      { icon: "concrete", title: "Design Coordination", copy: "Architectural, structural and MEP coordination for buildable design outcomes." },
+      { icon: "road", title: "Urban Access Planning", copy: "Traffic and connectivity planning for project ingress, egress and mobility." },
+      { icon: "renov", title: "Asset Repositioning", copy: "Redevelopment and retrofit strategies for existing underperforming properties." },
+      { icon: "drain", title: "Utility & Amenity Planning", copy: "Integrated service, landscape and amenity packages for full-lifecycle value." },
+    ],
+    projects: [
+      {
+        title: "Gulshan Mixed-Use Block A",
+        location: "Dhaka",
+        category: "Mixed-Use",
+        summary: "Signature urban development blending office, retail and serviced living spaces.",
+        image: "https://images.unsplash.com/photo-1460317442991-0ec209397118?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Banani Residential Towers",
+        location: "Dhaka",
+        category: "Residential",
+        summary: "Mid-rise residential cluster focused on daylight, ventilation and efficient unit planning.",
+        image: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Chattogram Urban Hub",
+        location: "Chattogram",
+        category: "Commercial",
+        summary: "Transit-adjacent commercial development with phased tenant readiness strategy.",
+        image: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=1400&q=80&auto=format&fit=crop",
+      },
+      {
+        title: "Sylhet Community Living Estate",
+        location: "Sylhet",
+        category: "Community",
+        summary: "Master-planned community with civic amenities, green space and long-term service planning.",
+        image: "https://images.unsplash.com/photo-1494526585095-c41746248156?w=1400&q=80&auto=format&fit=crop",
+      },
+    ],
+    faqs: [
+      {
+        q: "What does Zakir Real Estate specialize in?",
+        a: "It focuses on residential and mixed-use developments with integrated planning and execution oversight.",
+      },
+      {
+        q: "Are projects design-led or contractor-led?",
+        a: "Projects are design-coordinated and buildability-reviewed before delivery commitments are finalized.",
+      },
+      {
+        q: "Do you manage utility and amenity planning internally?",
+        a: "Yes, service systems and amenity planning are integrated into early design and delivery phases.",
+      },
+      {
+        q: "Which cities are currently prioritized?",
+        a: "Current emphasis is on Dhaka, Chattogram, Sylhet and other high-growth urban locations.",
+      },
+      {
+        q: "Can buyers and partners request project briefings?",
+        a: "Yes, structured project briefings can be arranged through the collaboration desk.",
+      },
+      {
+        q: "How is handover quality assured?",
+        a: "Handover follows phased QA checklists with documented closure before occupancy readiness.",
+      },
+    ],
+  },
+} as const;
+
+type ConcernId = keyof typeof CONCERNS;
+
+const RELATED_CONCERNS = [
+  {
+    slug: "zakir-enterprise",
+    name: "Zakir Enterprise",
+    desc: "Construction & infrastructure execution parent concern.",
+    tag: "Core",
+  },
+  {
+    slug: "zakir-concrete-works",
+    name: "Zakir Concrete Works",
+    desc: "Ready-mix concrete, precast elements and structural aggregate supply.",
+    tag: "Materials",
+  },
+  {
+    slug: "zakir-transport-equipment",
+    name: "Zakir Transport & Equipment",
+    desc: "Heavy machinery, hauling and on-site equipment rental across regions.",
+    tag: "Logistics",
+  },
+  {
+    slug: "zakir-real-estate",
+    name: "Zakir Real Estate",
+    desc: "Mixed-use and residential development projects in urban Bangladesh.",
+    tag: "Development",
+  },
+] as const;
+
+const DEFAULT_CONCERN_ID: ConcernId = "zakir-enterprise";
+
+export function ConcernDetailPageContent({ concernId = DEFAULT_CONCERN_ID }: { concernId?: string }) {
   const [openFaq, setOpenFaq] = React.useState(0);
+  const activeConcernId = (concernId in CONCERNS ? concernId : DEFAULT_CONCERN_ID) as ConcernId;
+  const concern = CONCERNS[activeConcernId];
+  const relatedConcerns = RELATED_CONCERNS.filter((item) => item.slug !== activeConcernId);
 
   return (
     <>
       <section className="cd-hero">
-        <div className="cd-hero-bg" style={{ backgroundImage: `url(${CONCERN.hero})` }} />
+        <div className="cd-hero-bg" style={{ backgroundImage: `url(${concern.hero})` }} />
         <div className="container cd-hero-inner">
           <div className="bg-crumbs" style={{ marginBottom: 28 }}>
             <a href="/">Home</a>
             <span className="sep">/</span>
             <a href="/">Concerns</a>
             <span className="sep">/</span>
-            <span className="current">{CONCERN.short}</span>
+            <span className="current">{concern.short}</span>
           </div>
           <div className="cd-hero-badge">
             <div className="cd-hero-badge-mark">Z</div>
             <div className="cd-hero-badge-body">
               <div className="cd-hero-badge-unit">Concern - Zakir Enterprise Group</div>
               <div className="cd-hero-badge-code">
-                {CONCERN.code} - {CONCERN.est}
+                {concern.code} - {concern.est}
               </div>
             </div>
           </div>
-          <h1>{CONCERN.name}</h1>
-          <p className="cd-hero-tag">{CONCERN.tagline}</p>
-          <p className="cd-hero-sub">{CONCERN.intro}</p>
+          <h1>{concern.name}</h1>
+          <p className="cd-hero-tag">{concern.tagline}</p>
+          <p className="cd-hero-sub">{concern.intro}</p>
           <div className="cd-hero-ctas">
             <a href="/lets-collaborate" className="btn btn-primary">
               Contact This Concern <Arrow />
@@ -183,7 +567,7 @@ export function ConcernDetailPageContent() {
             </div>
             <div className="m">
               <span className="k">Scope</span>
-              <span className="v">{CONCERN.short}</span>
+              <span className="v">{concern.short}</span>
             </div>
             <div className="m">
               <span className="k">Coverage</span>
@@ -203,7 +587,7 @@ export function ConcernDetailPageContent() {
         <div className="container cd-overview-grid">
           <div className="cd-overview-left">
             <span className="microlabel">Concern Overview</span>
-            <h2>{CONCERN.overview.title}</h2>
+            <h2>{concern.overview.title}</h2>
             <div className="cd-overview-quick">
               <div>
                 <div className="n">2014</div>
@@ -220,12 +604,12 @@ export function ConcernDetailPageContent() {
             </div>
           </div>
           <div className="cd-overview-right">
-            {CONCERN.overview.body.map((paragraph) => (
+            {concern.overview.body.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
             <div className="cd-mission">
               <div className="cd-mission-label">Mission</div>
-              <blockquote>{CONCERN.overview.mission}</blockquote>
+              <blockquote>{concern.overview.mission}</blockquote>
             </div>
           </div>
         </div>
@@ -243,7 +627,7 @@ export function ConcernDetailPageContent() {
             <p>Every figure below is drawn from active project data. We publish what we can prove.</p>
           </div>
           <div className="cd-facts-grid">
-            {CONCERN.facts.map((fact, index) => (
+            {concern.facts.map((fact, index) => (
               <div key={fact.label} className="cd-fact-card">
                 <div className="cd-fact-index">{String(index + 1).padStart(2, "0")}</div>
                 <div className="cd-fact-big">{fact.big}</div>
@@ -265,7 +649,7 @@ export function ConcernDetailPageContent() {
             <p>A full civil engineering stack, assembled in-house and delivered with accountable execution.</p>
           </div>
           <div className="cd-services-grid">
-            {CONCERN.services.map((service, index) => (
+            {concern.services.map((service, index) => (
               <div key={service.title} className="cd-service-card">
                 <div className="cd-service-icon">
                   <SvcIcon kind={service.icon} />
@@ -297,7 +681,7 @@ export function ConcernDetailPageContent() {
             </a>
           </div>
           <div className="cd-why-list">
-            {CONCERN.why.map((item) => (
+            {concern.why.map((item) => (
               <div key={item.big} className="cd-why-item">
                 <div className="cd-why-num">{item.big}</div>
                 <div className="cd-why-body">
@@ -326,7 +710,7 @@ export function ConcernDetailPageContent() {
             </a>
           </div>
           <div className="cd-projects-grid">
-            {CONCERN.projects.map((project, index) => (
+            {concern.projects.map((project, index) => (
               <a key={project.title} className={`cd-project-card ${index === 0 ? "wide" : ""}`} href="/projects" style={{ textDecoration: "none" }}>
                 <div className="cd-project-img" style={{ backgroundImage: `url(${project.image})` }}>
                   <span className="cd-project-cat">{project.category}</span>
@@ -355,11 +739,11 @@ export function ConcernDetailPageContent() {
             <p>Every project follows the same discipline from first site walk to final defects review.</p>
           </div>
           <div className="cd-process-track">
-            {CONCERN.process.map((step, index) => (
+            {concern.process.map((step, index) => (
               <div key={step.step} className="cd-process-step">
                 <div className="cd-process-connector">
                   <span className="cd-process-dot" />
-                  {index < CONCERN.process.length - 1 && <span className="cd-process-line" />}
+                  {index < concern.process.length - 1 && <span className="cd-process-line" />}
                 </div>
                 <div className="cd-process-body">
                   <div className="cd-process-num">{step.step}</div>
@@ -386,7 +770,7 @@ export function ConcernDetailPageContent() {
             <p>Imagery from active and recently completed projects across this concern portfolio.</p>
           </div>
           <div className="cd-gallery-grid">
-            {CONCERN.gallery.map((image, index) => (
+            {concern.gallery.map((image, index) => (
               <div key={image} className={`cd-gallery-cell g-${index}`} style={{ backgroundImage: `url(${image})` }}>
                 <div className="cd-gallery-tag">{String(index + 1).padStart(2, "0")}</div>
               </div>
@@ -405,8 +789,8 @@ export function ConcernDetailPageContent() {
             <p>One group, multiple specialized concerns, shared delivery discipline.</p>
           </div>
           <div className="cd-related-grid">
-            {CONCERN.related.map((item, index) => (
-              <a key={item.name} className="cd-related-card" href="#" style={{ textDecoration: "none" }}>
+            {relatedConcerns.map((item, index) => (
+              <a key={item.slug} className="cd-related-card" href={`/concern-detail/${item.slug}`} style={{ textDecoration: "none" }}>
                 <div className="cd-related-index">{String(index + 2).padStart(2, "0")}</div>
                 <span className="cd-related-tag">{item.tag}</span>
                 <h4>{item.name}</h4>
@@ -436,7 +820,7 @@ export function ConcernDetailPageContent() {
           </div>
 
           <div className="cd-faq-list">
-            {CONCERN.faqs.map((faq, index) => (
+            {concern.faqs.map((faq, index) => (
               <div key={faq.q} className={`cd-faq-item ${openFaq === index ? "open" : ""}`}>
                 <button type="button" className="cd-faq-q" onClick={() => setOpenFaq((prev) => (prev === index ? -1 : index))}>
                   <span className="cd-faq-num">{String(index + 1).padStart(2, "0")}</span>
@@ -462,7 +846,7 @@ export function ConcernDetailPageContent() {
           <div>
             <span className="microlabel on-dark">Start Here</span>
             <h2>
-              Work with <span className="accent">{CONCERN.name}</span>
+              Work with <span className="accent">{concern.name}</span>
               <br />
               on your next project.
             </h2>
@@ -480,11 +864,11 @@ export function ConcernDetailPageContent() {
             <div className="cd-cta-contact">
               <div>
                 <span className="k">Project Desk</span>
-                <span className="v">+880 1700 000 000</span>
+                <span className="v">+8801791026074</span>
               </div>
               <div>
                 <span className="k">Email</span>
-                <span className="v">projects@zakirenterprise.com.bd</span>
+                <span className="v">zakirenterprise307@gmail.com</span>
               </div>
             </div>
           </div>
@@ -493,3 +877,4 @@ export function ConcernDetailPageContent() {
     </>
   );
 }
+

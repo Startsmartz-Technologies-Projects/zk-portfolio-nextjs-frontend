@@ -175,7 +175,7 @@ function LcConversion({ intent, setIntent, prefillService }) {
             <div className="side-card">
               <h5>Contact</h5>
               <ul>
-                <li><strong>Phone</strong>+880 1700 000 000</li>
+                <li><strong>Phone</strong>+8801791026074</li>
                 <li><strong>Email</strong>projects@zakirenterprise.com.bd</li>
                 <li><strong>Head Office</strong>House 42, Road 11, Banani,<br/>Dhaka 1213, Bangladesh</li>
                 <li><strong>Business Hours</strong>Sun — Thu · 9:00 — 18:00 (GMT+6)</li>
@@ -368,7 +368,7 @@ function LcMap() {
           <h5>Head Office · Dhaka</h5>
           <h3>Zakir Enterprise Ltd.</h3>
           <p>House 42, Road 11, Banani,<br/>Dhaka 1213, Bangladesh</p>
-          <p><strong>Phone</strong>+880 1700 000 000</p>
+          <p><strong>Phone</strong>+8801791026074</p>
           <p><strong>Email</strong>projects@zakirenterprise.com.bd</p>
           <div style={{marginTop:20,display:"flex",gap:10,flexWrap:"wrap"}}>
             <a href="#" className="btn btn-primary" style={{padding:"12px 18px",fontSize:11}}>Get Directions <LcA size={12}/></a>
@@ -406,7 +406,7 @@ function LcFinalCTA() {
                   <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .6 3a2 2 0 0 1-.5 2L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2-.5c1 .3 2 .5 3 .6a2 2 0 0 1 1.7 2.1z"/>
                 </svg>
               </div>
-              <div><span className="k">Direct Line</span><span className="v">+880 1700 000 000</span></div>
+              <div><span className="k">Direct Line</span><span className="v">+8801791026074</span></div>
               <span className="chev"><LcA size={14}/></span>
             </a>
             <a href="https://wa.me/8801700000000" className="fc-line">

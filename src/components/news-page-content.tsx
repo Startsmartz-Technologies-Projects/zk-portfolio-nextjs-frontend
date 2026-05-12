@@ -146,17 +146,45 @@ export function getNewsById(id: string) {
 
 const ARTICLE_BODIES: Record<string, { lead: string; sections: any[]; tags: string[] }> = {
   "road-dhaka-awarded": {
-    lead: "Zakir Enterprise has been awarded a BDT 180 crore civil works contract under the Roads & Highways Department to deliver a 42-kilometer four-lane corridor expansion across Dhaka's eastern bypass.",
+    lead: "Zakir Enterprise has been awarded a BDT 180 crore civil works contract under the Roads & Highways Department to deliver a 42-kilometer four-lane corridor expansion across Dhaka's eastern bypass - a significant strengthening of our national infrastructure portfolio and a decisive vote of confidence from the country's leading road authority.",
     sections: [
       { type: "h2", text: "A strategic national corridor" },
-      { type: "p", text: "The newly awarded scope covers full-width road widening, median construction, rigid pavement works, stormwater drainage upgrades, and the construction of fourteen new RCC box culverts." },
+      { type: "p", text: "The newly awarded scope covers full-width road widening, median construction, rigid pavement works, stormwater drainage upgrades, and the construction of fourteen new RCC box culverts. Work will be executed over a 24-month delivery window, with the first site mobilization scheduled for April 2026." },
+      { type: "p", text: "This corridor is a critical link between Dhaka's eastern periphery and the greater industrial belt. Once operational, it is expected to reduce heavy-vehicle transit times into the capital by nearly 40% and unlock further private investment along the route." },
+      {
+        type: "callout",
+        stats: [
+          { big: "BDT 180Cr", lbl: "Contract Value" },
+          { big: "42 km", lbl: "Corridor Length" },
+          { big: "24 mo", lbl: "Delivery Window" },
+        ],
+      },
       { type: "h2", text: "Scope of civil works" },
-      { type: "ul", items: [
-        "Full-depth pavement reconstruction across 42 km",
-        "14 new RCC box culverts and drainage structures",
-        "Premium asphalt surfacing with a 12-year design life",
-        "Road markings, signage, and reflective safety systems",
-      ]},
+      { type: "p", text: "The integrated scope positions Zakir Enterprise across every layer of the road delivery stack - from earthwork and sub-base through to premium finishing and ancillary structures." },
+      {
+        type: "ul",
+        items: [
+          "Full-depth pavement reconstruction across 42 km",
+          "14 new RCC box culverts and drainage structures",
+          "Premium asphalt surfacing with a 12-year design life",
+          "Median construction, side drains, and safety barriers",
+          "Road markings, signage, and reflective safety systems",
+          "Environmental compliance and community coordination",
+        ],
+      },
+      {
+        type: "image",
+        src: "https://images.unsplash.com/photo-1617972740399-d6fae21ebf3f?w=1600&q=80&auto=format&fit=crop",
+        cap: "Road widening works will begin with intensive subgrade preparation across the first 12 km package.",
+      },
+      {
+        type: "quote",
+        text: "Winning this corridor is a proud moment for our team. It reflects a decade of disciplined delivery and the trust our national partners continue to place in Zakir Enterprise.",
+        cite: "Managing Director - Zakir Enterprise",
+      },
+      { type: "h2", text: "Mobilization and delivery approach" },
+      { type: "p", text: "Two full-scale project camps will be established - one in Narayanganj and one in Keraniganj - with dedicated batching plants, fabrication yards and a safety-audited workforce exceeding 400 personnel at peak. Weekly progress dashboards will be published to the client through our digital project office." },
+      { type: "p", text: "Execution will follow our standard QA/QC protocol with independent laboratory testing for subgrade, base course and surfacing, alongside a quarterly environmental compliance audit. A milestone-linked payment framework provides full transparency to all stakeholders throughout the delivery cycle." },
     ],
     tags: ["Roads & Highways", "RHD", "Infrastructure", "Dhaka", "2026 Projects"],
   },
@@ -167,13 +195,33 @@ function defaultBody(item: any) {
     lead: item.excerpt,
     sections: [
       { type: "h2", text: "Overview" },
-      { type: "p", text: "Zakir Enterprise continues to deliver disciplined civil execution, safety-audited sites, and on-time handover across Bangladesh's construction industry." },
+      { type: "p", text: "Zakir Enterprise continues to deliver on its commitment to bring disciplined civil execution, safety-audited sites, and on-time handover to every corner of Bangladesh's construction industry. This update reflects ongoing momentum across our active portfolio." },
+      {
+        type: "callout",
+        stats: [
+          { big: "100+", lbl: "Completed Projects" },
+          { big: "64", lbl: "Districts Covered" },
+          { big: "10 Yrs", lbl: "Proven Delivery" },
+        ],
+      },
       { type: "h2", text: "Why this matters" },
-      { type: "ul", items: [
-        "Full compliance documentation on every project",
-        "Transparent, milestone-linked progress reporting",
-        "Deployable project teams across all 64 districts",
-      ]},
+      { type: "p", text: "Each achievement, milestone, tender or CSR activity we publish in the Zakir Enterprise newsroom reflects real, measurable work - delivered by real teams at real sites. We publish openly because transparency is how the construction industry earns long-term trust." },
+      {
+        type: "ul",
+        items: [
+          "Full compliance documentation on every project",
+          "Transparent, milestone-linked progress reporting",
+          "Zero-compromise policy on worker safety and site HSE",
+          "Deployable project teams across all 64 districts",
+        ],
+      },
+      {
+        type: "quote",
+        text: "We measure our reputation in projects handed over on time, not in announcements. Every story here is backed by a site with real delivery.",
+        cite: "Zakir Enterprise - Project Desk",
+      },
+      { type: "h2", text: "What's next" },
+      { type: "p", text: "Our project desk continues to welcome new partnerships, tender collaborations and client briefs across all construction service lines. Visitors interested in a structured conversation are encouraged to reach out through our collaboration desk." },
     ],
     tags: ["Zakir Enterprise", "Bangladesh", "Construction"],
   };
@@ -423,10 +471,40 @@ function NdHero({ item }: { item: any }) {
     <section className="nd-hero" data-screen-label="01 Article Hero">
       <div className="nd-hero-bg" style={{ backgroundImage: `url(${item.image})` }}/>
       <div className="nd-hero-inner">
-        <div className="nc-crumbs"><a href="/">Home</a><span className="sep">/</span><a href="/news">News</a><span className="sep">/</span><span className="current">{item.category}</span></div>
-        <div className="nd-header-meta" style={{ marginTop: 24 }}><span className="nd-pill">{item.category}</span><span className="nd-meta-item">{item.date}</span><span className="nd-meta-item">{item.readTime}</span></div>
+        <div className="nc-crumbs">
+          <a href="/">Home</a>
+          <span className="sep">/</span>
+          <a href="/news">News</a>
+          <span className="sep">/</span>
+          <span className="current">{item.category}</span>
+        </div>
+        <div className="nd-header-meta" style={{ marginTop: 24 }}>
+          <span className="nd-pill">{item.category}</span>
+          <span className="nd-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
+              <rect x="3" y="5" width="18" height="16" rx="1" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+              <line x1="8" y1="3" x2="8" y2="7" />
+              <line x1="16" y1="3" x2="16" y2="7" />
+            </svg>
+            {item.date}
+          </span>
+          <span className="nd-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
+              <circle cx="12" cy="12" r="9" />
+              <polyline points="12,7 12,12 16,14" />
+            </svg>
+            {item.readTime}
+          </span>
+        </div>
         <h1>{item.title}</h1>
-        <div className="nd-author"><div className="nd-author-avatar">ZE</div><div className="nd-author-info"><div className="name">Editorial Desk</div><div className="role">Zakir Enterprise Newsroom</div></div></div>
+        <div className="nd-author">
+          <div className="nd-author-avatar">ZE</div>
+          <div className="nd-author-info">
+            <div className="name">Editorial Desk</div>
+            <div className="role">Zakir Enterprise Newsroom</div>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -459,7 +537,7 @@ function NdFeaturedImage({ item }: { item: any }) {
     <div className="nd-featured-img" data-screen-label="02 Hero Image">
       <div className="frame" style={{ backgroundImage: `url(${item.image})` }} />
       <div className="container">
-        <div className="nd-featured-caption">Photo · On-site coverage from this announcement.</div>
+        <div className="nd-featured-caption">Photo · On-site coverage from the {item.category.toLowerCase()} announcement.</div>
       </div>
     </div>
   );
@@ -479,8 +557,39 @@ function NdArticleBody({ item, body }: { item: any; body: any }) {
 
   const renderSection = (s: any, idx: number) => {
     if (s.type === "h2") return <h2 key={idx}>{s.text}</h2>;
+    if (s.type === "h3") return <h3 key={idx}>{s.text}</h3>;
     if (s.type === "p") return <p key={idx}>{s.text}</p>;
     if (s.type === "ul") return <ul key={idx}>{s.items.map((it: string, i: number) => <li key={i}>{it}</li>)}</ul>;
+    if (s.type === "quote") {
+      return (
+        <div key={idx} className="nd-quote">
+          <blockquote>
+            {s.text}
+            <cite>{s.cite}</cite>
+          </blockquote>
+        </div>
+      );
+    }
+    if (s.type === "callout") {
+      return (
+        <div key={idx} className="nd-callout">
+          {s.stats.map((st: { big: string; lbl: string }, i: number) => (
+            <div key={i} className="stat">
+              <div className="big">{st.big}</div>
+              <div className="lbl">{st.lbl}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (s.type === "image") {
+      return (
+        <div key={idx} className="nd-inline-img">
+          <div className="frame" style={{ backgroundImage: `url(${s.src})` }} />
+          {s.cap ? <div className="cap">{s.cap}</div> : null}
+        </div>
+      );
+    }
     return null;
   };
 

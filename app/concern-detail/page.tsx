@@ -1,13 +1,5 @@
-import { Nav } from "@/src/components/nav";
-import { Footer } from "@/src/components/footer";
-import { ConcernDetailPageContent } from "@/src/components/concern-detail-page-content";
+import { redirect } from "next/navigation";
 
 export default function ConcernDetailPage() {
-  return (
-    <>
-      <Nav />
-      <ConcernDetailPageContent />
-      <Footer />
-    </>
-  );
+  redirect("/concern-detail/zakir-enterprise");
 }
