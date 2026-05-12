@@ -82,9 +82,9 @@ const SERVICE_SEEDS: ServiceSeed[] = [
     title: "Heavy Civil Infrastructure Development",
     icon: "building",
     subtitle:
-      "Large-scale infrastructure delivery across transport, utility and public works with disciplined engineering and phased execution.",
+      "From highway corridors and river crossings to large-scale earthworks and national infrastructure projects — executed nationwide with engineering precision, safety compliance and on-time delivery.",
     heroImage:
-      "https://res.cloudinary.com/dk4csiouq/image/upload/v1777271736/Central_Mosque-cumilla_cant_6_ksfjir.jpg",
+      "https://res.cloudinary.com/dk4csiouq/image/upload/v1777715088/1._Heavy_Civil_Infrastructure_Development_Hero_project_jqyazu.png",
     machineImage:
       "https://res.cloudinary.com/dk4csiouq/image/upload/v1777715084/1._Heavy_Civil_Infrastructure_Development_execution_cvygyc.png",
   },
@@ -347,7 +347,7 @@ function buildService(seed: ServiceSeed, index: number, total: number): ServiceR
     machineImage: seed.machineImage,
     ctaImage: CTA_IMAGE,
     meta: [
-      { k: "Service Category", v: "Construction & Engineering" },
+      { k: "Service Category", v: "Infrastructure" },
       { k: "Execution Model", v: "End-to-End Delivery" },
       { k: "Delivery Reach", v: "All 64 districts" },
       { k: "Response Timeline", v: "Within 2 working days" },
