@@ -40,11 +40,11 @@ export const IMG = {
   ctaBanner:
     "https://images.unsplash.com/photo-1590644875981-3b4dbbd8b8ac?w=2000&q=80&auto=format&fit=crop",
   insight1:
-    "https://images.unsplash.com/photo-1587582140428-8f3bc86c4a63?w=800&q=80&auto=format&fit=crop",
+    "https://res.cloudinary.com/dk4csiouq/image/upload/v1778498474/Home_insight_12_1_cfizkp.jpg",
   insight2:
     "https://images.unsplash.com/photo-1521618755572-156ae0cdd74d?w=800&q=80&auto=format&fit=crop",
   insight3:
-    "https://images.unsplash.com/photo-1590644776933-e05027243a9d?w=800&q=80&auto=format&fit=crop",
+    "https://res.cloudinary.com/dk4csiouq/image/upload/v1778498492/Home_insight_12_2_xc1unn.jpg",
   insight4:
     "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&auto=format&fit=crop",
 };
