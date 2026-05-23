@@ -196,7 +196,7 @@ export function CertificationsPageContent() {
   return (
     <>
       <section className="ct-hero">
-        <div className="ct-hero-bg" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=2000&q=80&auto=format&fit=crop)" }} />
+        <div className="ct-hero-bg" style={{ backgroundImage: "url(https://res.cloudinary.com/dk4csiouq/image/upload/v1778566967/Credentials_HERO_ln0rym.jpg)" }} />
         <div className="container ct-hero-inner">
           <div className="bg-crumbs" style={{ marginBottom: 28 }}>
             <Link href="/">Home</Link>

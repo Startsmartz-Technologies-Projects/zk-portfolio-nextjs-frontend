@@ -4,7 +4,7 @@ import * as React from "react";
 import { Arrow, ArrowUpRight, SvcIcon } from "./site-ui";
 
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=2200&q=80&auto=format&fit=crop";
+  "https://res.cloudinary.com/dk4csiouq/image/upload/v1778497992/Collobarote_Hero_fgpdk5.jpg";
 
 const INTENT_ITEMS = [
   { id: "quote", icon: "building", title: "Let's Collaborate", description: "Priced scope for a defined construction brief." },

@@ -6,7 +6,7 @@ import { Arrow as AA, ArrowUpRight as AURA, SvcIcon as SIcoA } from "./site-ui";
 // About page sections
 
 const ABOUT_IMAGES = {
-  hero: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=80&auto=format&fit=crop",
+  hero: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567241/About_us_hero_rtmq5o.jpg",
   story1:
     "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=900&q=80&auto=format&fit=crop",
   story2:
@@ -15,11 +15,11 @@ const ABOUT_IMAGES = {
     "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=80&auto=format&fit=crop",
   leader:
     "https://s3.ap-south-1.amazonaws.com/emr.buckett/WhatsApp%20Image%202025-10-18%20at%209.50.02%20AM.jpeg",
-  c1: "https://images.unsplash.com/photo-1565008576549-57569a49371c?w=900&q=80&auto=format&fit=crop",
-  c2: "https://images.unsplash.com/photo-1590856029826-c7a73142bbf1?w=900&q=80&auto=format&fit=crop",
+  c1: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567362/About_Us_Our_team1_mlqkeb.jpg",
+  c2: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567361/About_Us_our_team_2_qxqpxo.jpg",
   c3: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=900&q=80&auto=format&fit=crop",
-  t1: "https://res.cloudinary.com/dk4csiouq/image/upload/v1776938526/MdZakir_novdeb.jpg",
-  t2: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80&auto=format&fit=crop",
+  t1: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567362/About_Us_Our_team1_mlqkeb.jpg",
+  t2: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567361/About_Us_our_team_2_qxqpxo.jpg",
   t3: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80&auto=format&fit=crop",
   t4: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&auto=format&fit=crop",
   t5: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80&auto=format&fit=crop",

@@ -247,7 +247,7 @@ function Star({ size = 12 }) {
 function NcHero() {
   return (
     <section className="nc-hero" data-screen-label="01 News Hero">
-      <div className="nc-hero-bg" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=2000&q=80&auto=format&fit=crop)" }}/>
+      <div className="nc-hero-bg" style={{ backgroundImage: "url(https://res.cloudinary.com/dk4csiouq/image/upload/v1778498102/News_Corner_hero_tya9ru.jpg)" }}/>
       <div className="container nc-hero-inner">
         <div className="nc-crumbs">
           <a href="/">Home</a>
