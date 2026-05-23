@@ -6,7 +6,7 @@ import { Arrow as AA, ArrowUpRight as AURA, SvcIcon as SIcoA } from "./site-ui";
 // About page sections
 
 const ABOUT_IMAGES = {
-  hero: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567241/About_us_hero_rtmq5o.jpg",
+  hero: "https://res.cloudinary.com/dk4csiouq/image/upload/v1779519653/WhatsApp_Image_2026-05-23_at_1.00.00_PM_q7uvum.jpg",
   story1:
     "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=900&q=80&auto=format&fit=crop",
   story2:
@@ -18,10 +18,10 @@ const ABOUT_IMAGES = {
   c1: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567362/About_Us_Our_team1_mlqkeb.jpg",
   c2: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567361/About_Us_our_team_2_qxqpxo.jpg",
   c3: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=900&q=80&auto=format&fit=crop",
-  t1: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567362/About_Us_Our_team1_mlqkeb.jpg",
-  t2: "https://res.cloudinary.com/dk4csiouq/image/upload/v1778567361/About_Us_our_team_2_qxqpxo.jpg",
-  t3: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80&auto=format&fit=crop",
-  t4: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80&auto=format&fit=crop",
+  t1: "https://res.cloudinary.com/dk4csiouq/image/upload/v1779520209/WhatsApp_Image_2026-05-23_at_1.06.30_PM_1_hhwmxx.jpg",
+  t2: "https://res.cloudinary.com/dk4csiouq/image/upload/v1779520213/WhatsApp_Image_2026-05-23_at_1.08.25_PM_1_v1cp5y.jpg",
+  t3: "https://res.cloudinary.com/dk4csiouq/image/upload/v1779520216/WhatsApp_Image_2026-05-23_at_1.08.25_PM_lb9v7w.jpg",
+  t4: "https://res.cloudinary.com/dk4csiouq/image/upload/v1779526416/Engenieer_Toufiq_Bhai_abmqbh.jpg",
   t5: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80&auto=format&fit=crop",
 };
 
@@ -152,24 +152,24 @@ export function AboutPageContent() {
       bio: "25+ years in civil works and commercial construction.",
       img: ABOUT_IMAGES.t1,
     },
-    // {
-    //   name: "Eng. Arif Rahman",
-    //   role: "Chief Engineer",
-    //   bio: "Structural engineering lead across all major builds.",
-    //   img: ABOUT_IMAGES.t2,
-    // },
-    // {
-    //   name: "Tanvir Ahmed",
-    //   role: "Head of Operations",
-    //   bio: "Procurement, scheduling and multi-site delivery.",
-    //   img: ABOUT_IMAGES.t3,
-    // },
-    // {
-    //   name: "Nazmul Hasan",
-    //   role: "Finance Director",
-    //   bio: "Budgeting, cost control and financial governance.",
-    //   img: ABOUT_IMAGES.t4,
-    // },
+    {
+      name: "LT COL RTD Abu Bashir ",
+      role: "Chief Executive Officer",
+      bio: "Structural engineering lead across all major builds.",
+      img: ABOUT_IMAGES.t2,
+    },
+    {
+      name: "Abu Sifat",
+      role: "Executive Director ",
+      bio: "Procurement, scheduling and multi-site delivery.",
+      img: ABOUT_IMAGES.t3,
+    },
+    {
+      name: "Engenieer Toufiq  ",
+      role: "Architect",
+      bio: "Architectural design and project planning lead.",
+      img: ABOUT_IMAGES.t4,
+    },
     // {
     //   name: "Eng. Salma Khatun",
     //   role: "Project Director",
@@ -691,10 +691,10 @@ export function AboutPageContent() {
       </section>
 
       {/* 10. Culture */}
-      <section className="culture-section" data-screen-label="10 Culture">
+      {/* <section className="culture-section" data-screen-label="10 Culture">
         <div className="container">
-          <div className="culture-grid">
-            <div className="culture-copy">
+          <div className="culture-grid"> */}
+            {/* <div className="culture-copy">
               <span className="microlabel">OUR TEAM</span>
               <h2>Driven by Expertise and Commitment</h2>
               <p>
@@ -717,8 +717,8 @@ export function AboutPageContent() {
                   </li>
                 ))}
               </ul>
-            </div>
-            <div className="culture-collage">
+            </div> */}
+            {/* <div className="culture-collage">
               <div
                 className="cell wide"
                 style={{ backgroundImage: `url(${ABOUT_IMAGES.c1})` }}
@@ -731,10 +731,10 @@ export function AboutPageContent() {
                 className="cell"
                 style={{ backgroundImage: `url(${ABOUT_IMAGES.c3})` }}
               />
-            </div>
-          </div>
+            </div> */}
+          {/* </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 11. Trust / clients */}
       <section className="trust-section" data-screen-label="11 Clients">

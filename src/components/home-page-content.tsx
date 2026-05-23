@@ -17,8 +17,8 @@ export function HomePageContent() {
       <TrustedBy />
       <Certifications />
       <Testimonials />
-      <Insights />
-      <News />
+      {/* <Insights /> */}
+      {/* <News /> */}
       <CTABanner />
     </>
   );
