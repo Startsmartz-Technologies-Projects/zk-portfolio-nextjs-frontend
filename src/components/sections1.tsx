@@ -51,6 +51,7 @@ export const IMG = {
 
 export function Nav({ scrolled }) {
   const pathname = usePathname();
+  const [open, setOpen] = React.useState(false);
 
   const items = [
     { label: "Home", href: "/" },
@@ -63,10 +64,24 @@ export function Nav({ scrolled }) {
     // { label: "Contact",        href: "/lets-collaborate" },
   ];
   const homeFile = "/";
+
+  React.useEffect(() => {
+    if (typeof document === "undefined") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = open ? "hidden" : prev || "";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  React.useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
-    <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
+    <nav className={`nav ${scrolled ? "scrolled" : ""} ${open ? "open" : ""}`}>
       <div className="nav-inner">
-        <Link href={homeFile} className="nav-logo">
+        <Link href={homeFile} className="nav-logo" onClick={() => setOpen(false)}>
           <span className=" h-10 bg-contain">
             <img
               src={LOGO_IMAGE_URL}
@@ -74,12 +89,8 @@ export function Nav({ scrolled }) {
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </span>
-          {/* <span className="title-stack">
-            <span>ZAKIR ENTERPRISE</span>
-            <span className="sub">Construction - Infrastructure - Bangladesh</span>
-          </span> */}
         </Link>
-        <ul className="nav-menu">
+        <ul className={`nav-menu ${open ? "open" : ""}`}>
           {items.map((it) => {
             const active =
               it.href === "/"
@@ -88,21 +99,47 @@ export function Nav({ scrolled }) {
 
             return (
               <li key={it.label}>
-                <Link href={it.href} className={active ? "active" : ""}>
+                <Link
+                  href={it.href}
+                  className={active ? "active" : ""}
+                  onClick={() => setOpen(false)}
+                >
                   {it.label}
                 </Link>
               </li>
             );
           })}
+          <li className="nav-menu-cta">
+            <Link
+              href="/lets-collaborate"
+              className="btn btn-primary"
+              onClick={() => setOpen(false)}
+            >
+              Let's Collaborate <Arrow />
+            </Link>
+          </li>
         </ul>
         <div className="nav-cta">
           <div className="nav-phone">
             <span>Call us</span>
             <strong>+8801791026074</strong>
           </div>
-          <Link href="/lets-collaborate" className="btn btn-primary">
+          <Link href="/lets-collaborate" className="btn btn-primary nav-cta-btn">
             Let's Collaborate <Arrow />
           </Link>
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <span className={`nav-toggle-bars ${open ? "is-open" : ""}`}>
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
         </div>
       </div>
     </nav>
