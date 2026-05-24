@@ -82,12 +82,8 @@ export function Nav({ scrolled }) {
     <nav className={`nav ${scrolled ? "scrolled" : ""} ${open ? "open" : ""}`}>
       <div className="nav-inner">
         <Link href={homeFile} className="nav-logo" onClick={() => setOpen(false)}>
-          <span className=" h-10 bg-contain">
-            <img
-              src={LOGO_IMAGE_URL}
-              alt="Zakir Enterprise Logo"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+          <span className="nav-logo-img">
+            <img src={LOGO_IMAGE_URL} alt="Zakir Enterprise Logo" />
           </span>
         </Link>
         <ul className={`nav-menu ${open ? "open" : ""}`}>

@@ -808,7 +808,8 @@ body.certifications-page .microlabel::before { background: var(--lime2-dark); }
   .ct-hero-meta .m { padding-right: 24px; margin-right: 24px; }
 }
 @media (max-width: 680px) {
-  .ct-hero { padding: 170px 0 90px; }
+  .ct-hero { padding: 120px 0 64px; }
+  .ct-hero-inner { padding-left: 20px; padding-right: 20px; }
   .ct-hero-meta .m { flex: 1 1 50%; padding: 10px 14px 10px 0; margin: 0; border-right: none; }
   .ct-grid { grid-template-columns: 1fr; }
   .ct-modal-meta { grid-template-columns: 1fr; }

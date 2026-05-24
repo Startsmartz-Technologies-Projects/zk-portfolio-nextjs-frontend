@@ -180,12 +180,8 @@ export function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <Link href="/" className="nav-logo">
-              <span style={{ display: "inline-block", height: 48 }}>
-                <img
-                  src={footerLogo}
-                  alt="Zakir Enterprise Logo"
-                  style={{ height: "100%", width: "auto", objectFit: "contain" }}
-                />
+              <span className="nav-logo-img" style={{ height: 48, maxWidth: "100%" }}>
+                <img src={footerLogo} alt="Zakir Enterprise Logo" />
               </span>
             </Link>
             <p>A Bangladesh-based construction firm delivering government, commercial and private works with disciplined execution and dependable project management.</p>

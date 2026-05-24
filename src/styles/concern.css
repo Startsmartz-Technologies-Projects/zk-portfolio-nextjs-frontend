@@ -846,7 +846,8 @@ body.concern-page .microlabel::before { background: var(--lime2-dark); }
   .cd-hero-meta .m { padding-right: 24px; margin-right: 24px; }
 }
 @media (max-width: 680px) {
-  .cd-hero { padding: 170px 0 90px; }
+  .cd-hero { padding: 120px 0 64px; }
+  .cd-hero-inner { padding-left: 20px; padding-right: 20px; }
   .cd-hero-meta .m { flex: 1 1 50%; padding: 10px 14px 10px 0; margin: 0; border-right: none; }
   .cd-facts-grid, .cd-services-grid, .cd-projects-grid, .cd-related-grid { grid-template-columns: 1fr; }
   .cd-process-track { grid-template-columns: 1fr; }
