@@ -64,13 +64,13 @@ export function About() {
               </Link>
               {/* <Link href="/about" className="btn btn-ghost">Download Company Profile <AUR/></Link> */}
             </div>
-            <div className="sig">
-              <div className="sig-mark">ZH</div>
+            {/* <div className="sig">
+              <div className="sig-mark">AZ</div>
               <div>
-                <div className="sig-name">Md. Zakir Hossain</div>
+                <div className="sig-name">Abu Zakir</div>
                 <div className="sig-role">Founder & Managing Director</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

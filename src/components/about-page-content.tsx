@@ -146,30 +146,30 @@ export function AboutPageContent() {
   ];
 
   const team = [
-    {
-      name: "Abu Zakir",
-      role: "Managing Director",
-      bio: "25+ years in civil works and commercial construction.",
-      img: ABOUT_IMAGES.t1,
-    },
-    {
-      name: "LT COL RTD Abu Bashir ",
-      role: "Chief Executive Officer",
-      bio: "Structural engineering lead across all major builds.",
-      img: ABOUT_IMAGES.t2,
-    },
-    {
-      name: "Abu Sifat",
-      role: "Executive Director ",
-      bio: "Procurement, scheduling and multi-site delivery.",
-      img: ABOUT_IMAGES.t3,
-    },
-    {
-      name: "Engenieer Toufiq  ",
-      role: "Architect",
-      bio: "Architectural design and project planning lead.",
-      img: ABOUT_IMAGES.t4,
-    },
+    // {
+    //   name: "Abu Zakir",
+    //   role: "Managing Director",
+    //   bio: "25+ years in civil works and commercial construction.",
+    //   img: ABOUT_IMAGES.t1,
+    // },
+    // {
+    //   name: "LT COL RTD Abu Bashir ",
+    //   role: "Chief Executive Officer",
+    //   bio: "Structural engineering lead across all major builds.",
+    //   img: ABOUT_IMAGES.t2,
+    // },
+    // {
+    //   name: "Abu Sifat",
+    //   role: "Executive Director ",
+    //   bio: "Procurement, scheduling and multi-site delivery.",
+    //   img: ABOUT_IMAGES.t3,
+    // },
+    // {
+    //   name: "Engenieer Toufiq  ",
+    //   role: "Architect",
+    //   bio: "Architectural design and project planning lead.",
+    //   img: ABOUT_IMAGES.t4,
+    // },
     // {
     //   name: "Eng. Salma Khatun",
     //   role: "Project Director",
@@ -610,7 +610,7 @@ export function AboutPageContent() {
       </section>
 
       {/* 7. Leadership team */}
-      <section className="team-section" data-screen-label="07 Team">
+      {/* <section className="team-section" data-screen-label="07 Team">
         <div className="container">
           <div className="section-head">
             <div>
@@ -640,7 +640,7 @@ export function AboutPageContent() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 8. Why choose us */}
       <section className="why-section" data-screen-label="08 Why">

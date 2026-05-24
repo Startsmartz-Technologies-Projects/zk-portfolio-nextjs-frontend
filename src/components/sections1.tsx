@@ -59,8 +59,8 @@ export function Nav({ scrolled }) {
     { label: "Services", href: "/services" },
     { label: "Projects", href: "/projects" },
     { label: "Certifications", href: "/certifications" },
-    { label: "News", href: "/news" },
-    { label: "Blogs", href: "/blogs" },
+    // { label: "News", href: "/news" },
+    // { label: "Blogs", href: "/blogs" },
     // { label: "Contact",        href: "/lets-collaborate" },
   ];
   const homeFile = "/";
