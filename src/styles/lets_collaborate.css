@@ -53,9 +53,10 @@ body.lc-page footer.footer { background: var(--forest); }
   font-size: clamp(48px, 6vw, 82px);
   font-weight: 900;
   letter-spacing: -0.02em;
-  max-width: 14ch;
-  line-height: 1;
+  max-width: min(100%, 18ch);
+  line-height: 1.08;
   margin: 24px 0 28px;
+  text-wrap: pretty;
 }
 .lc-hero h1 .accent { color: var(--lime2); }
 .lc-hero p.lc-sub {
@@ -110,10 +111,11 @@ body.lc-page footer.footer { background: var(--forest); }
 }
 .trusthook h2 {
   font-size: clamp(30px, 3.2vw, 44px);
-  max-width: 22ch;
+  max-width: min(100%, 28ch);
   margin: 0 auto 40px;
   color: var(--forest);
   line-height: 1.2;
+  text-wrap: pretty;
 }
 .trust-chips {
   display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;
@@ -396,7 +398,8 @@ body.lc-page footer.footer { background: var(--forest); }
   color: var(--text-gray);
   font-size: 12px;
   margin-left: auto;
-  max-width: 24ch;
+  max-width: min(100%, 36ch);
+  line-height: 1.5;
   line-height: 1.5;
 }
 
@@ -547,10 +550,11 @@ body.lc-page .microlabel.on-dark::before { background: var(--lime2); }
 .final-cta h2 {
   color: #fff;
   font-size: clamp(38px, 4.4vw, 62px);
-  max-width: 14ch;
-  line-height: 1;
+  max-width: min(100%, 18ch);
+  line-height: 1.08;
   margin-bottom: 20px;
   font-weight: 900;
+  text-wrap: pretty;
 }
 .final-cta h2 .accent { color: var(--lime2); }
 .final-cta p {
@@ -589,7 +593,13 @@ body.lc-page .microlabel.on-dark::before { background: var(--lime2); }
   display: block; margin-bottom: 4px;
 }
 .fc-line .v {
-  color: #fff; font-family: var(--display); font-weight: 700; font-size: 16px;
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 .fc-line .chev { color: rgba(255,255,255,0.5); }
 .fc-line:hover .chev { color: var(--lime2); }
@@ -622,4 +632,17 @@ body.lc-page .microlabel.on-dark::before { background: var(--lime2); }
 @media (max-width: 720px) {
   .intent-grid { grid-template-columns: 1fr; }
   .lc-form { padding: 30px 22px; }
+  .lc-hero h1,
+  .final-cta h2,
+  .trusthook h2 { max-width: 100%; }
+  .submit-note { margin-left: 0; max-width: 100%; }
+  .fc-line {
+    grid-template-columns: 48px 1fr auto;
+    gap: 12px;
+    padding: 16px;
+  }
+  .side-card.quick a {
+    letter-spacing: 0.06em;
+    font-size: 12px;
+  }
 }

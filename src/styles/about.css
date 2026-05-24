@@ -139,20 +139,38 @@
   border-bottom: 1px solid var(--line);
 }
 .story-stats .item {
-  padding: 20px 18px 20px 0;
+  padding: 24px 16px;
   border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
 }
-.story-stats .item:last-child { border-right: none; padding-right: 0; }
+.story-stats .item:last-child { border-right: none; }
 .story-stats .n {
-  font-family: var(--display); font-weight: 900;
-  font-size: 32px; color: var(--black); line-height: 1;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 32px;
+  color: var(--black);
+  line-height: 1;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  width: 100%;
 }
 .story-stats .n .plus { color: var(--lime); }
 .story-stats .lbl {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--body); margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--body);
+  margin-top: 0;
+  line-height: 1.4;
+  max-width: 14ch;
 }
 
 /* ——— Expertise snapshot ——— */
@@ -731,7 +749,13 @@
   .about-hero { padding: 130px 0 72px; }
   .ae-grid, .why-grid, .team-grid { grid-template-columns: 1fr 1fr; }
   .story-stats { grid-template-columns: 1fr 1fr; gap: 0; }
-  .story-stats .item:nth-child(2) { border-right: none; }
+  .story-stats .item {
+    padding: 22px 14px;
+    align-items: center;
+    text-align: center;
+  }
+  .story-stats .item:nth-child(2n) { border-right: none; }
+  .story-stats .item:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .cd-process-track { grid-template-columns: 1fr; }
   .culture-bullets { grid-template-columns: 1fr; }
   .trust-logos { grid-template-columns: 1fr 1fr; }
@@ -747,7 +771,14 @@
   .ach-cell { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.15); }
   .ach-cell:last-child { border-bottom: none; }
   .story-stats { grid-template-columns: 1fr; }
-  .story-stats .item { border-right: none; border-bottom: 1px solid var(--line); padding-right: 0; }
+  .story-stats .item {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: 20px 16px;
+    align-items: center;
+    text-align: center;
+  }
+  .story-stats .item:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .story-stats .item:last-child { border-bottom: none; }
 }
 

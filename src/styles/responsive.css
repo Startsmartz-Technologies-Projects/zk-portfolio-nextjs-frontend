@@ -26,6 +26,148 @@ table {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ─── Typography: keep words intact on all screen sizes ─── */
+h1,
+h2,
+h3,
+h4,
+h5,
+p,
+li {
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
+}
+
+/* Uppercase / tracked labels — avoid splitting mid-word */
+.microlabel,
+.btn,
+.stat .stat-label,
+.stat .stat-sub,
+.trust-chip,
+.trust-logo span,
+.trust-sectors .ts-chip,
+.field label,
+.side-card h5,
+.side-card.quick a,
+.lc-hero-rightcard h5,
+.lc-hero-rightcard .k,
+.fc-line .k,
+.map-info h5,
+.hero-bottom,
+.nav-phone,
+.nav-phone strong,
+.filter-select,
+.chip,
+.active-chip,
+.submit-note,
+.hero-sideticker,
+.news-date,
+.featured-badge,
+.proj-card .pc-cat,
+.proj-card .pc-footer,
+.ct-hero-meta .k,
+.nc-hero-meta .k,
+.cd-hero-meta .k,
+.svc-hero-meta .k,
+.intent-card h4,
+.bg-chip {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+/* Long emails, phones, URLs — break only when necessary */
+.side-card li,
+.fc-line .v,
+.map-info p,
+.footer-col a,
+.nav-phone strong,
+.submit-note,
+.field input[type="email"],
+a[href^="mailto:"],
+a[href^="tel:"] {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Headings: relax tight `ch` widths so lines don’t fracture on wide monitors */
+@media (max-width: 1023px) {
+  :is(
+    .hero h1,
+    .about-hero h1,
+    .inner-hero h1,
+    .lc-hero h1,
+    .about-copy h2,
+    .section-head h2,
+    .story-copy h2,
+    .leader-copy h2,
+    .culture-copy h2,
+    .trust-cta h2,
+    .final-cta h2,
+    .cta-inner h2,
+    .trusthook h2,
+    .svc-hero h1,
+    .nc-hero h1,
+    .bg-hero h1,
+    .ct-hero h1,
+    .cd-hero h1,
+    .bd-hero h1
+  ) {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  :is(
+    .hero h1,
+    .about-hero h1,
+    .inner-hero h1,
+    .lc-hero h1
+  ) {
+    max-width: min(100%, 20ch);
+  }
+
+  :is(
+    .section-head h2,
+    .about-copy h2,
+    .story-copy h2,
+    .final-cta h2,
+    .trust-cta h2,
+    .cta-inner h2
+  ) {
+    max-width: min(100%, 18ch);
+  }
+}
+
+@media (min-width: 1440px) {
+  :is(
+    .hero h1,
+    .about-hero h1,
+    .inner-hero h1,
+    .lc-hero h1
+  ) {
+    max-width: min(100%, 22ch);
+  }
+}
+
+/* Buttons: allow wrap in tight layouts */
+@media (max-width: 1280px) {
+  .btn {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
+  }
+
+  .submit-row .btn,
+  .hero-cta-row .btn,
+  .final-cta-btns .btn,
+  .about-hero-buttons .btn,
+  .trust-cta-buttons .btn {
+    justify-content: center;
+  }
+}
+
 /* ─── Nav: switch to drawer before horizontal overflow ─── */
 @media (max-width: 1200px) {
   .nav-inner {
@@ -258,7 +400,9 @@ table {
   .story-stats .item {
     border-right: none;
     border-bottom: 1px solid var(--line);
-    padding-right: 0;
+    padding: 20px 16px;
+    align-items: center;
+    text-align: center;
   }
 
   .story-stats .item:last-child {

@@ -6,6 +6,9 @@ import { Arrow, ArrowUpRight, SvcIcon } from "./site-ui";
 const HERO_IMAGE =
   "https://res.cloudinary.com/dk4csiouq/image/upload/v1778497992/Collobarote_Hero_fgpdk5.jpg";
 
+const WHATSAPP_URL = "https://wa.me/8801791026074";
+const OPEN_IN_NEW_TAB = { target: "_blank", rel: "noopener noreferrer" } as const;
+
 const INTENT_ITEMS = [
   { id: "quote", icon: "building", title: "Let's Collaborate", description: "Priced scope for a defined construction brief." },
   { id: "new", icon: "concrete", title: "New Construction Project", description: "Start a fresh development from concept to delivery." },
@@ -236,7 +239,7 @@ export function LetsCollaboratePageContent() {
 
               <div className="side-card quick">
                 <h5>Quick Actions</h5>
-                <a href="https://wa.me/01791026074">
+                <a href={WHATSAPP_URL} {...OPEN_IN_NEW_TAB}>
                   <span>WhatsApp Team</span>
                   <Arrow />
                 </a>
@@ -419,7 +422,7 @@ export function LetsCollaboratePageContent() {
                     <button type="submit" className="btn btn-primary">
                       Submit Collaboration Request <Arrow />
                     </button>
-                    <a href="https://wa.me/8801700000000" className="btn btn-outline-dark">
+                    <a href={WHATSAPP_URL} className="btn btn-outline-dark" {...OPEN_IN_NEW_TAB}>
                       Talk on WhatsApp <ArrowUpRight />
                     </a>
                     <div className="submit-note">By submitting, you agree to be contacted by the Zakir Enterprise project team.</div>
@@ -518,7 +521,7 @@ export function LetsCollaboratePageContent() {
                 <a href="tel:+8801791026074" className="btn btn-primary">
                   Call Now <Arrow />
                 </a>
-                <a href="https://wa.me/8801791026074" className="btn btn-outline-light">
+                <a href={WHATSAPP_URL} className="btn btn-outline-light" {...OPEN_IN_NEW_TAB}>
                   WhatsApp Us
                 </a>
                 {/* <a href="#form" className="btn btn-outline-light">
@@ -543,7 +546,7 @@ export function LetsCollaboratePageContent() {
                 </span>
               </a>
 
-              <a href="https://wa.me/8801791026074" className="fc-line">
+              <a href={WHATSAPP_URL} className="fc-line" {...OPEN_IN_NEW_TAB}>
                 <div className="ic">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20.5 3.5A11.5 11.5 0 0 0 2.1 17.2L1 22l4.9-1.1A11.5 11.5 0 1 0 20.5 3.5zm-8.4 17.5a9.5 9.5 0 0 1-4.8-1.3l-.3-.2-2.9.7.6-2.8-.2-.3a9.5 9.5 0 1 1 7.6 3.9zm5.2-6.6c-.3-.1-1.8-.8-2-1s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a7.8 7.8 0 0 1-2.3-1.4 8.7 8.7 0 0 1-1.6-2c-.1-.3 0-.4.1-.6l.4-.4.3-.5c.1-.2 0-.3 0-.5s-.6-1.4-.8-1.9-.4-.4-.6-.4h-.5c-.2 0-.5 0-.7.3a3 3 0 0 0-1 2.2 5.2 5.2 0 0 0 1 2.7c.2.3 1.6 2.5 3.9 3.5a13 13 0 0 0 1.3.5 3.1 3.1 0 0 0 1.4.1 2.4 2.4 0 0 0 1.5-1 1.9 1.9 0 0 0 .1-1c0-.2-.2-.2-.5-.4z" />
@@ -578,7 +581,12 @@ export function LetsCollaboratePageContent() {
         </div>
       </section>
 
-      <a href="https://wa.me/8801791026074" className="whatsapp-sticky" aria-label="Chat on WhatsApp">
+      <a
+        href={WHATSAPP_URL}
+        className="whatsapp-sticky"
+        aria-label="Chat on WhatsApp"
+        {...OPEN_IN_NEW_TAB}
+      >
         <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
           <path d="M20.5 3.5A11.5 11.5 0 0 0 2.1 17.2L1 22l4.9-1.1A11.5 11.5 0 1 0 20.5 3.5zm-8.4 17.5a9.5 9.5 0 0 1-4.8-1.3l-.3-.2-2.9.7.6-2.8-.2-.3a9.5 9.5 0 1 1 7.6 3.9z" />
         </svg>
