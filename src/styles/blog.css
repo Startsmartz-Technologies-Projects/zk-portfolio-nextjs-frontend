@@ -1346,7 +1346,8 @@ body.blog-page .microlabel::before { background: var(--lime2-dark); }
   .bd-final-cta-grid { grid-template-columns: 1fr; gap: 40px; }
 }
 @media (max-width: 680px) {
-  .bg-hero { padding: 170px 0 80px; }
+  .bg-hero { padding: 120px 0 64px; }
+  .bg-hero-inner { padding-left: 20px; padding-right: 20px; }
   .bg-grid { grid-template-columns: 1fr; }
   .bg-featured-body { padding: 32px 24px; }
   .bg-intro-stats { grid-template-columns: 1fr 1fr; }

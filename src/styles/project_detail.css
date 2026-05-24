@@ -359,8 +359,13 @@
 }
 @media (max-width: 720px) {
   .meta-strip-grid { grid-template-columns: 1fr 1fr; }
+  .meta-cell { min-width: 0; }
   .scope-grid, .highlights-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: 1fr; grid-auto-rows: 240px; }
   .gallery-feature { grid-column: span 1; grid-row: span 1; }
   .related-section .listing-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .meta-strip-grid { grid-template-columns: 1fr; }
+  .meta-cell { border-right: none !important; }
 }

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "../src/styles/styles.css";
 import "../src/styles/legacy_pages.css";
+import "../src/styles/responsive.css";
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "Zakir Enterprise",

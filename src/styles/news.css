@@ -1027,7 +1027,8 @@ body.news-page .microlabel::before { background: var(--lime2-dark); }
 }
 @media (max-width: 680px) {
   .nc-grid { grid-template-columns: 1fr; }
-  .nc-hero { padding: 170px 0 80px; }
+  .nc-hero { padding: 120px 0 64px; }
+  .nd-hero-inner { padding-left: 20px; padding-right: 20px; }
   .nc-hero-meta .m { flex: 1 1 50%; padding: 10px 16px 10px 0; margin: 0; border-right: none; }
   .nc-featured-body { padding: 32px 24px; }
   .nd-hero { padding: 150px 0 60px; }

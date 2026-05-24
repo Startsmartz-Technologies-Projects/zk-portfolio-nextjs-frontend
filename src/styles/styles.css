@@ -142,16 +142,32 @@ h1, h2, h3, h4, h5 {
   margin: 0 auto;
   gap: 24px;
   flex-wrap: nowrap;
-  white-space: nowrap;
 }
-.nav-inner > * { flex-shrink: 0; }
+.nav-inner > *:not(.nav-logo) { flex-shrink: 0; }
 .nav-logo {
-  display: flex; align-items: center; gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 1;
+  min-width: 0;
   font-family: var(--display);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: var(--black);
   font-size: 17px;
+}
+.nav-logo .nav-logo-img {
+  display: block;
+  height: 44px;
+  width: auto;
+  max-width: min(220px, 36vw);
+}
+.nav-logo .nav-logo-img img {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
 .nav-logo .mark {
   width: 38px; height: 38px;
@@ -1711,7 +1727,25 @@ footer.footer {
   }
   .nav-menu a::after { display: none; }
   .nav-menu a.active { color: var(--lime-dark); }
-  .nav-menu-cta { display: none; }
+  .nav-menu-cta {
+    display: list-item;
+    margin-top: 8px;
+    border-bottom: none;
+  }
+  .nav-menu-cta .btn {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+  .about-img .overlay-card {
+    right: 16px;
+    width: auto;
+    max-width: min(280px, calc(100% - 32px));
+  }
+  .certs-grid-one-row {
+    grid-template-columns: repeat(2, 1fr);
+    overflow-x: visible;
+  }
 }
 @media (max-width: 768px) {
   .container { padding: 0 20px; }
@@ -1723,7 +1757,7 @@ footer.footer {
 
   /* Nav */
   .nav-inner { padding: 12px 18px; gap: 12px; }
-  .nav-logo span.h-10 { height: 36px !important; }
+  .nav-logo .nav-logo-img { height: 36px; max-width: min(180px, 42vw); }
   .nav-menu { top: 64px; padding: 10px 20px 18px; }
 
   /* Hero */
@@ -1835,8 +1869,10 @@ footer.footer {
 
   /* Certifications */
   .certs-grid { grid-template-columns: 1fr; }
-  .certs-grid.certs-grid-one-row {
-    grid-template-columns: repeat(4, minmax(220px, 1fr));
+  .certs-grid.certs-grid-one-row,
+  .certs-grid-one-row {
+    grid-template-columns: 1fr;
+    overflow-x: visible;
     gap: 14px;
   }
   .cert { padding: 28px 22px; }
