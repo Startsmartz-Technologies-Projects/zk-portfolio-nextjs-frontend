@@ -39,3 +39,10 @@ export class NotFoundError extends AppError {
     super(404, 'NotFound', message)
   }
 }
+
+/** A business-policy violation, e.g. last-admin / self-action guards (HTTP 422, `PolicyViolation`). */
+export class PolicyViolationError extends AppError {
+  constructor(message: string, details: unknown[] = []) {
+    super(422, 'PolicyViolation', message, details)
+  }
+}
