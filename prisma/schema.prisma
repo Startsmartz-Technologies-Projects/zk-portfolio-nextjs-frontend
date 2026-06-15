@@ -51,6 +51,8 @@ model User {
   projectsUpdated        Project[]        @relation("ProjectUpdatedBy")
   servicesCreated        Service[]        @relation("ServiceCreatedBy")
   servicesUpdated        Service[]        @relation("ServiceUpdatedBy")
+  articlesCreated        Article[]        @relation("ArticleCreatedBy")
+  articlesUpdated        Article[]        @relation("ArticleUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -168,6 +170,8 @@ model MediaAsset {
   serviceMachines  Service[]            @relation("ServiceMachineImage")
   serviceCtas      Service[]            @relation("ServiceCtaImage")
   serviceOgImages  Service[]            @relation("ServiceSeoOgImage")
+  articleCovers    Article[]            @relation("ArticleCoverImage")
+  articleOgImages  Article[]            @relation("ArticleSeoOgImage")
   createdAt        DateTime             @default(now()) @map("created_at")
   updatedAt        DateTime             @updatedAt @map("updated_at")
   deletedAt        DateTime?            @map("deleted_at")
@@ -288,6 +292,7 @@ model TaxonomyTerm {
   isActive           Boolean   @default(true) @map("is_active")
   projectsInCategory Project[] @relation("ProjectCategory")
   projectsInLocation Project[] @relation("ProjectLocation")
+  articlesInCategory Article[] @relation("ArticleCategory")
 
   @@unique([taxonomyId, slug])
   @@index([taxonomyId])
@@ -692,4 +697,62 @@ model ServiceFaqItem {
 
   @@index([serviceId])
   @@map("service_faq_items")
+}
+
+// ── BLOG module (blog-be-1) ──────────────────────────────────────────────
+// Editorial articles (see docs/srs/blog.md §8). `Article` extends ContentBase +
+// embeds SeoMeta. Unlike Projects/Services the rich content is a single JSONB
+// `body` block document (lead split out as `body_lead`; §8.2) rather than child
+// tables — `img` blocks reference MediaAssets by id inside the JSON (so MEDIA's
+// delete-guard text-scans the body). `category` is a nullable FK to the SITE
+// blog-category vocabulary; `tags` are freeform. `article_date` (editorial) is
+// independent of `published_at` (workflow, BR-4). Related articles are auto-derived
+// (same category → recent), not stored. read_time is derived unless overridden.
+
+model Article {
+  id                 String        @id @default(uuid()) @db.Uuid
+  status             ContentStatus @default(draft)
+  publishedAt        DateTime?     @map("published_at")
+  legacyId           String?       @unique @map("legacy_id")
+  slug               String        @unique
+  title              String
+  excerpt            String?
+  coverImageId       String?       @map("cover_image") @db.Uuid
+  coverImage         MediaAsset?   @relation("ArticleCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  categoryId         String?       @map("category_id") @db.Uuid
+  category           TaxonomyTerm? @relation("ArticleCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  tags               String[]
+  authorName         String?       @map("author_name")
+  authorRole         String?       @map("author_role")
+  authorBio          String?       @map("author_bio")
+  articleDate        DateTime?     @map("article_date") @db.Date
+  readTimeMinutes    Int?          @map("read_time_minutes")
+  featured           Boolean       @default(false)
+  popularity         Int           @default(0)
+  bodyLead           String?       @map("body_lead")
+  body               Json?
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?       @map("seo_meta_title")
+  seoMetaDescription String?       @map("seo_meta_description")
+  seoCanonicalUrl    String?       @map("seo_canonical_url")
+  seoOgImageId       String?       @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?   @relation("ArticleSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?       @map("seo_og_title")
+  seoOgDescription   String?       @map("seo_og_description")
+  seoNoindex         Boolean       @default(false) @map("seo_noindex")
+  // Audit (ContentBase)
+  createdById        String?       @map("created_by") @db.Uuid
+  updatedById        String?       @map("updated_by") @db.Uuid
+  createdBy          User?         @relation("ArticleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?         @relation("ArticleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([featured])
+  @@index([articleDate])
+  @@index([deletedAt])
+  @@map("articles")
 }
