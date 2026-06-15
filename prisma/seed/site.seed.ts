@@ -47,7 +47,7 @@ const VOCABULARIES: { slug: string; label: string; isShared: boolean; terms: str
     isShared: false,
     terms: ['Building Construction', 'Road Works', 'Bridge Works', 'Private Residential', 'Government Projects', 'Commercial Works'],
   },
-  { slug: 'blog-category', label: 'Blog Category', isShared: false, terms: ['Construction', 'Roads', 'Bridge Works', 'Engineering'] },
+  { slug: 'blog-category', label: 'Blog Category', isShared: false, terms: ['Construction', 'Roads', 'Bridge Works', 'Engineering', 'Company News', 'Equipment'] },
   {
     slug: 'news-category',
     label: 'News Category',
