@@ -55,6 +55,8 @@ model User {
   articlesUpdated        Article[]        @relation("ArticleUpdatedBy")
   newsCreated            NewsStory[]      @relation("NewsStoryCreatedBy")
   newsUpdated            NewsStory[]      @relation("NewsStoryUpdatedBy")
+  certificationsCreated  Certification[]  @relation("CertificationCreatedBy")
+  certificationsUpdated  Certification[]  @relation("CertificationUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -146,40 +148,41 @@ enum MediaProvider {
 }
 
 model MediaAsset {
-  id               String               @id @default(uuid()) @db.Uuid
-  resourceType     ResourceType         @map("resource_type")
-  provider         MediaProvider        @default(cloudinary)
-  publicId         String               @map("public_id")
-  url              String
-  format           String
-  bytes            Int?
-  width            Int?
-  height           Int?
-  altText          String?              @map("alt_text")
-  title            String?
-  originalFilename String?              @map("original_filename")
-  tags             String[]
-  createdById      String?              @map("created_by") @db.Uuid
-  updatedById      String?              @map("updated_by") @db.Uuid
-  createdBy        User?                @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy        User?                @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  brandAssets      BrandAsset[]
-  seoSettings      SeoSettings[]
-  projectCovers    Project[]            @relation("ProjectCoverImage")
-  projectOgImages  Project[]            @relation("ProjectSeoOgImage")
-  projectGallery   ProjectGalleryItem[]
-  serviceHeroes    Service[]            @relation("ServiceHeroImage")
-  serviceMachines  Service[]            @relation("ServiceMachineImage")
-  serviceCtas      Service[]            @relation("ServiceCtaImage")
-  serviceOgImages  Service[]            @relation("ServiceSeoOgImage")
-  articleCovers    Article[]            @relation("ArticleCoverImage")
-  articleOgImages  Article[]            @relation("ArticleSeoOgImage")
-  newsCovers       NewsStory[]          @relation("NewsStoryCoverImage")
-  newsOgImages     NewsStory[]          @relation("NewsStorySeoOgImage")
-  newsGallery      NewsGalleryItem[]
-  createdAt        DateTime             @default(now()) @map("created_at")
-  updatedAt        DateTime             @updatedAt @map("updated_at")
-  deletedAt        DateTime?            @map("deleted_at")
+  id                String               @id @default(uuid()) @db.Uuid
+  resourceType      ResourceType         @map("resource_type")
+  provider          MediaProvider        @default(cloudinary)
+  publicId          String               @map("public_id")
+  url               String
+  format            String
+  bytes             Int?
+  width             Int?
+  height            Int?
+  altText           String?              @map("alt_text")
+  title             String?
+  originalFilename  String?              @map("original_filename")
+  tags              String[]
+  createdById       String?              @map("created_by") @db.Uuid
+  updatedById       String?              @map("updated_by") @db.Uuid
+  createdBy         User?                @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?                @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  brandAssets       BrandAsset[]
+  seoSettings       SeoSettings[]
+  projectCovers     Project[]            @relation("ProjectCoverImage")
+  projectOgImages   Project[]            @relation("ProjectSeoOgImage")
+  projectGallery    ProjectGalleryItem[]
+  serviceHeroes     Service[]            @relation("ServiceHeroImage")
+  serviceMachines   Service[]            @relation("ServiceMachineImage")
+  serviceCtas       Service[]            @relation("ServiceCtaImage")
+  serviceOgImages   Service[]            @relation("ServiceSeoOgImage")
+  articleCovers     Article[]            @relation("ArticleCoverImage")
+  articleOgImages   Article[]            @relation("ArticleSeoOgImage")
+  newsCovers        NewsStory[]          @relation("NewsStoryCoverImage")
+  newsOgImages      NewsStory[]          @relation("NewsStorySeoOgImage")
+  newsGallery       NewsGalleryItem[]
+  certificationDocs Certification[]      @relation("CertificationDocument")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  deletedAt         DateTime?            @map("deleted_at")
 
   @@index([resourceType])
   @@index([format])
@@ -288,17 +291,18 @@ model Taxonomy {
 }
 
 model TaxonomyTerm {
-  id                 String      @id @default(uuid()) @db.Uuid
-  taxonomyId         String      @map("taxonomy_id") @db.Uuid
-  taxonomy           Taxonomy    @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
+  id                 String          @id @default(uuid()) @db.Uuid
+  taxonomyId         String          @map("taxonomy_id") @db.Uuid
+  taxonomy           Taxonomy        @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
   slug               String
   label              String
-  position           Int         @default(0)
-  isActive           Boolean     @default(true) @map("is_active")
-  projectsInCategory Project[]   @relation("ProjectCategory")
-  projectsInLocation Project[]   @relation("ProjectLocation")
-  articlesInCategory Article[]   @relation("ArticleCategory")
-  newsInCategory     NewsStory[] @relation("NewsStoryCategory")
+  position           Int             @default(0)
+  isActive           Boolean         @default(true) @map("is_active")
+  projectsInCategory Project[]       @relation("ProjectCategory")
+  projectsInLocation Project[]       @relation("ProjectLocation")
+  articlesInCategory Article[]       @relation("ArticleCategory")
+  newsInCategory     NewsStory[]     @relation("NewsStoryCategory")
+  certsInCategory    Certification[] @relation("CertificationCategory")
 
   @@unique([taxonomyId, slug])
   @@index([taxonomyId])
@@ -827,4 +831,71 @@ model NewsGalleryItem {
   @@index([storyId])
   @@index([mediaId])
   @@map("news_gallery_items")
+}
+
+// ── CERTIFICATIONS module (certifications-be-1) ──────────────────────────
+// Credentials/licenses/work-experience records (see docs/srs/certifications.md §8).
+// `Certification` extends ContentBase but, uniquely, does NOT embed SeoMeta — there
+// is no per-record detail page or public URL (BR-8), so no sitemap/redirect wiring.
+// `status` is the ContentBase workflow; `cert_status` is the real-world standing
+// (CertStatus). `document` is an optional MediaAsset (scan/PDF). `legacy_ref` is the
+// non-unique legacy id (duplicates exist — BR-7), distinct from the generated unique
+// `slug`. A curated `show_on_home` subset carries the home-page seal fields + order.
+
+enum CertStatus {
+  Active
+  Completed
+  Expired
+  Renewed
+}
+
+enum CertTone {
+  paper
+  slate
+  cream
+}
+
+enum CertSealShape {
+  round
+  hex
+}
+
+model Certification {
+  id           String        @id @default(uuid()) @db.Uuid
+  status       ContentStatus @default(draft)
+  publishedAt  DateTime?     @map("published_at")
+  legacyRef    String?       @map("legacy_ref")
+  slug         String        @unique
+  title        String
+  authority    String?
+  number       String?
+  categoryId   String?       @map("category_id") @db.Uuid
+  category     TaxonomyTerm? @relation("CertificationCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  certStatus   CertStatus    @default(Active) @map("cert_status")
+  issuedDate   DateTime?     @map("issued_date") @db.Date
+  expiryDate   DateTime?     @map("expiry_date") @db.Date
+  description  String?
+  documentId   String?       @map("document") @db.Uuid
+  document     MediaAsset?   @relation("CertificationDocument", fields: [documentId], references: [id], onDelete: SetNull)
+  tone         CertTone      @default(paper)
+  sealShape    CertSealShape @default(round) @map("seal_shape")
+  showOnHome   Boolean       @default(false) @map("show_on_home")
+  sealLabel    String?       @map("seal_label")
+  sealId       String?       @map("seal_id")
+  sealValidity String?       @map("seal_validity")
+  sealOrder    Int?          @map("seal_order")
+  createdById  String?       @map("created_by") @db.Uuid
+  updatedById  String?       @map("updated_by") @db.Uuid
+  createdBy    User?         @relation("CertificationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?         @relation("CertificationUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([certStatus])
+  @@index([showOnHome, sealOrder])
+  @@index([deletedAt])
+  @@map("certifications")
 }
