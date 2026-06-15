@@ -79,6 +79,18 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   const certDocs = await db.certification.findMany({ where: { documentId: assetId, deletedAt: null }, select: { id: true, title: true } })
   for (const c of certDocs) refs.push({ module: 'certifications', record_id: c.id, title: c.title, role: 'document' })
 
+  // CONCERNS — hero + SeoMeta OG columns, showcase-project images, gallery FKs (concerns-be-2).
+  const [concHero, concOg, concShowcase, concGallery] = await Promise.all([
+    db.concern.findMany({ where: { heroImageId: assetId, deletedAt: null }, select: { id: true, name: true } }),
+    db.concern.findMany({ where: { seoOgImageId: assetId, deletedAt: null }, select: { id: true, name: true } }),
+    db.concernShowcaseProject.findMany({ where: { imageId: assetId, concern: { deletedAt: null } }, select: { concern: { select: { id: true, name: true } } } }),
+    db.concernGalleryItem.findMany({ where: { mediaId: assetId, concern: { deletedAt: null } }, select: { concern: { select: { id: true, name: true } } } }),
+  ])
+  for (const c of concHero) refs.push({ module: 'concerns', record_id: c.id, title: c.name, role: 'hero_image' })
+  for (const c of concOg) refs.push({ module: 'concerns', record_id: c.id, title: c.name, role: 'og_image' })
+  for (const s of concShowcase) refs.push({ module: 'concerns', record_id: s.concern.id, title: s.concern.name, role: 'showcase_image' })
+  for (const g of concGallery) refs.push({ module: 'concerns', record_id: g.concern.id, title: g.concern.name, role: 'gallery' })
+
   return refs
 }
 
