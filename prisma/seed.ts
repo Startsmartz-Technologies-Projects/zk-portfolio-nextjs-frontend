@@ -1,11 +1,16 @@
 import { PrismaClient } from '@prisma/client'
+import { seedAuth } from './seed/auth.seed'
 
 const db = new PrismaClient()
 
 async function main() {
-  console.log('Seed: nothing to seed yet (module be-1 tasks add domain data)')
+  await seedAuth(db)
+  // Subsequent module be-1 tasks register their seeders here (media, site, seo, …).
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1) })
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
   .finally(() => db.$disconnect())
