@@ -51,6 +51,17 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   for (const s of svcCta) refs.push({ module: 'services', record_id: s.id, title: s.title, role: 'cta_image' })
   for (const s of svcOg) refs.push({ module: 'services', record_id: s.id, title: s.title, role: 'og_image' })
 
+  // BLOG — cover + SeoMeta OG columns, plus `img` blocks inside the JSONB body
+  // (matched by id text — over-cautious for the delete-guard) (blog-be-2).
+  const [artCover, artOg, artBody] = await Promise.all([
+    db.article.findMany({ where: { coverImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.article.findMany({ where: { seoOgImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.$queryRaw<{ id: string; title: string }[]>`SELECT id, title FROM articles WHERE deleted_at IS NULL AND body::text LIKE ${'%' + assetId + '%'}`,
+  ])
+  for (const a of artCover) refs.push({ module: 'blog', record_id: a.id, title: a.title, role: 'cover_image' })
+  for (const a of artOg) refs.push({ module: 'blog', record_id: a.id, title: a.title, role: 'og_image' })
+  for (const a of artBody) refs.push({ module: 'blog', record_id: a.id, title: a.title, role: 'body_image' })
+
   return refs
 }
 
