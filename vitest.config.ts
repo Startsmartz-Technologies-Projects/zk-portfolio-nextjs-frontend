@@ -9,6 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // Load .env into process.env so integration tests get DATABASE_URL / AUTH_SECRET.
+    setupFiles: ['dotenv/config'],
     // Integration tests against a real Postgres DB:
     //   1. Set TEST_DATABASE_URL to a dedicated test database
     //   2. Run `DATABASE_URL=$TEST_DATABASE_URL npx prisma migrate deploy` before the suite
