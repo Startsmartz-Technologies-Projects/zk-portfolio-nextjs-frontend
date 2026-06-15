@@ -101,6 +101,10 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   for (const i of pageItem) refs.push({ module: 'pages', record_id: i.section.page.id, title: i.section.page.adminTitle, role: `${i.section.type}.item_image` })
   for (const p of pageOg) refs.push({ module: 'pages', record_id: p.id, title: p.adminTitle, role: 'og_image' })
 
+  // LEADS — private `document` attachments on non-deleted leads (leads-be-2).
+  const leadAtts = await db.leadAttachment.findMany({ where: { mediaId: assetId, lead: { deletedAt: null } }, select: { lead: { select: { id: true, referenceNo: true } } } })
+  for (const a of leadAtts) refs.push({ module: 'leads', record_id: a.lead.id, title: a.lead.referenceNo, role: 'attachment' })
+
   return refs
 }
 
