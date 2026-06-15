@@ -208,14 +208,20 @@ export async function reorderTerms(_actorId: string | null, slug: string, ordere
   return listTerms(slug, { includeInactive: true })
 }
 
-// Reference usage across consuming content modules (Projects/Blog/News/Cert — Wave 3).
-// No consumer tables exist yet, so this is 0; each content module wires its references
-// in here when it lands (FR-SITE-013). Until then delete is always permitted.
-async function countTermReferences(_termId: string): Promise<number> {
-  return 0
+// Reference usage across consuming content modules (FR-SITE-013). Each content
+// module wires its category/location FK columns here as it lands; a referenced term
+// is 409-blocked from delete and is re-pointed (not orphaned) on merge.
+async function countTermReferences(termId: string): Promise<number> {
+  // PROJECTS — category + location FKs (projects-be-2).
+  return db.project.count({ where: { OR: [{ categoryId: termId }, { locationId: termId }] } })
 }
-async function repointTermReferences(_fromTermId: string, _toTermId: string): Promise<number> {
-  return 0
+async function repointTermReferences(fromTermId: string, toTermId: string): Promise<number> {
+  // PROJECTS — move both category and location references onto the surviving term.
+  const [cat, loc] = await db.$transaction([
+    db.project.updateMany({ where: { categoryId: fromTermId }, data: { categoryId: toTermId } }),
+    db.project.updateMany({ where: { locationId: fromTermId }, data: { locationId: toTermId } }),
+  ])
+  return cat.count + loc.count
 }
 
 export async function deleteTerm(_actorId: string | null, slug: string, termId: string): Promise<void> {

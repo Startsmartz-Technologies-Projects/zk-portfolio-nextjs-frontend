@@ -20,14 +20,26 @@ export class AssetInUseError extends AppError {
 
 /**
  * Reference usage across consuming modules (FR-MEDIA-014, SRS §17 Q1 → **on-demand FK
- * lookups**, no maintained index in v1). As each Wave-3 module lands, add its
- * MediaAsset FK columns here, e.g.: PROJ cover/gallery/og, SVC/BLOG/NEWS cover+og,
- * CERT `document`, CONC/PAGES section images, SITE brand slots, SEO default_og,
- * LEADS attachments. **No consumer tables exist yet**, so usage is empty (every asset
- * is currently deletable); the delete-guard + `/usage` already consume this.
+ * lookups**, no maintained index in v1). Each Wave-3 module wires its MediaAsset FK
+ * columns here as it lands: PROJ cover/gallery/og (below); SVC/BLOG/NEWS cover+og,
+ * CERT `document`, CONC/PAGES section images, LEADS attachments to follow. The
+ * delete-guard + `/usage` consume this (a referenced asset is 409-blocked from
+ * hard delete).
  */
-export async function computeAssetUsage(_assetId: string): Promise<UsageRef[]> {
-  return []
+export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
+  const refs: UsageRef[] = []
+
+  // PROJECTS — cover image, SeoMeta OG image, and gallery items (projects-be-2).
+  const [projCovers, projOg, galleryItems] = await Promise.all([
+    db.project.findMany({ where: { coverImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.project.findMany({ where: { seoOgImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.projectGalleryItem.findMany({ where: { mediaId: assetId, project: { deletedAt: null } }, select: { project: { select: { id: true, title: true } } } }),
+  ])
+  for (const p of projCovers) refs.push({ module: 'projects', record_id: p.id, title: p.title, role: 'cover_image' })
+  for (const p of projOg) refs.push({ module: 'projects', record_id: p.id, title: p.title, role: 'og_image' })
+  for (const g of galleryItems) refs.push({ module: 'projects', record_id: g.project.id, title: g.project.title, role: 'gallery' })
+
+  return refs
 }
 
 function altPresent(a: Pick<MediaAsset, 'resourceType' | 'altText'>): boolean {

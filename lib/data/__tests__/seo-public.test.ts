@@ -62,8 +62,11 @@ describe.skipIf(!hasDb)('seo public reads (integration)', () => {
     expect(typeof r.discourageIndexing).toBe('boolean')
   })
 
-  it('sitemap is empty until content modules contribute URLs', async () => {
-    expect(await getPublicSitemap()).toEqual([])
+  it('aggregates published content URLs (projects) into the sitemap', async () => {
+    const entries = await getPublicSitemap()
+    expect(entries.length).toBeGreaterThan(0)
+    expect(entries.every((e) => typeof e.loc === 'string' && typeof e.lastmod === 'string')).toBe(true)
+    expect(entries.some((e) => e.loc.startsWith('/projects/'))).toBe(true)
   })
 
   it('resolves a redirect (hit + miss) and lists active redirects', async () => {

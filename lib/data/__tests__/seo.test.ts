@@ -75,9 +75,9 @@ describe.skipIf(!hasDb)('seo admin data layer (integration)', () => {
     await updateJsonldTypes(null, before) // restore
   })
 
-  it('sitemap preview is empty until content modules land', async () => {
+  it('sitemap preview reflects published content (projects)', async () => {
     const preview = await getSitemapPreview()
-    expect(preview.meta.total).toBe(0)
-    expect(preview.data).toEqual([])
+    expect(preview.meta.total).toBeGreaterThan(0)
+    expect(preview.data.length).toBeGreaterThan(0)
   })
 })

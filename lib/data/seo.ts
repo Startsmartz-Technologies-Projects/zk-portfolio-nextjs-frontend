@@ -43,8 +43,11 @@ export function listRedirects(filters: RedirectFilters = {}) {
 }
 
 // Whether a path is a live, published content URL (FR-SEO-010 collision guard).
-// No content modules exist yet (Wave 3) — each wires its published URLs here later.
-async function isLivePublishedUrl(_path: string): Promise<boolean> {
+// Each content module contributes its published-URL check as it lands. Dynamic
+// import avoids a static cycle (projects.ts → recordRedirect here).
+async function isLivePublishedUrl(path: string): Promise<boolean> {
+  const { isPublishedProjectPath } = await import('@/lib/data/projects')
+  if (await isPublishedProjectPath(path)) return true
   return false
 }
 
@@ -267,11 +270,15 @@ export async function getPublicRobots(): Promise<RobotsConfig> {
 
 /**
  * Assemble the indexable (published, non-noindex, non-deleted) URL set across content
- * collections + PAGES (FR-SEO-012/013, BR-3). Pull-based; none exist yet (Wave 3), so
- * the set is empty — each content module contributes its published URLs here when it lands.
+ * collections + PAGES (FR-SEO-012/013, BR-3). Pull-based — each content module
+ * contributes its published URLs here as it lands (dynamic import avoids a static
+ * cycle with the modules that call `recordRedirect`).
  */
 export async function getPublicSitemap(): Promise<SitemapEntry[]> {
-  return []
+  const { getPublishedProjectSitemapEntries } = await import('@/lib/data/projects')
+  const entries: SitemapEntry[] = []
+  entries.push(...(await getPublishedProjectSitemapEntries()))
+  return entries
 }
 
 const statusCode = (s: 'permanent' | 'temporary') => (s === 'permanent' ? 301 : 302)

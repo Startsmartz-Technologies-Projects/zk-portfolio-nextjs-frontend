@@ -1,6 +1,25 @@
 import { revalidatePath } from 'next/cache'
 
 /**
+ * Revalidate a content collection's public surfaces after a publish/unpublish or
+ * featured change (FR-PROJ-031 and the equivalents on the other collections).
+ * Refreshes the section's list page, its dynamic detail segment, and the home
+ * layout (featured strips). The `tag` identifies the collection for callers/logging
+ * and lines up with the `unstable_cache` tags the deferred public-site rework will
+ * add. Best-effort — never fails the underlying admin action (edge: a revalidation
+ * failure does not roll back the publish).
+ */
+export function revalidateContent(tag: string, basePath: string): void {
+  try {
+    revalidatePath(basePath, 'page')
+    revalidatePath(`${basePath}/[slug]`, 'page')
+    revalidatePath('/', 'layout')
+  } catch {
+    // Outside a request scope (e.g. a script or test) revalidation is a no-op.
+  }
+}
+
+/**
  * Revalidate the public site after a global change (FR-SITE-020). The company
  * profile, brand, socials, copyright, stats, public settings, and taxonomy terms
  * all surface in the site-wide chrome / filters, so we revalidate the root layout.
