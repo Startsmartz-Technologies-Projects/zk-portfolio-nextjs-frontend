@@ -46,3 +46,14 @@ export class PolicyViolationError extends AppError {
     super(422, 'PolicyViolation', message, details)
   }
 }
+
+/**
+ * Publish blocked because required-for-publish fields or image alt text are missing
+ * (HTTP 422, `PublishValidationError`). `details` lists every missing item so the
+ * editor can fix them in one pass. Shared by every content collection's publish gate.
+ */
+export class PublishValidationError extends AppError {
+  constructor(details: { field: string; issue: string }[], message = 'Record cannot be published.') {
+    super(422, 'PublishValidationError', message, details)
+  }
+}
