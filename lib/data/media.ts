@@ -62,6 +62,19 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   for (const a of artOg) refs.push({ module: 'blog', record_id: a.id, title: a.title, role: 'og_image' })
   for (const a of artBody) refs.push({ module: 'blog', record_id: a.id, title: a.title, role: 'body_image' })
 
+  // NEWS — cover + SeoMeta OG columns, gallery FK, and `img` blocks in the JSONB body
+  // (matched by id text) (news-be-2).
+  const [newsCover, newsOg, newsGallery, newsBody] = await Promise.all([
+    db.newsStory.findMany({ where: { coverImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.newsStory.findMany({ where: { seoOgImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.newsGalleryItem.findMany({ where: { mediaId: assetId, story: { deletedAt: null } }, select: { story: { select: { id: true, title: true } } } }),
+    db.$queryRaw<{ id: string; title: string }[]>`SELECT id, title FROM news_stories WHERE deleted_at IS NULL AND body::text LIKE ${'%' + assetId + '%'}`,
+  ])
+  for (const s of newsCover) refs.push({ module: 'news', record_id: s.id, title: s.title, role: 'cover_image' })
+  for (const s of newsOg) refs.push({ module: 'news', record_id: s.id, title: s.title, role: 'og_image' })
+  for (const g of newsGallery) refs.push({ module: 'news', record_id: g.story.id, title: g.story.title, role: 'gallery' })
+  for (const s of newsBody) refs.push({ module: 'news', record_id: s.id, title: s.title, role: 'body_image' })
+
   return refs
 }
 

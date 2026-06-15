@@ -212,23 +212,27 @@ export async function reorderTerms(_actorId: string | null, slug: string, ordere
 // module wires its category/location FK columns here as it lands; a referenced term
 // is 409-blocked from delete and is re-pointed (not orphaned) on merge.
 async function countTermReferences(termId: string): Promise<number> {
-  const [proj, blog] = await Promise.all([
+  const [proj, blog, news] = await Promise.all([
     // PROJECTS — category + location FKs (projects-be-2).
     db.project.count({ where: { OR: [{ categoryId: termId }, { locationId: termId }] } }),
     // BLOG — category FK (blog-be-2).
     db.article.count({ where: { categoryId: termId } }),
+    // NEWS — category FK (news-be-2).
+    db.newsStory.count({ where: { categoryId: termId } }),
   ])
-  return proj + blog
+  return proj + blog + news
 }
 async function repointTermReferences(fromTermId: string, toTermId: string): Promise<number> {
-  const [cat, loc, blog] = await db.$transaction([
+  const [cat, loc, blog, news] = await db.$transaction([
     // PROJECTS — move both category and location references onto the surviving term.
     db.project.updateMany({ where: { categoryId: fromTermId }, data: { categoryId: toTermId } }),
     db.project.updateMany({ where: { locationId: fromTermId }, data: { locationId: toTermId } }),
     // BLOG — category references.
     db.article.updateMany({ where: { categoryId: fromTermId }, data: { categoryId: toTermId } }),
+    // NEWS — category references.
+    db.newsStory.updateMany({ where: { categoryId: fromTermId }, data: { categoryId: toTermId } }),
   ])
-  return cat.count + loc.count + blog.count
+  return cat.count + loc.count + blog.count + news.count
 }
 
 export async function deleteTerm(_actorId: string | null, slug: string, termId: string): Promise<void> {
