@@ -23,24 +23,25 @@ enum UserStatus {
 }
 
 model User {
-  id                 String        @id @default(uuid()) @db.Uuid
-  email              String        @unique
-  passwordHash       String        @map("password_hash")
-  fullName           String        @map("full_name")
+  id                 String          @id @default(uuid()) @db.Uuid
+  email              String          @unique
+  passwordHash       String          @map("password_hash")
+  fullName           String          @map("full_name")
   role               Role
-  status             UserStatus    @default(active)
-  mustChangePassword Boolean       @default(false) @map("must_change_password")
-  lastLoginAt        DateTime?     @map("last_login_at")
-  createdById        String?       @map("created_by") @db.Uuid
-  updatedById        String?       @map("updated_by") @db.Uuid
-  createdBy          User?         @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  createdUsers       User[]        @relation("UserCreatedBy")
-  updatedBy          User?         @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  updatedUsers       User[]        @relation("UserUpdatedBy")
+  status             UserStatus      @default(active)
+  mustChangePassword Boolean         @default(false) @map("must_change_password")
+  lastLoginAt        DateTime?       @map("last_login_at")
+  createdById        String?         @map("created_by") @db.Uuid
+  updatedById        String?         @map("updated_by") @db.Uuid
+  createdBy          User?           @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers       User[]          @relation("UserCreatedBy")
+  updatedBy          User?           @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedUsers       User[]          @relation("UserUpdatedBy")
   sessions           AuthSession[]
-  createdAt          DateTime      @default(now()) @map("created_at")
-  updatedAt          DateTime      @updatedAt @map("updated_at")
-  deletedAt          DateTime?     @map("deleted_at")
+  auditLogEntries    AuditLogEntry[]
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  deletedAt          DateTime?       @map("deleted_at")
 
   @@map("users")
 }
@@ -59,4 +60,48 @@ model AuthSession {
   @@index([userId])
   @@index([revokedAt])
   @@map("auth_sessions")
+}
+
+// ── USERS module (users-be-1) ────────────────────────────────────────────
+// Owner of the cross-cutting `AuditLogEntry` entity (see docs/srs/users-roles.md §8.1).
+// Append-only / immutable: no updated_at, no deleted_at, and no update/delete path in
+// the data layer (FR-USERS-017, BR-5). The two-role capability policy (§8.2) is code,
+// not data — see lib/users/capabilities.ts. There are NO Role/Permission/grant tables.
+
+enum AuditAction {
+  create
+  update
+  delete
+  restore
+  publish
+  unpublish
+  archive
+  login
+  login_failed
+  logout
+  password_change
+  password_reset
+  session_revoke
+  role_change
+  settings_change
+  merge
+  redirect_change
+}
+
+model AuditLogEntry {
+  id         String      @id @default(uuid()) @db.Uuid
+  actorId    String?     @map("actor_id") @db.Uuid
+  actor      User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     AuditAction
+  entityType String      @map("entity_type")
+  entityId   String?     @map("entity_id")
+  summary    String
+  metadata   Json?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@index([actorId])
+  @@index([entityType])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_log_entries")
 }
