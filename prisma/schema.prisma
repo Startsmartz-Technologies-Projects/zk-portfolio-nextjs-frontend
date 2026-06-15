@@ -23,27 +23,29 @@ enum UserStatus {
 }
 
 model User {
-  id                 String          @id @default(uuid()) @db.Uuid
-  email              String          @unique
-  passwordHash       String          @map("password_hash")
-  fullName           String          @map("full_name")
-  role               Role
-  status             UserStatus      @default(active)
-  mustChangePassword Boolean         @default(false) @map("must_change_password")
-  lastLoginAt        DateTime?       @map("last_login_at")
-  createdById        String?         @map("created_by") @db.Uuid
-  updatedById        String?         @map("updated_by") @db.Uuid
-  createdBy          User?           @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  createdUsers       User[]          @relation("UserCreatedBy")
-  updatedBy          User?           @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  updatedUsers       User[]          @relation("UserUpdatedBy")
-  sessions           AuthSession[]
-  auditLogEntries    AuditLogEntry[]
-  mediaCreated       MediaAsset[]    @relation("MediaAssetCreatedBy")
-  mediaUpdated       MediaAsset[]    @relation("MediaAssetUpdatedBy")
-  createdAt          DateTime        @default(now()) @map("created_at")
-  updatedAt          DateTime        @updatedAt @map("updated_at")
-  deletedAt          DateTime?       @map("deleted_at")
+  id                     String           @id @default(uuid()) @db.Uuid
+  email                  String           @unique
+  passwordHash           String           @map("password_hash")
+  fullName               String           @map("full_name")
+  role                   Role
+  status                 UserStatus       @default(active)
+  mustChangePassword     Boolean          @default(false) @map("must_change_password")
+  lastLoginAt            DateTime?        @map("last_login_at")
+  createdById            String?          @map("created_by") @db.Uuid
+  updatedById            String?          @map("updated_by") @db.Uuid
+  createdBy              User?            @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers           User[]           @relation("UserCreatedBy")
+  updatedBy              User?            @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedUsers           User[]           @relation("UserUpdatedBy")
+  sessions               AuthSession[]
+  auditLogEntries        AuditLogEntry[]
+  mediaCreated           MediaAsset[]     @relation("MediaAssetCreatedBy")
+  mediaUpdated           MediaAsset[]     @relation("MediaAssetUpdatedBy")
+  companyProfilesCreated CompanyProfile[] @relation("CompanyProfileCreatedBy")
+  companyProfilesUpdated CompanyProfile[] @relation("CompanyProfileUpdatedBy")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
 
   @@map("users")
 }
@@ -149,6 +151,7 @@ model MediaAsset {
   updatedById      String?       @map("updated_by") @db.Uuid
   createdBy        User?         @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy        User?         @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  brandAssets      BrandAsset[]
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
   deletedAt        DateTime?     @map("deleted_at")
@@ -158,4 +161,128 @@ model MediaAsset {
   @@index([createdAt])
   @@index([tags], type: Gin)
   @@map("media_assets")
+}
+
+// ── SITE module (site-be-1) ──────────────────────────────────────────────
+// Owner of the cross-cutting `TaxonomyTerm` and `SettingValue` entities (see
+// docs/srs/site-settings.md §8). Also the company profile (singleton), social
+// links, authored KPI stats, and the four brand-asset slots (each a MediaAsset
+// ref). Nav/footer link STRUCTURE is NOT modeled (stays in front-end, BR-8).
+// Derived metrics (years_experience, projects_count, …) are never stored (BR-2/3).
+// Field sets follow the §8.x tables; audit FKs are on the singleton (§8.1) only.
+
+enum SocialPlatform {
+  facebook
+  linkedin
+  instagram
+  youtube
+  twitter
+  other
+}
+
+enum BrandAssetKey {
+  logo_primary
+  logo_footer
+  favicon
+  og_default
+}
+
+enum SettingType {
+  int
+  bool
+  string
+  media
+  json
+}
+
+model CompanyProfile {
+  id                String       @id @default(uuid()) @db.Uuid
+  name              String
+  legalName         String?      @map("legal_name")
+  tagline           String?
+  brandDescription  String?      @map("brand_description")
+  establishmentYear Int          @map("establishment_year")
+  email             String
+  phone             String
+  whatsapp          String?
+  officeAddress     String       @map("office_address")
+  businessHours     String?      @map("business_hours")
+  coverageSummary   String?      @map("coverage_summary")
+  copyrightText     String       @map("copyright_text")
+  socialLinks       SocialLink[]
+  createdById       String?      @map("created_by") @db.Uuid
+  updatedById       String?      @map("updated_by") @db.Uuid
+  createdBy         User?        @relation("CompanyProfileCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?        @relation("CompanyProfileUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  @@map("company_profiles")
+}
+
+model SocialLink {
+  id        String         @id @default(uuid()) @db.Uuid
+  profileId String         @map("profile_id") @db.Uuid
+  profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform  SocialPlatform
+  url       String
+  position  Int            @default(0)
+
+  @@index([profileId])
+  @@map("social_links")
+}
+
+model CompanyStat {
+  id       String  @id @default(uuid()) @db.Uuid
+  key      String  @unique
+  label    String
+  value    String
+  unit     String?
+  position Int     @default(0)
+
+  @@map("company_stats")
+}
+
+model BrandAsset {
+  id      String        @id @default(uuid()) @db.Uuid
+  key     BrandAssetKey @unique
+  mediaId String        @map("media_id") @db.Uuid
+  media   MediaAsset    @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@map("brand_assets")
+}
+
+model Taxonomy {
+  id       String         @id @default(uuid()) @db.Uuid
+  slug     String         @unique
+  label    String
+  isShared Boolean        @default(false) @map("is_shared")
+  terms    TaxonomyTerm[]
+
+  @@map("taxonomies")
+}
+
+model TaxonomyTerm {
+  id         String   @id @default(uuid()) @db.Uuid
+  taxonomyId String   @map("taxonomy_id") @db.Uuid
+  taxonomy   Taxonomy @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
+  slug       String
+  label      String
+  position   Int      @default(0)
+  isActive   Boolean  @default(true) @map("is_active")
+
+  @@unique([taxonomyId, slug])
+  @@index([taxonomyId])
+  @@map("taxonomy_terms")
+}
+
+model SettingValue {
+  id          String      @id @default(uuid()) @db.Uuid
+  key         String      @unique
+  type        SettingType
+  value       String
+  isPublic    Boolean     @default(false) @map("is_public")
+  description String
+
+  @@map("setting_values")
 }
