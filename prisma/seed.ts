@@ -7,6 +7,7 @@ import { seedProjects } from './seed/projects.seed'
 import { seedServices } from './seed/services.seed'
 import { seedBlog } from './seed/blog.seed'
 import { seedNews } from './seed/news.seed'
+import { seedCertifications } from './seed/certifications.seed'
 
 const db = new PrismaClient()
 
@@ -19,6 +20,7 @@ async function main() {
   await seedServices(db)
   await seedBlog(db)
   await seedNews(db)
+  await seedCertifications(db)
 }
 
 main()
