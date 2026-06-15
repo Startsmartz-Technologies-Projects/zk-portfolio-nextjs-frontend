@@ -91,6 +91,16 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   for (const s of concShowcase) refs.push({ module: 'concerns', record_id: s.concern.id, title: s.concern.name, role: 'showcase_image' })
   for (const g of concGallery) refs.push({ module: 'concerns', record_id: g.concern.id, title: g.concern.name, role: 'gallery' })
 
+  // PAGES — section background images, section-item images, and page OG (pages-be-2).
+  const [pageBg, pageItem, pageOg] = await Promise.all([
+    db.pageSection.findMany({ where: { backgroundImageId: assetId }, select: { type: true, page: { select: { id: true, adminTitle: true } } } }),
+    db.sectionItem.findMany({ where: { imageId: assetId }, select: { section: { select: { type: true, page: { select: { id: true, adminTitle: true } } } } } }),
+    db.page.findMany({ where: { seoOgImageId: assetId, deletedAt: null }, select: { id: true, adminTitle: true } }),
+  ])
+  for (const s of pageBg) refs.push({ module: 'pages', record_id: s.page.id, title: s.page.adminTitle, role: `${s.type}.background` })
+  for (const i of pageItem) refs.push({ module: 'pages', record_id: i.section.page.id, title: i.section.page.adminTitle, role: `${i.section.type}.item_image` })
+  for (const p of pageOg) refs.push({ module: 'pages', record_id: p.id, title: p.adminTitle, role: 'og_image' })
+
   return refs
 }
 
