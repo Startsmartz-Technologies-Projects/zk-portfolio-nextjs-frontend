@@ -47,6 +47,8 @@ model User {
   seoSettingsUpdated     SeoSettings[]    @relation("SeoSettingsUpdatedBy")
   redirectsCreated       Redirect[]       @relation("RedirectCreatedBy")
   redirectsUpdated       Redirect[]       @relation("RedirectUpdatedBy")
+  projectsCreated        Project[]        @relation("ProjectCreatedBy")
+  projectsUpdated        Project[]        @relation("ProjectUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -138,28 +140,31 @@ enum MediaProvider {
 }
 
 model MediaAsset {
-  id               String        @id @default(uuid()) @db.Uuid
-  resourceType     ResourceType  @map("resource_type")
-  provider         MediaProvider @default(cloudinary)
-  publicId         String        @map("public_id")
+  id               String               @id @default(uuid()) @db.Uuid
+  resourceType     ResourceType         @map("resource_type")
+  provider         MediaProvider        @default(cloudinary)
+  publicId         String               @map("public_id")
   url              String
   format           String
   bytes            Int?
   width            Int?
   height           Int?
-  altText          String?       @map("alt_text")
+  altText          String?              @map("alt_text")
   title            String?
-  originalFilename String?       @map("original_filename")
+  originalFilename String?              @map("original_filename")
   tags             String[]
-  createdById      String?       @map("created_by") @db.Uuid
-  updatedById      String?       @map("updated_by") @db.Uuid
-  createdBy        User?         @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy        User?         @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdById      String?              @map("created_by") @db.Uuid
+  updatedById      String?              @map("updated_by") @db.Uuid
+  createdBy        User?                @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy        User?                @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   brandAssets      BrandAsset[]
   seoSettings      SeoSettings[]
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
-  deletedAt        DateTime?     @map("deleted_at")
+  projectCovers    Project[]            @relation("ProjectCoverImage")
+  projectOgImages  Project[]            @relation("ProjectSeoOgImage")
+  projectGallery   ProjectGalleryItem[]
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+  deletedAt        DateTime?            @map("deleted_at")
 
   @@index([resourceType])
   @@index([format])
@@ -268,13 +273,15 @@ model Taxonomy {
 }
 
 model TaxonomyTerm {
-  id         String   @id @default(uuid()) @db.Uuid
-  taxonomyId String   @map("taxonomy_id") @db.Uuid
-  taxonomy   Taxonomy @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
-  slug       String
-  label      String
-  position   Int      @default(0)
-  isActive   Boolean  @default(true) @map("is_active")
+  id                 String    @id @default(uuid()) @db.Uuid
+  taxonomyId         String    @map("taxonomy_id") @db.Uuid
+  taxonomy           Taxonomy  @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
+  slug               String
+  label              String
+  position           Int       @default(0)
+  isActive           Boolean   @default(true) @map("is_active")
+  projectsInCategory Project[] @relation("ProjectCategory")
+  projectsInLocation Project[] @relation("ProjectLocation")
 
   @@unique([taxonomyId, slug])
   @@index([taxonomyId])
@@ -357,4 +364,178 @@ model Redirect {
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
   @@map("redirects")
+}
+
+// ── Shared content-workflow enum (overview §4) ───────────────────────────
+// The publishing lifecycle every ContentBase collection shares (Projects first,
+// then Services/Blog/News/Certifications/Concerns/Pages). Distinct from a
+// collection's real-world status enum (e.g. Project.delivery_status — BR-2).
+
+enum ContentStatus {
+  draft
+  published
+  archived
+}
+
+// ── PROJECTS module (projects-be-1) ──────────────────────────────────────
+// The richest content collection and the structural template for the other
+// collections (see docs/srs/projects.md §8). `Project` extends ContentBase
+// (overview §6.1: status/published_at/created_by/updated_by/timestamps/deleted_at)
+// and embeds SeoMeta as `seo_*` columns (overview §6.2 — owned by SEO as a type,
+// stored per-record here). `category`/`location` are nullable FKs to SITE
+// `TaxonomyTerm` (`projects-category` / shared `location`); `cover_image`/gallery/
+// `seo_og_image` are FKs to MEDIA `MediaAsset`. category/location/cover/start_date
+// are nullable so a minimal draft needs only a title (FR-PROJ-006) — presence is
+// enforced at publish time (§12), not by the DB. `delivery_status` (real-world) is
+// independent of `status` (workflow) — BR-2. Year + duration are DERIVED from
+// start/end dates, never stored (BR-7). Slug is globally unique incl. soft-deleted
+// rows (edge 1). Child collections (scopes/highlights/gallery/related) are ordered
+// by `position` and cascade-delete with the project.
+
+enum ClientType {
+  Government
+  Commercial
+  Private
+}
+
+enum DeliveryStatus {
+  Completed
+  Ongoing
+  Planning
+}
+
+enum BadgeStyle {
+  default
+  lime
+  black
+  gold
+}
+
+model Project {
+  id                    String               @id @default(uuid()) @db.Uuid
+  // ContentBase (overview §6.1)
+  status                ContentStatus        @default(draft)
+  publishedAt           DateTime?            @map("published_at")
+  // Identity & listing-card fields
+  legacyId              String?              @unique @map("legacy_id")
+  slug                  String               @unique
+  title                 String
+  summary               String?
+  categoryId            String?              @map("category_id") @db.Uuid
+  category              TaxonomyTerm?        @relation("ProjectCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  clientType            ClientType?          @map("client_type")
+  deliveryStatus        DeliveryStatus       @default(Completed) @map("delivery_status")
+  locationId            String?              @map("location_id") @db.Uuid
+  location              TaxonomyTerm?        @relation("ProjectLocation", fields: [locationId], references: [id], onDelete: Restrict)
+  locationDetail        String?              @map("location_detail")
+  startDate             DateTime?            @map("start_date") @db.Date
+  endDate               DateTime?            @map("end_date") @db.Date
+  coverImageId          String?              @map("cover_image") @db.Uuid
+  coverImage            MediaAsset?          @relation("ProjectCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  badgeText             String?              @map("badge_text")
+  badgeStyle            BadgeStyle           @default(default) @map("badge_style")
+  featured              Boolean              @default(false)
+  featuredOrder         Int?                 @map("featured_order")
+  // Detail content
+  overviewTitle         String?              @map("overview_title")
+  overviewBody          String?              @map("overview_body")
+  pullQuote             String?              @map("pull_quote")
+  client                String?
+  servicesDelivered     String[]             @map("services_delivered")
+  scopeDescription      String?              @map("scope_description")
+  galleryHeading        String?              @map("gallery_heading")
+  galleryDescription    String?              @map("gallery_description")
+  highlightsDescription String?              @map("highlights_description")
+  caseStudyChallenge    String?              @map("case_study_challenge")
+  caseStudyApproach     String?              @map("case_study_approach")
+  caseStudyResult       String?              @map("case_study_result")
+  ctaHeading            String?              @map("cta_heading")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle          String?              @map("seo_meta_title")
+  seoMetaDescription    String?              @map("seo_meta_description")
+  seoCanonicalUrl       String?              @map("seo_canonical_url")
+  seoOgImageId          String?              @map("seo_og_image") @db.Uuid
+  seoOgImage            MediaAsset?          @relation("ProjectSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle            String?              @map("seo_og_title")
+  seoOgDescription      String?              @map("seo_og_description")
+  seoNoindex            Boolean              @default(false) @map("seo_noindex")
+  // Child collections
+  scopes                ProjectScope[]
+  highlights            ProjectHighlight[]
+  gallery               ProjectGalleryItem[]
+  related               ProjectRelatedItem[] @relation("ProjectRelatedFrom")
+  relatedBy             ProjectRelatedItem[] @relation("ProjectRelatedTo")
+  // Audit (ContentBase)
+  createdById           String?              @map("created_by") @db.Uuid
+  updatedById           String?              @map("updated_by") @db.Uuid
+  createdBy             User?                @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy             User?                @relation("ProjectUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt             DateTime             @default(now()) @map("created_at")
+  updatedAt             DateTime             @updatedAt @map("updated_at")
+  deletedAt             DateTime?            @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([locationId])
+  @@index([clientType])
+  @@index([deliveryStatus])
+  @@index([featured, featuredOrder])
+  @@index([deletedAt])
+  @@map("projects")
+}
+
+model ProjectScope {
+  id          String  @id @default(uuid()) @db.Uuid
+  projectId   String  @map("project_id") @db.Uuid
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  icon        String
+  value       String
+  title       String
+  description String?
+  position    Int     @default(0)
+
+  @@index([projectId])
+  @@map("project_scopes")
+}
+
+model ProjectHighlight {
+  id        String  @id @default(uuid()) @db.Uuid
+  projectId String  @map("project_id") @db.Uuid
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number    String
+  unit      String?
+  title     String
+  body      String?
+  position  Int     @default(0)
+
+  @@index([projectId])
+  @@map("project_highlights")
+}
+
+model ProjectGalleryItem {
+  id        String     @id @default(uuid()) @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String     @map("media_id") @db.Uuid
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  caption   String?
+  position  Int        @default(0)
+
+  @@index([projectId])
+  @@index([mediaId])
+  @@map("project_gallery_items")
+}
+
+model ProjectRelatedItem {
+  id               String  @id @default(uuid()) @db.Uuid
+  projectId        String  @map("project_id") @db.Uuid
+  project          Project @relation("ProjectRelatedFrom", fields: [projectId], references: [id], onDelete: Cascade)
+  relatedProjectId String  @map("related_project_id") @db.Uuid
+  relatedProject   Project @relation("ProjectRelatedTo", fields: [relatedProjectId], references: [id], onDelete: Cascade)
+  position         Int     @default(0)
+
+  @@unique([projectId, relatedProjectId])
+  @@index([projectId])
+  @@index([relatedProjectId])
+  @@map("project_related_items")
 }
