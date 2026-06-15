@@ -39,6 +39,18 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   for (const p of projOg) refs.push({ module: 'projects', record_id: p.id, title: p.title, role: 'og_image' })
   for (const g of galleryItems) refs.push({ module: 'projects', record_id: g.project.id, title: g.project.title, role: 'gallery' })
 
+  // SERVICES — hero, machine, cta, and SeoMeta OG images (services-be-2).
+  const [svcHero, svcMachine, svcCta, svcOg] = await Promise.all([
+    db.service.findMany({ where: { heroImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.service.findMany({ where: { machineImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.service.findMany({ where: { ctaImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+    db.service.findMany({ where: { seoOgImageId: assetId, deletedAt: null }, select: { id: true, title: true } }),
+  ])
+  for (const s of svcHero) refs.push({ module: 'services', record_id: s.id, title: s.title, role: 'hero_image' })
+  for (const s of svcMachine) refs.push({ module: 'services', record_id: s.id, title: s.title, role: 'machine_image' })
+  for (const s of svcCta) refs.push({ module: 'services', record_id: s.id, title: s.title, role: 'cta_image' })
+  for (const s of svcOg) refs.push({ module: 'services', record_id: s.id, title: s.title, role: 'og_image' })
+
   return refs
 }
 
