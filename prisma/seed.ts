@@ -1,11 +1,13 @@
 import { PrismaClient } from '@prisma/client'
 import { seedAuth } from './seed/auth.seed'
+import { seedMedia } from './seed/media.seed'
 
 const db = new PrismaClient()
 
 async function main() {
   await seedAuth(db)
-  // Subsequent module be-1 tasks register their seeders here (media, site, seo, …).
+  await seedMedia(db)
+  // Subsequent module be-1 tasks register their seeders here (site, seo, …).
 }
 
 main()

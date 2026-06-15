@@ -39,6 +39,8 @@ model User {
   updatedUsers       User[]          @relation("UserUpdatedBy")
   sessions           AuthSession[]
   auditLogEntries    AuditLogEntry[]
+  mediaCreated       MediaAsset[]    @relation("MediaAssetCreatedBy")
+  mediaUpdated       MediaAsset[]    @relation("MediaAssetUpdatedBy")
   createdAt          DateTime        @default(now()) @map("created_at")
   updatedAt          DateTime        @updatedAt @map("updated_at")
   deletedAt          DateTime?       @map("deleted_at")
@@ -105,4 +107,55 @@ model AuditLogEntry {
   @@index([createdAt])
   @@index([action])
   @@map("audit_log_entries")
+}
+
+// ── MEDIA module (media-be-1) ────────────────────────────────────────────
+// Owner of the cross-cutting `MediaAsset` entity (see docs/srs/media.md §8.1).
+// One flat library of images + documents (resource_type); Cloudinary-only in v1
+// (provider enum, §8.3/§16). Not ContentBase — its own active/soft-deleted
+// lifecycle, no draft/publish. `alt_present`, reference usage, MediaRef and
+// transformation URLs are all derived/computed, never stored (§8.2).
+//
+// Nullability notes vs §8.1: `bytes`/`width`/`height` are nullable because rows
+// can be seeded from a URL alone (no file introspection) — real uploads
+// (FR-MEDIA-002) always populate them. `created_by`/`updated_by` are nullable
+// SetNull audit FKs, matching the platform convention (auth-be-1) and allowing
+// System-seeded assets.
+
+enum ResourceType {
+  image
+  document
+}
+
+enum MediaProvider {
+  cloudinary
+}
+
+model MediaAsset {
+  id               String        @id @default(uuid()) @db.Uuid
+  resourceType     ResourceType  @map("resource_type")
+  provider         MediaProvider @default(cloudinary)
+  publicId         String        @map("public_id")
+  url              String
+  format           String
+  bytes            Int?
+  width            Int?
+  height           Int?
+  altText          String?       @map("alt_text")
+  title            String?
+  originalFilename String?       @map("original_filename")
+  tags             String[]
+  createdById      String?       @map("created_by") @db.Uuid
+  updatedById      String?       @map("updated_by") @db.Uuid
+  createdBy        User?         @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy        User?         @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  deletedAt        DateTime?     @map("deleted_at")
+
+  @@index([resourceType])
+  @@index([format])
+  @@index([createdAt])
+  @@index([tags], type: Gin)
+  @@map("media_assets")
 }
