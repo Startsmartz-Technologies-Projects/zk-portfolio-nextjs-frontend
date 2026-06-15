@@ -13,6 +13,8 @@ import {
   softDeleteAsset,
   restoreAsset,
   hardDeleteAsset,
+  resolveMediaRefs,
+  getAssetUsage,
 } from '@/lib/data/media'
 import { buildSignedUpload, serverSideUpload } from '@/lib/media/cloudinary'
 import {
@@ -106,4 +108,17 @@ export async function restoreMediaAction(id: string) {
   const asset = await restoreAsset(principal.user_id, id)
   await audit({ actorId: principal.user_id, action: 'restore', entityType: 'media_asset', entityId: id, summary: 'Restored asset' })
   return asset
+}
+
+// media-be-3: resolve (admin picker / hydration) + usage panel. The bare
+// `resolveMediaRefs` serializer in lib/data/media is what consumer modules import
+// server-side; this guarded action backs the admin picker.
+export async function resolveMediaAction(ids: string[]) {
+  await requireCapability('media')
+  return resolveMediaRefs(ids)
+}
+
+export async function getMediaUsageAction(id: string) {
+  await requireCapability('media')
+  return getAssetUsage(id)
 }

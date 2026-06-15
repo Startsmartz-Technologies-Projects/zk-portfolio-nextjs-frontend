@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'
-import { Prisma, type MediaAsset, type ResourceType } from '@prisma/client'
-import { AppError, NotFoundError } from '@/lib/errors'
+import { Prisma, type MediaAsset } from '@prisma/client'
+import { AppError, NotFoundError, ValidationError } from '@/lib/errors'
 import { validateUploadType, normalizeTags, type RegisterInput, type ListFiltersInput } from '@/lib/validation/media'
 
 /** A record that references an asset (cover/gallery/og/brand-slot/document/…). */
@@ -19,9 +19,12 @@ export class AssetInUseError extends AppError {
 }
 
 /**
- * Reference usage across consuming modules (FR-MEDIA-014). On-demand FK lookups —
- * media-be-3 enriches this as content modules land; **no consumer tables exist yet**,
- * so it is empty (every asset is currently deletable).
+ * Reference usage across consuming modules (FR-MEDIA-014, SRS §17 Q1 → **on-demand FK
+ * lookups**, no maintained index in v1). As each Wave-3 module lands, add its
+ * MediaAsset FK columns here, e.g.: PROJ cover/gallery/og, SVC/BLOG/NEWS cover+og,
+ * CERT `document`, CONC/PAGES section images, SITE brand slots, SEO default_og,
+ * LEADS attachments. **No consumer tables exist yet**, so usage is empty (every asset
+ * is currently deletable); the delete-guard + `/usage` already consume this.
  */
 export async function computeAssetUsage(_assetId: string): Promise<UsageRef[]> {
   return []
@@ -176,4 +179,58 @@ export async function hardDeleteAsset(_actorId: string | null, id: string): Prom
   if (usage.length > 0) throw new AssetInUseError(usage)
   await db.mediaAsset.delete({ where: { id } })
   // The Cloudinary object removal is handled by the cleanup job (media-be-3).
+}
+
+// ── MediaRef resolution & reference integrity (media-be-3) ─────────────────
+// The consumer-facing integration surface: a shared MediaRef serializer other
+// modules import, batch resolve, on-demand reference usage, and a cleanup job.
+
+export type MediaRef =
+  | { id: string; url: string; alt: string | null; width: number | null; height: number | null }
+  | { id: string; url: string; format: string; original_filename: string | null; bytes: number | null }
+  | { id: string; withdrawn: true }
+
+/**
+ * The denormalized, read-only MediaRef a consumer embeds (FR-MEDIA-018). Images carry
+ * dimensions + alt; documents carry filename/format/bytes; a soft-deleted asset
+ * resolves to a `withdrawn` marker so consumers render the missing state (BR-4).
+ * Imported directly (server-side) by consumer modules — no auth guard.
+ */
+export function mediaRefOf(asset: MediaAsset): MediaRef {
+  if (asset.deletedAt) return { id: asset.id, withdrawn: true }
+  if (asset.resourceType === 'image') {
+    return { id: asset.id, url: asset.url, alt: asset.altText, width: asset.width, height: asset.height }
+  }
+  return { id: asset.id, url: asset.url, format: asset.format, original_filename: asset.originalFilename, bytes: asset.bytes }
+}
+
+/**
+ * Batch-resolve asset ids to MediaRefs (FR-MEDIA-019), order-preserving and
+ * de-duplicated at the DB. Unknown or soft-deleted ids resolve to `{ withdrawn }`
+ * (edge 4). At most 100 ids per call (§15).
+ */
+export async function resolveMediaRefs(ids: string[]): Promise<MediaRef[]> {
+  if (ids.length > 100) throw new ValidationError('At most 100 ids per resolve', [{ field: 'ids', max: 100 }])
+  const unique = [...new Set(ids)]
+  const assets = await db.mediaAsset.findMany({ where: { id: { in: unique } } }) // incl. soft-deleted → withdrawn marker
+  const byId = new Map(assets.map((a) => [a.id, a]))
+  return ids.map((id) => {
+    const a = byId.get(id)
+    return a ? mediaRefOf(a) : { id, withdrawn: true as const }
+  })
+}
+
+export async function getAssetUsage(id: string): Promise<{ asset_id: string; references: UsageRef[] }> {
+  const asset = await db.mediaAsset.findUnique({ where: { id }, select: { id: true } })
+  if (!asset) throw new NotFoundError('Asset not found')
+  return { asset_id: id, references: await computeAssetUsage(id) }
+}
+
+/**
+ * Reap abandoned signed uploads and replaced-file leftovers on Cloudinary (edge 1/5).
+ * No-op until the Cloudinary Admin API + orphan tracking are wired and `CLOUDINARY_*`
+ * is provisioned (integration tested later); never touches referenced assets.
+ */
+export async function runMediaCleanup(): Promise<{ reaped: number; note: string }> {
+  return { reaped: 0, note: 'no-op until Cloudinary admin API + orphan tracking are wired (deferred)' }
 }
