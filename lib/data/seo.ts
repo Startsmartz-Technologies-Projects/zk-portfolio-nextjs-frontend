@@ -46,12 +46,14 @@ export function listRedirects(filters: RedirectFilters = {}) {
 // Each content module contributes its published-URL check as it lands. Dynamic
 // import avoids a static cycle (projects.ts → recordRedirect here).
 async function isLivePublishedUrl(path: string): Promise<boolean> {
-  const [{ isPublishedProjectPath }, { isPublishedServicePath }] = await Promise.all([
+  const [{ isPublishedProjectPath }, { isPublishedServicePath }, { isPublishedArticlePath }] = await Promise.all([
     import('@/lib/data/projects'),
     import('@/lib/data/services'),
+    import('@/lib/data/blog'),
   ])
   if (await isPublishedProjectPath(path)) return true
   if (await isPublishedServicePath(path)) return true
+  if (await isPublishedArticlePath(path)) return true
   return false
 }
 
@@ -279,11 +281,12 @@ export async function getPublicRobots(): Promise<RobotsConfig> {
  * cycle with the modules that call `recordRedirect`).
  */
 export async function getPublicSitemap(): Promise<SitemapEntry[]> {
-  const [{ getPublishedProjectSitemapEntries }, { getPublishedServiceSitemapEntries }] = await Promise.all([
+  const [{ getPublishedProjectSitemapEntries }, { getPublishedServiceSitemapEntries }, { getPublishedArticleSitemapEntries }] = await Promise.all([
     import('@/lib/data/projects'),
     import('@/lib/data/services'),
+    import('@/lib/data/blog'),
   ])
-  const groups = await Promise.all([getPublishedProjectSitemapEntries(), getPublishedServiceSitemapEntries()])
+  const groups = await Promise.all([getPublishedProjectSitemapEntries(), getPublishedServiceSitemapEntries(), getPublishedArticleSitemapEntries()])
   return groups.flat()
 }
 
