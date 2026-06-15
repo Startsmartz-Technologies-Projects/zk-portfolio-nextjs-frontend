@@ -59,6 +59,8 @@ model User {
   certificationsUpdated  Certification[]  @relation("CertificationUpdatedBy")
   concernsCreated        Concern[]        @relation("ConcernCreatedBy")
   concernsUpdated        Concern[]        @relation("ConcernUpdatedBy")
+  pagesCreated           Page[]           @relation("PageCreatedBy")
+  pagesUpdated           Page[]           @relation("PageUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -186,6 +188,9 @@ model MediaAsset {
   concernOgImages   Concern[]                @relation("ConcernSeoOgImage")
   concernShowcase   ConcernShowcaseProject[]
   concernGallery    ConcernGalleryItem[]
+  pageSectionBgs    PageSection[]            @relation("PageSectionBackground")
+  sectionItemImages SectionItem[]
+  pageOgImages      Page[]                   @relation("PageSeoOgImage")
   createdAt         DateTime                 @default(now()) @map("created_at")
   updatedAt         DateTime                 @updatedAt @map("updated_at")
   deletedAt         DateTime?                @map("deleted_at")
@@ -1060,4 +1065,134 @@ model ConcernFaq {
 
   @@index([concernId])
   @@map("concern_faqs")
+}
+
+// ── PAGES module (pages-be-1) ────────────────────────────────────────────
+// Marketing-page composition (see docs/srs/pages.md §8). A hybrid model: `Page` is
+// one of 8 FIXED singletons (PageKey, never created/deleted — BR-1) extending
+// ContentBase + embedding SeoMeta; `PageSection` is a typed, ordered, visibility-
+// toggled block with chrome + (for collection-backed sections) max_items/source_key
+// + a settings JSON; `SectionItem` is one generic ordered child whose nullable fields
+// are used per the §8.5 matrix (incl. `stat_key` — stat NUMBERS are never stored,
+// they resolve from SITE/derived at request time, BR-3). PageKey enum members use
+// underscores; the hyphenated public key is the @map'd DB label.
+
+enum PageKey {
+  home
+  about
+  lets_collaborate     @map("lets-collaborate")
+  projects_index       @map("projects-index")
+  services_index       @map("services-index")
+  blog_index           @map("blog-index")
+  news_index           @map("news-index")
+  certifications_index @map("certifications-index")
+}
+
+enum SectionType {
+  hero
+  expertise_cards
+  stat_strip
+  about_intro
+  featured_projects
+  featured_services
+  featured_certifications
+  logo_wall
+  testimonials
+  cta_banner
+  story
+  mvv
+  timeline
+  leadership_message
+  why_us
+  achievements
+  clients_filterable
+  final_cta
+  intent_cards
+  trust_hook
+  contact_panel
+  network_strip
+  insights_strip
+  news_strip
+  leadership_team
+  culture
+}
+
+model Page {
+  id                 String        @id @default(uuid()) @db.Uuid
+  status             ContentStatus @default(draft)
+  publishedAt        DateTime?     @map("published_at")
+  key                PageKey       @unique
+  path               String
+  adminTitle         String        @map("admin_title")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?       @map("seo_meta_title")
+  seoMetaDescription String?       @map("seo_meta_description")
+  seoCanonicalUrl    String?       @map("seo_canonical_url")
+  seoOgImageId       String?       @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?   @relation("PageSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?       @map("seo_og_title")
+  seoOgDescription   String?       @map("seo_og_description")
+  seoNoindex         Boolean       @default(false) @map("seo_noindex")
+  sections           PageSection[]
+  createdById        String?       @map("created_by") @db.Uuid
+  updatedById        String?       @map("updated_by") @db.Uuid
+  createdBy          User?         @relation("PageCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?         @relation("PageUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+
+  @@index([status])
+  @@map("pages")
+}
+
+model PageSection {
+  id                String        @id @default(uuid()) @db.Uuid
+  pageId            String        @map("page_id") @db.Uuid
+  page              Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type              SectionType
+  position          Int           @default(0)
+  isVisible         Boolean       @default(true) @map("is_visible")
+  eyebrow           String?
+  heading           String?
+  subheading        String?
+  body              String?
+  variant           String?
+  backgroundImageId String?       @map("background_image") @db.Uuid
+  backgroundImage   MediaAsset?   @relation("PageSectionBackground", fields: [backgroundImageId], references: [id], onDelete: SetNull)
+  ctaPrimaryLabel   String?       @map("cta_primary_label")
+  ctaPrimaryUrl     String?       @map("cta_primary_url")
+  ctaSecondaryLabel String?       @map("cta_secondary_label")
+  ctaSecondaryUrl   String?       @map("cta_secondary_url")
+  maxItems          Int?          @map("max_items")
+  sourceKey         String?       @map("source_key")
+  settings          Json?
+  items             SectionItem[]
+
+  @@index([pageId])
+  @@map("page_sections")
+}
+
+model SectionItem {
+  id        String      @id @default(uuid()) @db.Uuid
+  sectionId String      @map("section_id") @db.Uuid
+  section   PageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  position  Int         @default(0)
+  icon      String?
+  imageId   String?     @map("image") @db.Uuid
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  tag       String?
+  title     String?
+  subtitle  String?
+  body      String?
+  value     String?
+  unit      String?
+  statKey   String?     @map("stat_key")
+  isActive  Boolean     @default(false) @map("is_active")
+  linkUrl   String?     @map("link_url")
+  linkLabel String?     @map("link_label")
+  meta      Json?
+
+  @@index([sectionId])
+  @@map("section_items")
 }
