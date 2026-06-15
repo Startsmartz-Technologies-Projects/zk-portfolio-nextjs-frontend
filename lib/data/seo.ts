@@ -46,16 +46,18 @@ export function listRedirects(filters: RedirectFilters = {}) {
 // Each content module contributes its published-URL check as it lands. Dynamic
 // import avoids a static cycle (projects.ts → recordRedirect here).
 async function isLivePublishedUrl(path: string): Promise<boolean> {
-  const [{ isPublishedProjectPath }, { isPublishedServicePath }, { isPublishedArticlePath }, { isPublishedStoryPath }] = await Promise.all([
+  const [{ isPublishedProjectPath }, { isPublishedServicePath }, { isPublishedArticlePath }, { isPublishedStoryPath }, { isPublishedConcernPath }] = await Promise.all([
     import('@/lib/data/projects'),
     import('@/lib/data/services'),
     import('@/lib/data/blog'),
     import('@/lib/data/news'),
+    import('@/lib/data/concerns'),
   ])
   if (await isPublishedProjectPath(path)) return true
   if (await isPublishedServicePath(path)) return true
   if (await isPublishedArticlePath(path)) return true
   if (await isPublishedStoryPath(path)) return true
+  if (await isPublishedConcernPath(path)) return true
   return false
 }
 
@@ -283,13 +285,14 @@ export async function getPublicRobots(): Promise<RobotsConfig> {
  * cycle with the modules that call `recordRedirect`).
  */
 export async function getPublicSitemap(): Promise<SitemapEntry[]> {
-  const [{ getPublishedProjectSitemapEntries }, { getPublishedServiceSitemapEntries }, { getPublishedArticleSitemapEntries }, { getPublishedStorySitemapEntries }] = await Promise.all([
+  const [{ getPublishedProjectSitemapEntries }, { getPublishedServiceSitemapEntries }, { getPublishedArticleSitemapEntries }, { getPublishedStorySitemapEntries }, { getPublishedConcernSitemapEntries }] = await Promise.all([
     import('@/lib/data/projects'),
     import('@/lib/data/services'),
     import('@/lib/data/blog'),
     import('@/lib/data/news'),
+    import('@/lib/data/concerns'),
   ])
-  const groups = await Promise.all([getPublishedProjectSitemapEntries(), getPublishedServiceSitemapEntries(), getPublishedArticleSitemapEntries(), getPublishedStorySitemapEntries()])
+  const groups = await Promise.all([getPublishedProjectSitemapEntries(), getPublishedServiceSitemapEntries(), getPublishedArticleSitemapEntries(), getPublishedStorySitemapEntries(), getPublishedConcernSitemapEntries()])
   return groups.flat()
 }
 
