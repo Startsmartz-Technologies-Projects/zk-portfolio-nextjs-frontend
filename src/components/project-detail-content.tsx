@@ -7,7 +7,7 @@ import { fetchProjects } from "@/src/lib/projects-api";
 
 // Project Detail page
 
-function ShareIcon({ k }) {
+function ShareIcon({ k }: { k: 'fb' | 'li' | 'tw' | 'lnk' }) {
   const common = {
     width: 14,
     height: 14,
@@ -61,9 +61,14 @@ function ExpandIcon() {
   );
 }
 
-function Lightbox({ images, idx, onClose, setIdx }) {
+function Lightbox({ images, idx, onClose, setIdx }: {
+  images: string[]
+  idx: number
+  onClose: () => void
+  setIdx: (i: number) => void
+}) {
   React.useEffect(() => {
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft")
         setIdx((idx - 1 + images.length) % images.length);
@@ -104,7 +109,7 @@ function Lightbox({ images, idx, onClose, setIdx }) {
 }
 
 export function ProjectDetailContent({ projectId }: { projectId?: string }) {
-  const [lightbox, setLightbox] = React.useState(null);
+  const [lightbox, setLightbox] = React.useState<number | null>(null);
   const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
 

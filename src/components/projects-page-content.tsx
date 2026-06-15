@@ -297,12 +297,17 @@ function PinIcon() {
   );
 }
 
-function Select({ label, options, value, onChange }) {
+function Select({ label, options, value, onChange }: {
+  label: string
+  options: string[]
+  value: string
+  onChange: (v: string) => void
+}) {
   const [open, setOpen] = React.useState(false);
-  const ref = React.useRef(null);
+  const ref = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
-    const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);

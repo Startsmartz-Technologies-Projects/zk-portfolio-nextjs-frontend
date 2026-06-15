@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Set turbopack.root to the project directory so chunk names are relative
+  // to this folder (not the deeply-nested OneDrive path), avoiding Windows MAX_PATH.
+  turbopack: {
+    root: __dirname,
+  },
   async redirects() {
     return [
       { source: "/Zakir%20Enterprise.html", destination: "/", permanent: false },

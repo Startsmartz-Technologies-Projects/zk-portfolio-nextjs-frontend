@@ -49,7 +49,7 @@ export const IMG = {
     "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&auto=format&fit=crop",
 };
 
-export function Nav({ scrolled }) {
+export function Nav({ scrolled }: { scrolled: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
 
@@ -142,7 +142,7 @@ export function Nav({ scrolled }) {
   );
 }
 
-export function Hero({ variant }) {
+export function Hero({ variant }: { variant?: string }) {
   const bg =
     variant === "crane"
       ? IMG.heroCrane
@@ -319,7 +319,7 @@ export function Stats() {
   );
 }
 
-function Counter({ to, dur = 1400 }) {
+function Counter({ to, dur = 1400 }: { to: number; dur?: number }) {
   const [val, setVal] = React.useState(0);
   const ref = React.useRef(null);
   const started = React.useRef(false);
@@ -329,7 +329,7 @@ function Counter({ to, dur = 1400 }) {
         if (e.isIntersecting && !started.current) {
           started.current = true;
           const start = performance.now();
-          const tick = (t) => {
+          const tick = (t: number) => {
             const p = Math.min(1, (t - start) / dur);
             const eased = 1 - Math.pow(1 - p, 3);
             setVal(Math.round(to * eased));
