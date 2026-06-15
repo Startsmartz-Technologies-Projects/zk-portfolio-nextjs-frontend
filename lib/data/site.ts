@@ -245,3 +245,118 @@ export async function mergeTerm(_actorId: string | null, slug: string, termId: s
   await db.taxonomyTerm.delete({ where: { id: termId } })
   return { into: target, repointed }
 }
+
+// ── Public reads (site-be-3) — consumed by server components, cacheable ────
+// Public-relevant data only; no admin-only settings or secrets (BR-7). Shapes are
+// stable: the chrome, every collection filter dropdown, and PAGES depend on them.
+
+export interface PublicMediaRef {
+  id: string
+  url: string
+  alt: string | null
+  width: number | null
+  height: number | null
+}
+
+export interface TermRef {
+  id: string
+  slug: string
+  label: string
+}
+
+/** Decode a stored SettingValue into its public typed form. */
+function decodeSettingValue(type: SettingType, value: string): unknown {
+  switch (type) {
+    case 'int':
+      return Number(value)
+    case 'bool':
+      return value === 'true'
+    case 'json':
+      try {
+        return JSON.parse(value)
+      } catch {
+        return null
+      }
+    default:
+      return value
+  }
+}
+
+function toMediaRef(media: { id: string; url: string; altText: string | null; width: number | null; height: number | null } | null | undefined): PublicMediaRef | null {
+  if (!media) return null
+  return { id: media.id, url: media.url, alt: media.altText, width: media.width, height: media.height }
+}
+
+/**
+ * The global site bundle for the front-end chrome (FR-SITE-022). Company profile
+ * (public subset incl. `establishment_year` so consumers derive `years_experience`),
+ * brand assets, social links, and **only `is_public` settings**. Returns a safe
+ * empty/default shape before the seed runs (edge 10) — never throws.
+ */
+export async function getSiteBundle() {
+  const [profile, brandRows, settings] = await Promise.all([
+    db.companyProfile.findFirst({ include: { socialLinks: { orderBy: { position: 'asc' } } } }),
+    db.brandAsset.findMany({ include: { media: true } }),
+    db.settingValue.findMany({ where: { isPublic: true } }),
+  ])
+
+  const brandSlot = (k: BrandAssetKey) => toMediaRef(brandRows.find((r) => r.key === k)?.media)
+  const publicSettings: Record<string, unknown> = {}
+  for (const s of settings) publicSettings[s.key] = decodeSettingValue(s.type, s.value)
+
+  return {
+    company: profile
+      ? {
+          name: profile.name,
+          legal_name: profile.legalName,
+          tagline: profile.tagline,
+          brand_description: profile.brandDescription,
+          establishment_year: profile.establishmentYear,
+          email: profile.email,
+          phone: profile.phone,
+          whatsapp: profile.whatsapp,
+          office_address: profile.officeAddress,
+          business_hours: profile.businessHours,
+          coverage_summary: profile.coverageSummary,
+          copyright_text: profile.copyrightText,
+        }
+      : null,
+    brand: {
+      logo_primary: brandSlot('logo_primary'),
+      logo_footer: brandSlot('logo_footer'),
+      favicon: brandSlot('favicon'),
+      og_default: brandSlot('og_default'),
+    },
+    socials: (profile?.socialLinks ?? []).map((s) => ({ platform: s.platform, url: s.url, position: s.position })),
+    settings: publicSettings,
+  }
+}
+
+/** Public taxonomy vocabularies (FR-SITE-023). */
+export function getPublicTaxonomies() {
+  return db.taxonomy.findMany({ orderBy: { slug: 'asc' }, select: { slug: true, label: true, isShared: true } })
+}
+
+/**
+ * The full ordered **active** term list for a vocabulary as `TermRef[]` (FR-SITE-014/023),
+ * including zero-usage terms (drives filter dropdowns). Throws NotFound (→404) for an
+ * unknown vocabulary.
+ */
+export async function getPublicTermList(slug: string): Promise<TermRef[]> {
+  const tax = await db.taxonomy.findUnique({ where: { slug } })
+  if (!tax) throw new NotFoundError(`Taxonomy '${slug}' not found`)
+  const terms = await db.taxonomyTerm.findMany({
+    where: { taxonomyId: tax.id, isActive: true },
+    orderBy: { position: 'asc' },
+    select: { id: true, slug: true, label: true },
+  })
+  return terms
+}
+
+/** Authored company KPIs in order (FR-SITE-024); no derived metrics (BR-3). */
+export function getPublicCompanyStats() {
+  return db.companyStat.findMany({
+    orderBy: { position: 'asc' },
+    select: { key: true, label: true, value: true, unit: true, position: true },
+  })
+}
