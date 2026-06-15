@@ -53,6 +53,8 @@ model User {
   servicesUpdated        Service[]        @relation("ServiceUpdatedBy")
   articlesCreated        Article[]        @relation("ArticleCreatedBy")
   articlesUpdated        Article[]        @relation("ArticleUpdatedBy")
+  newsCreated            NewsStory[]      @relation("NewsStoryCreatedBy")
+  newsUpdated            NewsStory[]      @relation("NewsStoryUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -172,6 +174,9 @@ model MediaAsset {
   serviceOgImages  Service[]            @relation("ServiceSeoOgImage")
   articleCovers    Article[]            @relation("ArticleCoverImage")
   articleOgImages  Article[]            @relation("ArticleSeoOgImage")
+  newsCovers       NewsStory[]          @relation("NewsStoryCoverImage")
+  newsOgImages     NewsStory[]          @relation("NewsStorySeoOgImage")
+  newsGallery      NewsGalleryItem[]
   createdAt        DateTime             @default(now()) @map("created_at")
   updatedAt        DateTime             @updatedAt @map("updated_at")
   deletedAt        DateTime?            @map("deleted_at")
@@ -283,16 +288,17 @@ model Taxonomy {
 }
 
 model TaxonomyTerm {
-  id                 String    @id @default(uuid()) @db.Uuid
-  taxonomyId         String    @map("taxonomy_id") @db.Uuid
-  taxonomy           Taxonomy  @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
+  id                 String      @id @default(uuid()) @db.Uuid
+  taxonomyId         String      @map("taxonomy_id") @db.Uuid
+  taxonomy           Taxonomy    @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
   slug               String
   label              String
-  position           Int       @default(0)
-  isActive           Boolean   @default(true) @map("is_active")
-  projectsInCategory Project[] @relation("ProjectCategory")
-  projectsInLocation Project[] @relation("ProjectLocation")
-  articlesInCategory Article[] @relation("ArticleCategory")
+  position           Int         @default(0)
+  isActive           Boolean     @default(true) @map("is_active")
+  projectsInCategory Project[]   @relation("ProjectCategory")
+  projectsInLocation Project[]   @relation("ProjectLocation")
+  articlesInCategory Article[]   @relation("ArticleCategory")
+  newsInCategory     NewsStory[] @relation("NewsStoryCategory")
 
   @@unique([taxonomyId, slug])
   @@index([taxonomyId])
@@ -755,4 +761,70 @@ model Article {
   @@index([articleDate])
   @@index([deletedAt])
   @@map("articles")
+}
+
+// ── NEWS module (news-be-1) ──────────────────────────────────────────────
+// The "News Corner" (see docs/srs/news.md §8). Blog's close sibling — `NewsStory`
+// extends ContentBase + embeds SeoMeta, with a JSONB `body` block document, but the
+// body is a FLAT block list (h2/h3/p/ul/quote/callout/img) and there is NO author
+// (BR-9 — SITE newsroom byline) and NO popularity. Adds an ordered `gallery` child
+// table. category → SITE news-category vocab; tags freeform; article_date editorial
+// (BR-4); related auto-derived; read_time derived/overridable.
+
+model NewsStory {
+  id                 String            @id @default(uuid()) @db.Uuid
+  status             ContentStatus     @default(draft)
+  publishedAt        DateTime?         @map("published_at")
+  legacyId           String?           @unique @map("legacy_id")
+  slug               String            @unique
+  title              String
+  excerpt            String?
+  coverImageId       String?           @map("cover_image") @db.Uuid
+  coverImage         MediaAsset?       @relation("NewsStoryCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  categoryId         String?           @map("category_id") @db.Uuid
+  category           TaxonomyTerm?     @relation("NewsStoryCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  tags               String[]
+  articleDate        DateTime?         @map("article_date") @db.Date
+  readTimeMinutes    Int?              @map("read_time_minutes")
+  featured           Boolean           @default(false)
+  bodyLead           String?           @map("body_lead")
+  body               Json?
+  gallery            NewsGalleryItem[]
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?           @map("seo_meta_title")
+  seoMetaDescription String?           @map("seo_meta_description")
+  seoCanonicalUrl    String?           @map("seo_canonical_url")
+  seoOgImageId       String?           @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?       @relation("NewsStorySeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?           @map("seo_og_title")
+  seoOgDescription   String?           @map("seo_og_description")
+  seoNoindex         Boolean           @default(false) @map("seo_noindex")
+  createdById        String?           @map("created_by") @db.Uuid
+  updatedById        String?           @map("updated_by") @db.Uuid
+  createdBy          User?             @relation("NewsStoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?             @relation("NewsStoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  deletedAt          DateTime?         @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([featured])
+  @@index([articleDate])
+  @@index([deletedAt])
+  @@map("news_stories")
+}
+
+model NewsGalleryItem {
+  id       String     @id @default(uuid()) @db.Uuid
+  storyId  String     @map("story_id") @db.Uuid
+  story    NewsStory  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  mediaId  String     @map("media_id") @db.Uuid
+  media    MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  caption  String?
+  position Int        @default(0)
+
+  @@index([storyId])
+  @@index([mediaId])
+  @@map("news_gallery_items")
 }
