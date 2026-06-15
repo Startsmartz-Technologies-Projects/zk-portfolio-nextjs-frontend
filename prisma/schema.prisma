@@ -7,4 +7,56 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Domain models are added by module be-1 tasks (auth-be-1, media-be-1, etc.)
+// ── AUTH module (auth-be-1) ──────────────────────────────────────────────
+// Owner of the cross-cutting `User` entity (see docs/srs/auth.md §8).
+// Email uniqueness is case-insensitive; normalization to lowercase is done at
+// the app layer (login / user-admin) — see auth-be-2 / users-be-2.
+
+enum Role {
+  admin
+  editor
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+model User {
+  id                 String        @id @default(uuid()) @db.Uuid
+  email              String        @unique
+  passwordHash       String        @map("password_hash")
+  fullName           String        @map("full_name")
+  role               Role
+  status             UserStatus    @default(active)
+  mustChangePassword Boolean       @default(false) @map("must_change_password")
+  lastLoginAt        DateTime?     @map("last_login_at")
+  createdById        String?       @map("created_by") @db.Uuid
+  updatedById        String?       @map("updated_by") @db.Uuid
+  createdBy          User?         @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers       User[]        @relation("UserCreatedBy")
+  updatedBy          User?         @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedUsers       User[]        @relation("UserUpdatedBy")
+  sessions           AuthSession[]
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+
+  @@map("users")
+}
+
+model AuthSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent  String?   @map("user_agent")
+  ip         String?
+  expiresAt  DateTime  @map("expires_at")
+  lastUsedAt DateTime? @map("last_used_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([revokedAt])
+  @@map("auth_sessions")
+}
