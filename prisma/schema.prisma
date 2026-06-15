@@ -328,6 +328,7 @@ model SeoSettings {
   defaultOgImage         MediaAsset?  @relation(fields: [defaultOgImageId], references: [id], onDelete: SetNull)
   twitterHandle          String?      @map("twitter_handle")
   defaultRobots          RobotsPolicy @default(index_follow) @map("default_robots")
+  jsonldTypes            String[]     @default(["Organization", "Article", "NewsArticle", "Service", "FAQPage", "BreadcrumbList"]) @map("jsonld_types")
   googleSiteVerification String?      @map("google_site_verification")
   bingSiteVerification   String?      @map("bing_site_verification")
   createdById            String?      @map("created_by") @db.Uuid
