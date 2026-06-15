@@ -57,6 +57,8 @@ model User {
   newsUpdated            NewsStory[]      @relation("NewsStoryUpdatedBy")
   certificationsCreated  Certification[]  @relation("CertificationCreatedBy")
   certificationsUpdated  Certification[]  @relation("CertificationUpdatedBy")
+  concernsCreated        Concern[]        @relation("ConcernCreatedBy")
+  concernsUpdated        Concern[]        @relation("ConcernUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -148,41 +150,45 @@ enum MediaProvider {
 }
 
 model MediaAsset {
-  id                String               @id @default(uuid()) @db.Uuid
-  resourceType      ResourceType         @map("resource_type")
-  provider          MediaProvider        @default(cloudinary)
-  publicId          String               @map("public_id")
+  id                String                   @id @default(uuid()) @db.Uuid
+  resourceType      ResourceType             @map("resource_type")
+  provider          MediaProvider            @default(cloudinary)
+  publicId          String                   @map("public_id")
   url               String
   format            String
   bytes             Int?
   width             Int?
   height            Int?
-  altText           String?              @map("alt_text")
+  altText           String?                  @map("alt_text")
   title             String?
-  originalFilename  String?              @map("original_filename")
+  originalFilename  String?                  @map("original_filename")
   tags              String[]
-  createdById       String?              @map("created_by") @db.Uuid
-  updatedById       String?              @map("updated_by") @db.Uuid
-  createdBy         User?                @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy         User?                @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdById       String?                  @map("created_by") @db.Uuid
+  updatedById       String?                  @map("updated_by") @db.Uuid
+  createdBy         User?                    @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?                    @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   brandAssets       BrandAsset[]
   seoSettings       SeoSettings[]
-  projectCovers     Project[]            @relation("ProjectCoverImage")
-  projectOgImages   Project[]            @relation("ProjectSeoOgImage")
+  projectCovers     Project[]                @relation("ProjectCoverImage")
+  projectOgImages   Project[]                @relation("ProjectSeoOgImage")
   projectGallery    ProjectGalleryItem[]
-  serviceHeroes     Service[]            @relation("ServiceHeroImage")
-  serviceMachines   Service[]            @relation("ServiceMachineImage")
-  serviceCtas       Service[]            @relation("ServiceCtaImage")
-  serviceOgImages   Service[]            @relation("ServiceSeoOgImage")
-  articleCovers     Article[]            @relation("ArticleCoverImage")
-  articleOgImages   Article[]            @relation("ArticleSeoOgImage")
-  newsCovers        NewsStory[]          @relation("NewsStoryCoverImage")
-  newsOgImages      NewsStory[]          @relation("NewsStorySeoOgImage")
+  serviceHeroes     Service[]                @relation("ServiceHeroImage")
+  serviceMachines   Service[]                @relation("ServiceMachineImage")
+  serviceCtas       Service[]                @relation("ServiceCtaImage")
+  serviceOgImages   Service[]                @relation("ServiceSeoOgImage")
+  articleCovers     Article[]                @relation("ArticleCoverImage")
+  articleOgImages   Article[]                @relation("ArticleSeoOgImage")
+  newsCovers        NewsStory[]              @relation("NewsStoryCoverImage")
+  newsOgImages      NewsStory[]              @relation("NewsStorySeoOgImage")
   newsGallery       NewsGalleryItem[]
-  certificationDocs Certification[]      @relation("CertificationDocument")
-  createdAt         DateTime             @default(now()) @map("created_at")
-  updatedAt         DateTime             @updatedAt @map("updated_at")
-  deletedAt         DateTime?            @map("deleted_at")
+  certificationDocs Certification[]          @relation("CertificationDocument")
+  concernHeroes     Concern[]                @relation("ConcernHeroImage")
+  concernOgImages   Concern[]                @relation("ConcernSeoOgImage")
+  concernShowcase   ConcernShowcaseProject[]
+  concernGallery    ConcernGalleryItem[]
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+  deletedAt         DateTime?                @map("deleted_at")
 
   @@index([resourceType])
   @@index([format])
@@ -898,4 +904,160 @@ model Certification {
   @@index([showOnHome, sealOrder])
   @@index([deletedAt])
   @@map("certifications")
+}
+
+// ── CONCERNS module (concerns-be-1) ──────────────────────────────────────
+// Group/sister-company profiles (see docs/srs/concerns.md §8). `Concern` extends
+// ContentBase + embeds SeoMeta; rich detail page at /concern-detail/<slug>. Exactly
+// one published concern is the `is_default` landing (enforced app-side, set-default
+// clears the previous). `related` concerns are DERIVED (other published, in order —
+// BR-4), not stored. `position` is the app-managed nav order (plain indexed Int).
+// Seven ordered child collections cascade-delete; showcase + gallery items carry
+// MediaAsset images.
+
+model Concern {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  status             ContentStatus            @default(draft)
+  publishedAt        DateTime?                @map("published_at")
+  legacyId           String?                  @unique @map("legacy_id")
+  slug               String                   @unique
+  name               String
+  short              String?
+  tagline            String?
+  intro              String?
+  establishedYear    Int?                     @map("established_year")
+  code               String?
+  heroImageId        String?                  @map("hero_image") @db.Uuid
+  heroImage          MediaAsset?              @relation("ConcernHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+  isDefault          Boolean                  @default(false) @map("is_default")
+  position           Int                      @default(0)
+  overviewTitle      String?                  @map("overview_title")
+  overviewBody       String[]                 @map("overview_body")
+  overviewMission    String?                  @map("overview_mission")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?                  @map("seo_meta_title")
+  seoMetaDescription String?                  @map("seo_meta_description")
+  seoCanonicalUrl    String?                  @map("seo_canonical_url")
+  seoOgImageId       String?                  @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?              @relation("ConcernSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?                  @map("seo_og_title")
+  seoOgDescription   String?                  @map("seo_og_description")
+  seoNoindex         Boolean                  @default(false) @map("seo_noindex")
+  // Child collections
+  facts              ConcernFact[]
+  services           ConcernService[]
+  why                ConcernWhy[]
+  showcase           ConcernShowcaseProject[]
+  process            ConcernProcessStep[]
+  gallery            ConcernGalleryItem[]
+  faqs               ConcernFaq[]
+  // Audit (ContentBase)
+  createdById        String?                  @map("created_by") @db.Uuid
+  updatedById        String?                  @map("updated_by") @db.Uuid
+  createdBy          User?                    @relation("ConcernCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?                    @relation("ConcernUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+  deletedAt          DateTime?                @map("deleted_at")
+
+  @@index([status])
+  @@index([position])
+  @@index([isDefault])
+  @@index([deletedAt])
+  @@map("concerns")
+}
+
+model ConcernFact {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  big       String
+  label     String
+  sub       String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_facts")
+}
+
+model ConcernService {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  icon      String?
+  title     String
+  copy      String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_services")
+}
+
+model ConcernWhy {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  number    String?
+  title     String
+  copy      String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_why")
+}
+
+model ConcernShowcaseProject {
+  id        String      @id @default(uuid()) @db.Uuid
+  concernId String      @map("concern_id") @db.Uuid
+  concern   Concern     @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  title     String
+  location  String?
+  category  String?
+  summary   String?
+  imageId   String?     @map("image") @db.Uuid
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  position  Int         @default(0)
+
+  @@index([concernId])
+  @@index([imageId])
+  @@map("concern_showcase_projects")
+}
+
+model ConcernProcessStep {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  step      String?
+  title     String
+  copy      String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_process_steps")
+}
+
+model ConcernGalleryItem {
+  id        String     @id @default(uuid()) @db.Uuid
+  concernId String     @map("concern_id") @db.Uuid
+  concern   Concern    @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  mediaId   String     @map("media_id") @db.Uuid
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  caption   String?
+  position  Int        @default(0)
+
+  @@index([concernId])
+  @@index([mediaId])
+  @@map("concern_gallery_items")
+}
+
+model ConcernFaq {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_faqs")
 }
