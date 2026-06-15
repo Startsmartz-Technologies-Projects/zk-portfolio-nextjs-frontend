@@ -75,6 +75,10 @@ export async function computeAssetUsage(assetId: string): Promise<UsageRef[]> {
   for (const g of newsGallery) refs.push({ module: 'news', record_id: g.story.id, title: g.story.title, role: 'gallery' })
   for (const s of newsBody) refs.push({ module: 'news', record_id: s.id, title: s.title, role: 'body_image' })
 
+  // CERTIFICATIONS — the certificate `document` asset (certifications-be-2).
+  const certDocs = await db.certification.findMany({ where: { documentId: assetId, deletedAt: null }, select: { id: true, title: true } })
+  for (const c of certDocs) refs.push({ module: 'certifications', record_id: c.id, title: c.title, role: 'document' })
+
   return refs
 }
 
