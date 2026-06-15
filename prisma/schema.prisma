@@ -43,6 +43,10 @@ model User {
   mediaUpdated           MediaAsset[]     @relation("MediaAssetUpdatedBy")
   companyProfilesCreated CompanyProfile[] @relation("CompanyProfileCreatedBy")
   companyProfilesUpdated CompanyProfile[] @relation("CompanyProfileUpdatedBy")
+  seoSettingsCreated     SeoSettings[]    @relation("SeoSettingsCreatedBy")
+  seoSettingsUpdated     SeoSettings[]    @relation("SeoSettingsUpdatedBy")
+  redirectsCreated       Redirect[]       @relation("RedirectCreatedBy")
+  redirectsUpdated       Redirect[]       @relation("RedirectUpdatedBy")
   createdAt              DateTime         @default(now()) @map("created_at")
   updatedAt              DateTime         @updatedAt @map("updated_at")
   deletedAt              DateTime?        @map("deleted_at")
@@ -152,6 +156,7 @@ model MediaAsset {
   createdBy        User?         @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy        User?         @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   brandAssets      BrandAsset[]
+  seoSettings      SeoSettings[]
   createdAt        DateTime      @default(now()) @map("created_at")
   updatedAt        DateTime      @updatedAt @map("updated_at")
   deletedAt        DateTime?     @map("deleted_at")
@@ -285,4 +290,70 @@ model SettingValue {
   description String
 
   @@map("setting_values")
+}
+
+// ── SEO module (seo-be-1) ────────────────────────────────────────────────
+// Owns the `SeoSettings` singleton and the `Redirect` store (see docs/srs/seo.md §8).
+// The per-record `SeoMeta` columns are NOT here — each content module embeds them
+// on its own record (overview §6.2). This module owns the canonical SeoMeta *type*
+// + fallback resolver as shared code (lib/seo/seo-meta.ts), not a table. Sitemap
+// entries are derived, never stored (§8.4). `default_og_image` references a
+// MediaAsset (SITE og_default); Organization JSON-LD is sourced from SITE.
+//
+// RedirectStatus values are HTTP codes; Prisma enum members can't be bare digits,
+// so they're named and @map'd to the DB labels '301'/'302'.
+
+enum RobotsPolicy {
+  index_follow
+  noindex_nofollow
+  custom
+}
+
+enum RedirectStatus {
+  permanent @map("301")
+  temporary @map("302")
+}
+
+enum RedirectSource {
+  system
+  manual
+}
+
+model SeoSettings {
+  id                     String       @id @default(uuid()) @db.Uuid
+  siteTitleTemplate      String       @map("site_title_template")
+  defaultMetaDescription String       @map("default_meta_description")
+  metadataBase           String       @map("metadata_base")
+  defaultOgImageId       String?      @map("default_og_image") @db.Uuid
+  defaultOgImage         MediaAsset?  @relation(fields: [defaultOgImageId], references: [id], onDelete: SetNull)
+  twitterHandle          String?      @map("twitter_handle")
+  defaultRobots          RobotsPolicy @default(index_follow) @map("default_robots")
+  googleSiteVerification String?      @map("google_site_verification")
+  bingSiteVerification   String?      @map("bing_site_verification")
+  createdById            String?      @map("created_by") @db.Uuid
+  updatedById            String?      @map("updated_by") @db.Uuid
+  createdBy              User?        @relation("SeoSettingsCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy              User?        @relation("SeoSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  @@map("seo_settings")
+}
+
+model Redirect {
+  id          String         @id @default(uuid()) @db.Uuid
+  fromPath    String         @unique @map("from_path")
+  toPath      String         @map("to_path")
+  status      RedirectStatus @default(permanent)
+  source      RedirectSource
+  isActive    Boolean        @default(true) @map("is_active")
+  note        String?
+  createdById String?        @map("created_by") @db.Uuid
+  updatedById String?        @map("updated_by") @db.Uuid
+  createdBy   User?          @relation("RedirectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?          @relation("RedirectUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@map("redirects")
 }
