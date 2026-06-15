@@ -4,6 +4,7 @@ import { seedMedia } from './seed/media.seed'
 import { seedSite } from './seed/site.seed'
 import { seedSeo } from './seed/seo.seed'
 import { seedProjects } from './seed/projects.seed'
+import { seedServices } from './seed/services.seed'
 
 const db = new PrismaClient()
 
@@ -13,6 +14,7 @@ async function main() {
   await seedSite(db)
   await seedSeo(db)
   await seedProjects(db)
+  await seedServices(db)
 }
 
 main()
