@@ -9,6 +9,7 @@ vi.mock('@/lib/auth', () => ({ auth: authMock }))
 vi.mock('@/lib/users/audit', () => ({ audit: auditMock }))
 
 import { requireCapability, UnauthorizedError, ForbiddenError } from '@/lib/users/rbac'
+import { MustChangePasswordError } from '@/lib/auth/errors'
 import { CAPABILITIES } from '@/lib/users/capabilities'
 
 const EDITOR_ALLOWED: Capability[] = ['seo_meta', 'content', 'media', 'leads_triage', 'dashboard']
@@ -62,5 +63,11 @@ describe('requireCapability', () => {
     authMock.mockResolvedValue(principal('admin'))
     const p = await requireCapability('user_admin')
     expect(p.user_id).toBe('u-1')
+  })
+
+  it('blocks any capability when must_change_password is set (FR-AUTH-012)', async () => {
+    authMock.mockResolvedValue({ ...principal('admin'), must_change_password: true })
+    await expect(requireCapability('content')).rejects.toBeInstanceOf(MustChangePasswordError)
+    expect(auditMock).not.toHaveBeenCalled()
   })
 })
