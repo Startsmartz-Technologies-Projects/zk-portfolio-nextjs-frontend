@@ -51,9 +51,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 // Run on admin + all public paths; skip Next internals, api routes, and static assets.
 // `.html` is deliberately NOT excluded so legacy file paths (e.g. "Service Details.html")
-// can be resolved.
+// can be resolved. NB: Next's route-source parser forbids *capturing* groups in the
+// matcher — the extension alternation must be a non-capturing group `(?:…)`.
 export const config = {
   matcher: [
-    '/((?!_next/|api/|.*\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|css|js|mjs|map|woff|woff2|ttf|txt|xml)$).*)',
+    '/((?!_next/|api/|.*\\.(?:ico|png|jpg|jpeg|gif|svg|webp|avif|css|js|mjs|map|woff|woff2|ttf|txt|xml)$).*)',
   ],
 }
