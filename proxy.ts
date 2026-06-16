@@ -23,7 +23,12 @@ async function guardAdmin(request: NextRequest, pathname: string): Promise<NextR
   const principal = token ? await verifySessionToken(token) : null
 
   if (!principal) {
-    return NextResponse.redirect(new URL('/admin/login', request.url))
+    const loginUrl = new URL('/admin/login', request.url)
+    // Preserve the intended admin path so login can return the user there (FR-AUTH-013).
+    if (pathname !== '/admin') {
+      loginUrl.searchParams.set('next', pathname)
+    }
+    return NextResponse.redirect(loginUrl)
   }
 
   // DB-side revocation + user-status check added in auth-be-2
