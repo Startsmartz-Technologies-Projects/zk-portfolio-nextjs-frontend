@@ -19,6 +19,7 @@ import {
   setFeatured,
   bulkStories,
   getPreviewUrl,
+  collectPublishIssues,
   NEWS_REVALIDATE_TAG,
   NEWS_BASE_PATH,
 } from '@/lib/data/news'
@@ -133,4 +134,10 @@ export async function bulkStoriesAction(input: unknown) {
 export async function previewStoryAction(id: string) {
   await requireCapability('content')
   return getPreviewUrl(id)
+}
+
+/** Read-only publish-gate issues for a saved story, surfaced in the editor publish panel. */
+export async function publishIssuesStoryAction(id: string) {
+  await requireCapability('content')
+  return collectPublishIssues(id)
 }
