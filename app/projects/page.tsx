@@ -8,8 +8,8 @@ import { FeaturedCarousel } from "@/src/components/projects/featured-carousel";
 import { getPublishedProjects, getFeaturedProjects, getProjectFacets, getProjectStats } from "@/lib/data/projects";
 import { getTermList, REVALIDATE } from "@/src/lib/site/taxonomy";
 import { getSiteBundle } from "@/lib/data/site";
-import { getPublicSeoDefaults } from "@/lib/data/seo";
-import { buildMetadata } from "@/src/lib/seo/build-metadata";
+import { getIndexHero } from "@/src/lib/pages/index-hero";
+import { pageMetadata } from "@/src/lib/pages/page-metadata";
 
 // Public Projects listing — server component on lib/data (projects-fe-public §A/§B/§D/§F/§G).
 // Filters/search/sort/pagination are driven entirely by the URL query params so the page is
@@ -21,10 +21,9 @@ export const revalidate = REVALIDATE;
 const PAGE_SIZE = 6;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const defaults = await getPublicSeoDefaults();
-  return buildMetadata({
-    record: { title: "Projects", summary: "Our portfolio of completed, ongoing and landmark construction projects across Bangladesh." },
-    defaults,
+  return pageMetadata("projects-index", {
+    title: "Projects",
+    summary: "Our portfolio of completed, ongoing and landmark construction projects across Bangladesh.",
     path: "/projects",
   });
 }
@@ -62,6 +61,9 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     getTermList("location"),
     getSiteBundle(),
   ]);
+
+  // Hero chrome (eyebrow/heading/subheading) from PAGES (projects-fe-public §D realized in Wave C).
+  const indexHero = await getIndexHero("projects-index");
 
   const projects = listed.data;
   const total = listed.meta.total;
@@ -151,14 +153,18 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 <span>Projects</span>
               </div>
               <span className="microlabel" style={{ marginTop: 22, display: "inline-flex" }}>
-                Our Projects
+                {indexHero?.eyebrow ?? "Our Projects"}
               </span>
               <h1>
-                Built across <span className="accent">Bangladesh.</span>
+                {indexHero?.heading ?? (
+                  <>
+                    Built across <span className="accent">Bangladesh.</span>
+                  </>
+                )}
               </h1>
               <p className="lede">
-                Discover our portfolio of completed, ongoing, and landmark construction projects spanning public, private, commercial, and
-                infrastructure sectors each delivered with consistent precision and execution excellence across every site.
+                {indexHero?.subheading ??
+                  "Discover our portfolio of completed, ongoing, and landmark construction projects spanning public, private, commercial, and infrastructure sectors each delivered with consistent precision and execution excellence across every site."}
               </p>
               <div className="ih-stats">
                 <div className="ih-stat">
