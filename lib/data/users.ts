@@ -29,7 +29,7 @@ const normalizeEmail = (email: string) => email.toLowerCase().trim()
 export async function listUsers(filters: ListUsersInput = {}) {
   const page = Math.max(1, filters.page ?? 1)
   const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 20))
-  const where: Prisma.UserWhereInput = { deletedAt: null }
+  const where: Prisma.UserWhereInput = filters.includeDeleted ? {} : { deletedAt: null }
   if (filters.role) where.role = filters.role
   if (filters.status) where.status = filters.status
   if (filters.q) {
