@@ -5,6 +5,7 @@ import { NewsCard, type NewsCardData } from "./news/news-card";
 import { NewsToolbar, type ChipOption } from "./news/news-toolbar";
 import { getPublishedStories, getFeaturedStories, getStoryFacets } from "@/lib/data/news";
 import { getTermList } from "@/src/lib/site/taxonomy";
+import { getIndexHero } from "@/src/lib/pages/index-hero";
 
 // Public News index — server component on getPublishedStories/getFeaturedStories/getStoryFacets
 // (news-fe-public §A/§D). The inline NEWS_DATA is gone. Search/category/sort/pagination via query
@@ -36,6 +37,7 @@ export async function NewsPageContent({ state }: { state: NewsIndexState }) {
     getStoryFacets(),
     getTermList("news-category"),
   ]);
+  const indexHero = await getIndexHero("news-index"); // hero chrome from PAGES (§D)
 
   const items = listed.data;
   const total = listed.meta.total;
@@ -69,9 +71,15 @@ export async function NewsPageContent({ state }: { state: NewsIndexState }) {
             <span className="current">News Corner</span>
           </div>
           <h1>
-            News <span className="accent">Corner</span>
+            {indexHero?.heading ?? (
+              <>
+                News <span className="accent">Corner</span>
+              </>
+            )}
           </h1>
-          <p className="hero-sub">Latest updates, achievements, project milestones and company announcements from Zakir Enterprise.</p>
+          <p className="hero-sub">
+            {indexHero?.subheading ?? "Latest updates, achievements, project milestones and company announcements from Zakir Enterprise."}
+          </p>
           <div className="nc-hero-meta">
             <div className="m">
               <span className="k">Published</span>

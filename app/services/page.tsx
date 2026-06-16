@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { ServicesPageContent } from "@/src/components/services-page-content";
-import { getPublicSeoDefaults } from "@/lib/data/seo";
-import { buildMetadata } from "@/src/lib/seo/build-metadata";
+import { pageMetadata } from "@/src/lib/pages/page-metadata";
 import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
-// Public Services directory route (services-fe-public §A/§F). Server-rendered; generateMetadata
-// via the Wave-A helper, ISR per the shared convention. Service URLs are aggregated into the
-// sitemap by Wave-A getPublicSitemap (respecting noindex).
+// Public Services directory route (services-fe-public §A/§F). Server-rendered; metadata from the
+// PAGES services-index SeoMeta (pages-fe-public §G), ISR per the shared convention. Service URLs
+// are aggregated into the sitemap by Wave-A getPublicSitemap (respecting noindex).
 export const revalidate = REVALIDATE;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const defaults = await getPublicSeoDefaults();
-  return buildMetadata({
-    record: { title: "Services", summary: "Our full-spectrum construction service portfolio — infrastructure, structural systems, utilities and project management." },
-    defaults,
+  return pageMetadata("services-index", {
+    title: "Services",
+    summary: "Our full-spectrum construction service portfolio — infrastructure, structural systems, utilities and project management.",
     path: "/services",
   });
 }

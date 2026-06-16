@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { BlogPageContent, type BlogIndexState } from "@/src/components/blog-page-content";
-import { getPublicSeoDefaults } from "@/lib/data/seo";
-import { buildMetadata } from "@/src/lib/seo/build-metadata";
+import { pageMetadata } from "@/src/lib/pages/page-metadata";
 import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
-// Public Blog index route (blog-fe-public §A/§F). Server-rendered; generateMetadata via the
-// Wave-A helper, ISR per the shared convention. Article URLs are aggregated into the sitemap by
-// Wave-A getPublicSitemap (respecting noindex).
+// Public Blog index route (blog-fe-public §A/§F). Server-rendered; metadata from the PAGES
+// blog-index SeoMeta (pages-fe-public §G), ISR per the shared convention. Article URLs are
+// aggregated into the sitemap by Wave-A getPublicSitemap (respecting noindex).
 export const revalidate = REVALIDATE;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const defaults = await getPublicSeoDefaults();
-  return buildMetadata({
-    record: { title: "Insights & Articles", summary: "Construction knowledge, industry updates and project insights from Zakir Enterprise." },
-    defaults,
+  return pageMetadata("blog-index", {
+    title: "Insights & Articles",
+    summary: "Construction knowledge, industry updates and project insights from Zakir Enterprise.",
     path: "/blogs",
   });
 }

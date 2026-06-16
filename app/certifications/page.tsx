@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { CertificationsPageContent } from "@/src/components/certifications-page-content";
-import { getPublicSeoDefaults } from "@/lib/data/seo";
-import { buildMetadata } from "@/src/lib/seo/build-metadata";
+import { pageMetadata } from "@/src/lib/pages/page-metadata";
 import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
 // Public Certifications directory route (certifications-fe-public §A/§F). Server-rendered; ISR per
-// the shared convention. No per-record SeoMeta (no detail URLs, BR-8) — page metadata comes from
-// the SITE/SEO defaults (the PAGES-managed override lands with pages-fe-public, Wave C).
+// the shared convention. No per-record SeoMeta (no detail URLs, BR-8) — page metadata now comes
+// from the PAGES certifications-index SeoMeta (pages-fe-public §G).
 export const revalidate = REVALIDATE;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const defaults = await getPublicSeoDefaults();
-  return buildMetadata({
-    record: { title: "Certifications & Credentials", summary: "Official registrations, approvals and certifications held by Zakir Enterprise — current, verified and available for pre-qualification." },
-    defaults,
+  return pageMetadata("certifications-index", {
+    title: "Certifications & Credentials",
+    summary: "Official registrations, approvals and certifications held by Zakir Enterprise — current, verified and available for pre-qualification.",
     path: "/certifications",
   });
 }

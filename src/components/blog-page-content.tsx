@@ -5,6 +5,7 @@ import { BlogCard, blogInitials } from "./blog/blog-card";
 import { BlogToolbar, type ChipOption } from "./blog/blog-toolbar";
 import { getPublishedArticles, getFeaturedArticles, getArticleFacets } from "@/lib/data/blog";
 import { getTermList } from "@/src/lib/site/taxonomy";
+import { getIndexHero } from "@/src/lib/pages/index-hero";
 
 // Public Blog index — server component on getPublishedArticles/getFeaturedArticles/getArticleFacets
 // (blog-fe-public §A/§D). Search/category/sort/pagination via query params; the toolbar is a client
@@ -40,6 +41,7 @@ export async function BlogPageContent({ state }: { state: BlogIndexState }) {
     getArticleFacets(),
     getTermList("blog-category"),
   ]);
+  const indexHero = await getIndexHero("blog-index"); // hero chrome from PAGES (§D)
 
   const items = listed.data;
   const total = listed.meta.total;
@@ -67,14 +69,18 @@ export async function BlogPageContent({ state }: { state: BlogIndexState }) {
             <span className="sep">/</span>
             <span className="current">Insights &amp; Articles</span>
           </div>
-          <span className="bg-microlabel">Insights &amp; Articles</span>
+          <span className="bg-microlabel">{indexHero?.eyebrow ?? "Insights & Articles"}</span>
           <h1>
-            Construction Knowledge,
-            <br />
-            <span className="accent">Industry Updates</span> &amp; Project Insights
+            {indexHero?.heading ?? (
+              <>
+                Construction Knowledge,
+                <br />
+                <span className="accent">Industry Updates</span> &amp; Project Insights
+              </>
+            )}
           </h1>
           <p className="bg-hero-sub">
-            Expert articles from Zakir Enterprise on construction, engineering, project delivery, and infrastructure development.
+            {indexHero?.subheading ?? "Expert articles from Zakir Enterprise on construction, engineering, project delivery, and infrastructure development."}
           </p>
           <div className="bg-hero-ctas">
             <a href="#grid" className="btn btn-primary">
