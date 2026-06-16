@@ -1,5 +1,3 @@
-import { Nav } from "@/src/components/nav";
-import { Footer } from "@/src/components/footer";
 import { ServiceDetailsPageContent } from "@/src/components/service-details-page-content";
 
 export default async function ServiceDetailsBySlugPage({
@@ -16,9 +14,7 @@ export default async function ServiceDetailsBySlugPage({
 
   return (
     <>
-      <Nav />
       <ServiceDetailsPageContent serviceSlug={serviceSlug} />
-      <Footer />
     </>
   );
 }

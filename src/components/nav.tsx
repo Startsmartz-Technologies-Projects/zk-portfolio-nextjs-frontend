@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { Nav as LegacyNav } from "./sections1";
+import type { SiteChrome } from "@/src/lib/site/chrome";
 
-export function Nav() {
+export function Nav({ site }: { site: SiteChrome }) {
   const [scrolled, setScrolled] = React.useState(false);
 
   React.useEffect(() => {
@@ -13,5 +14,5 @@ export function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  return <LegacyNav scrolled={scrolled} />;
+  return <LegacyNav scrolled={scrolled} site={site} />;
 }

@@ -1,5 +1,3 @@
-import { Nav } from "@/src/components/nav";
-import { Footer } from "@/src/components/footer";
 import { ConcernDetailPageContent } from "@/src/components/concern-detail-page-content";
 
 export default async function ConcernDetailByIdPage({
@@ -15,9 +13,7 @@ export default async function ConcernDetailByIdPage({
 
   return (
     <>
-      <Nav />
       <ConcernDetailPageContent concernId={concernId} />
-      <Footer />
     </>
   );
 }

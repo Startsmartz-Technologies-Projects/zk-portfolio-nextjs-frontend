@@ -1,5 +1,3 @@
-import { Nav } from "@/src/components/nav";
-import { Footer } from "@/src/components/footer";
 import { ProjectDetailContent } from "@/src/components/project-detail-content";
 
 export default async function ProjectDetailPage({
@@ -15,9 +13,7 @@ export default async function ProjectDetailPage({
 
   return (
     <>
-      <Nav />
       <ProjectDetailContent projectId={projectId} />
-      <Footer />
     </>
   );
 }
