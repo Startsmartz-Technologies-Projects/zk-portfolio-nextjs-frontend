@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LetsCollaboratePageContent, type CollaborateChrome } from "@/src/components/lets-collaborate-page-content";
 import { getPublishedPage } from "@/lib/data/pages";
 import { getSiteChrome } from "@/src/lib/site/chrome";
+import { getOptionSets } from "@/lib/leads/options";
 import { pageMetadata } from "@/src/lib/pages/page-metadata";
 import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
@@ -45,5 +46,10 @@ export default async function LetsCollaboratePage() {
     contact: { phone: site.phone, email: site.email, officeAddress: site.officeAddress },
   };
 
-  return <LetsCollaboratePageContent chrome={chrome} />;
+  // Controlled form option sets (leads-fe-public-form §A2) — code constants, resolved server-side
+  // so the form renders them without a client round-trip (the /api/inquiries/options route serves
+  // the same payload for completeness).
+  const options = getOptionSets();
+
+  return <LetsCollaboratePageContent chrome={chrome} options={options} />;
 }
