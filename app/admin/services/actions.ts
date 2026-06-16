@@ -19,6 +19,7 @@ import {
   reorderServices,
   bulkServices,
   getPreviewUrl,
+  collectPublishIssues,
   SERVICES_REVALIDATE_TAG,
   SERVICES_DIR_PATH,
   SERVICES_DETAIL_PATH,
@@ -136,4 +137,11 @@ export async function bulkServicesAction(input: unknown) {
 export async function previewServiceAction(id: string) {
   await requireCapability('content')
   return getPreviewUrl(id)
+}
+
+/** Read-only publish-gate issues for a saved service, so the editor can surface them
+ *  proactively (FR-SVC-019). The publish action re-checks authoritatively. */
+export async function publishIssuesServiceAction(id: string) {
+  await requireCapability('content')
+  return collectPublishIssues(id)
 }
