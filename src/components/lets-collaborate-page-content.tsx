@@ -20,6 +20,26 @@ export type CollaborateChrome = {
   contact: { phone: string; email: string; officeAddress: string };
 };
 
+// Controlled option sets the form renders + validates against (leads-fe-public-form §A2), resolved
+// server-side from getOptionSets() (lib/leads/options).
+export type InquiryOptions = {
+  inquiry_types: Array<{ value: string; label: string }>;
+  services: string[];
+  budgets: string[];
+  timelines: string[];
+};
+
+// The hidden anti-spam field name — must match the backend (lib/validation/leads HONEYPOT_FIELD).
+const HONEYPOT_FIELD = "company_website";
+const MAX_ATTACHMENTS = 10;
+
+type Attachment = {
+  name: string;
+  status: "uploading" | "done" | "error";
+  media_id?: string;
+  error?: string;
+};
+
 const HERO_IMAGE =
   "https://res.cloudinary.com/dk4csiouq/image/upload/v1778497992/Collobarote_Hero_fgpdk5.jpg";
 
@@ -84,12 +104,22 @@ const INITIAL_FORM: FormState = {
   message: "",
 };
 
-export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChrome }) {
+export function LetsCollaboratePageContent({ chrome, options }: { chrome?: CollaborateChrome; options?: InquiryOptions }) {
+  // Option sets from the server (§A2); fall back to the legacy in-file lists if not provided.
+  const inquiryTypes = options?.inquiry_types ?? INTENT_ITEMS.map((i) => ({ value: i.id, label: i.title }));
+  const serviceOptions = options?.services ?? [...SERVICE_ITEMS];
+  const budgetOptions = options?.budgets ?? [];
+  const timelineOptions = options?.timelines ?? [];
+
   const [intent, setIntent] = React.useState<InquiryType | "">("");
   const [form, setForm] = React.useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [submitted, setSubmitted] = React.useState(false);
   const [referenceNo, setReferenceNo] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [formError, setFormError] = React.useState<string>(""); // banner: 429 / network / 500
+  const [attachments, setAttachments] = React.useState<Attachment[]>([]);
+  const honeypotRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
     if (!intent) return;
@@ -114,9 +144,55 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
     }));
   };
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  // Broker each selected file into MEDIA (§A3): POST to the attachment endpoint, collect media_id.
+  const onFilesPicked = async (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    const files = Array.from(fileList).slice(0, MAX_ATTACHMENTS - attachments.length);
+    for (const file of files) {
+      const idx = attachments.length;
+      setAttachments((prev) => [...prev, { name: file.name, status: "uploading" }]);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/inquiries/attachments", { method: "POST", body: fd });
+        if (res.status === 429) {
+          setAttachments((prev) => prev.map((a, i) => (i === idx ? { ...a, status: "error", error: "Too many uploads — try again shortly." } : a)));
+          continue;
+        }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = (data?.details?.[0]?.message as string) || (data?.message as string) || "Upload failed";
+          setAttachments((prev) => prev.map((a, i) => (i === idx ? { ...a, status: "error", error: msg } : a)));
+          continue;
+        }
+        setAttachments((prev) => prev.map((a, i) => (i === idx ? { ...a, status: "done", media_id: data.media_id } : a)));
+      } catch {
+        setAttachments((prev) => prev.map((a, i) => (i === idx ? { ...a, status: "error", error: "Upload failed" } : a)));
+      }
+    }
+  };
 
+  const removeAttachment = (idx: number) => setAttachments((prev) => prev.filter((_, i) => i !== idx));
+
+  // Map server 422 field issues (zod) onto the inline error map. Each issue has path[] + message.
+  const applyServerErrors = (details: unknown): boolean => {
+    if (!Array.isArray(details) || details.length === 0) return false;
+    const next: Record<string, string> = {};
+    const fieldMap: Record<string, string> = { inquiry_type: "inquiryType", attachment_ids: "attachments" };
+    for (const issue of details as Array<{ path?: unknown[]; field?: string; message?: string }>) {
+      const raw = String(issue.path?.[0] ?? issue.field ?? "");
+      const key = fieldMap[raw] ?? raw;
+      if (key) next[key] = issue.message || "Invalid value";
+    }
+    setErrors(next);
+    return Object.keys(next).length > 0;
+  };
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError("");
+
+    // First-pass client validation (§A1 — the server is authoritative).
     const nextErrors: Record<string, string> = {};
     if (!form.name.trim()) nextErrors.name = "Full name required";
     if (!form.phone.trim()) nextErrors.phone = "Phone number required";
@@ -125,15 +201,73 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
     if (!form.subject.trim()) nextErrors.subject = "Subject required";
     if (!form.inquiryType) nextErrors.inquiryType = "Select an inquiry type";
     if (!form.message.trim()) nextErrors.message = "Message required";
-
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    setSubmitted(true);
-    setReferenceNo(`ZE-${Math.floor(100000 + Math.random() * 899999)}`);
+    if (attachments.some((a) => a.status === "uploading")) {
+      setFormError("Please wait for attachments to finish uploading.");
+      return;
+    }
+
+    const attachment_ids = attachments.filter((a) => a.status === "done" && a.media_id).map((a) => a.media_id!);
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          company: form.company.trim() || null,
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          subject: form.subject.trim(),
+          inquiry_type: form.inquiryType,
+          services: form.services,
+          budget: form.budget || null,
+          location: form.location.trim() || null,
+          timeline: form.timeline || null,
+          bid_name: form.inquiryType === "tender" ? form.bidName.trim() || null : null,
+          message: form.message.trim(),
+          attachment_ids,
+          // Honeypot: read the hidden field's live value (bots fill it; humans never see it).
+          [HONEYPOT_FIELD]: honeypotRef.current?.value ?? "",
+        }),
+      });
+
+      if (res.status === 429) {
+        setFormError("You've sent several requests in a short time. Please wait a few minutes and try again.");
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 422) {
+        if (!applyServerErrors(data?.details)) setFormError(data?.message || "Please correct the highlighted fields.");
+        return;
+      }
+      if (!res.ok) {
+        setFormError(data?.message || "Something went wrong submitting your request. Please try again.");
+        return;
+      }
+      // Success — show the server-generated reference (§A1).
+      setReferenceNo(data.reference_no || "");
+      setSubmitted(true);
+    } catch {
+      setFormError("Network error — please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const intentLabel = INTENT_ITEMS.find((item) => item.id === form.inquiryType)?.title ?? "inquiry";
+  const resetForm = () => {
+    setSubmitted(false);
+    setForm(INITIAL_FORM);
+    setAttachments([]);
+    setErrors({});
+    setFormError("");
+    setIntent("");
+  };
+
+  const intentLabel = inquiryTypes.find((item) => item.value === form.inquiryType)?.label ?? "inquiry";
 
   return (
     <>
@@ -356,9 +490,9 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
                         }}
                       >
                         <option value="">Select type...</option>
-                        {INTENT_ITEMS.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.title}
+                        {inquiryTypes.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
                           </option>
                         ))}
                       </select>
@@ -369,12 +503,11 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
                       <label>Budget Range</label>
                       <select value={form.budget} onChange={(event) => updateField("budget", event.target.value)}>
                         <option value="">Select range...</option>
-                        <option>Under BDT 1 Cr</option>
-                        <option>BDT 1 - 5 Cr</option>
-                        <option>BDT 5 - 20 Cr</option>
-                        <option>BDT 20 - 50 Cr</option>
-                        <option>BDT 50 Cr +</option>
-                        <option>To be discussed</option>
+                        {budgetOptions.map((b) => (
+                          <option key={b} value={b}>
+                            {b}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -387,12 +520,11 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
                       <label>Expected Timeline</label>
                       <select value={form.timeline} onChange={(event) => updateField("timeline", event.target.value)}>
                         <option value="">Select timeline...</option>
-                        <option>Immediate (&lt; 1 month)</option>
-                        <option>1 - 3 months</option>
-                        <option>3 - 6 months</option>
-                        <option>6 - 12 months</option>
-                        <option>12 months +</option>
-                        <option>Flexible / planning stage</option>
+                        {timelineOptions.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -406,7 +538,7 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
                     <div className="field full">
                       <label>Interested Services</label>
                       <div className="svc-chips">
-                        {SERVICE_ITEMS.map((service) => (
+                        {serviceOptions.map((service) => (
                           <button key={service} type="button" className={`svc-chip ${form.services.includes(service) ? "active" : ""}`} onClick={() => toggleService(service)}>
                             {service}
                           </button>
@@ -436,16 +568,58 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
                         </div>
                         <div>
                           <div className="attach-t">Add drawings, BoQ, RFP or site images</div>
-                          <div className="attach-s">PDF - DWG - XLS - JPG - PNG - up to 25MB</div>
+                          <div className="attach-s">PDF - DWG - XLS - DOC - JPG - PNG - up to 25MB</div>
                         </div>
-                        <input type="file" style={{ display: "none" }} multiple />
+                        <input
+                          type="file"
+                          style={{ display: "none" }}
+                          multiple
+                          accept=".pdf,.dwg,.xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png"
+                          onChange={(e) => {
+                            void onFilesPicked(e.target.files);
+                            e.target.value = "";
+                          }}
+                        />
                       </label>
+                      {attachments.length > 0 && (
+                        <ul className="attach-list">
+                          {attachments.map((a, i) => (
+                            <li key={`${a.name}-${i}`} className={`attach-item ${a.status}`}>
+                              <span className="attach-name">{a.name}</span>
+                              <span className="attach-status">
+                                {a.status === "uploading" ? "Uploading…" : a.status === "error" ? a.error || "Failed" : "Attached"}
+                              </span>
+                              <button type="button" className="attach-remove" aria-label={`Remove ${a.name}`} onClick={() => removeAttachment(i)}>
+                                ×
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {errors.attachments && <div className="err">{errors.attachments}</div>}
                     </div>
                   </div>
 
+                  {/* Anti-spam honeypot (§A4): visually hidden, off the tab order; bots fill it, humans don't. */}
+                  <input
+                    ref={honeypotRef}
+                    type="text"
+                    name={HONEYPOT_FIELD}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+                  />
+
+                  {formError && (
+                    <div className="form-error" role="alert">
+                      {formError}
+                    </div>
+                  )}
+
                   <div className="submit-row">
-                    <button type="submit" className="btn btn-primary">
-                      Submit Collaboration Request <Arrow />
+                    <button type="submit" className="btn btn-primary" disabled={submitting}>
+                      {submitting ? "Submitting…" : "Submit Collaboration Request"} <Arrow />
                     </button>
                     <a href={WHATSAPP_URL} className="btn btn-outline-dark" {...OPEN_IN_NEW_TAB}>
                       Talk on WhatsApp <ArrowUpRight />
@@ -475,7 +649,7 @@ export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChr
                     <a href="/projects" className="btn btn-outline-dark">
                       View Our Projects <Arrow />
                     </a>
-                    <button type="button" className="btn btn-primary" onClick={() => setSubmitted(false)}>
+                    <button type="button" className="btn btn-primary" onClick={resetForm}>
                       Submit Another <Arrow />
                     </button>
                   </div>
