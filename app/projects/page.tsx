@@ -112,7 +112,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           </div>
           <div className="f-top">
             {project.badge_text && <span className={`featured-badge ${badgeClass(project.badge_style)}`.trim()}>{project.badge_text}</span>}
-            {project.client_type && <span className="featured-badge ghost">{project.client_type}</span>}
+            {/* Show the client-type ghost badge only when it adds info (not a repeat of badge_text). */}
+            {project.client_type && project.client_type.toLowerCase() !== (project.badge_text ?? "").toLowerCase() && (
+              <span className="featured-badge ghost">{project.client_type}</span>
+            )}
           </div>
           <div className="f-body">
             {project.category && <div className="f-cat">{project.category.label}</div>}
