@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { NewsPageContent, type NewsIndexState } from "@/src/components/news-page-content";
-import { getPublicSeoDefaults } from "@/lib/data/seo";
-import { buildMetadata } from "@/src/lib/seo/build-metadata";
+import { pageMetadata } from "@/src/lib/pages/page-metadata";
 import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
-// Public News index route (news-fe-public §A/§F). Server-rendered; generateMetadata via the Wave-A
-// helper, ISR per the shared convention. Story URLs are aggregated into the sitemap by Wave-A
-// getPublicSitemap (respecting noindex).
+// Public News index route (news-fe-public §A/§F). Server-rendered; metadata from the PAGES
+// news-index SeoMeta (pages-fe-public §G), ISR per the shared convention. Story URLs are
+// aggregated into the sitemap by Wave-A getPublicSitemap (respecting noindex).
 export const revalidate = REVALIDATE;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const defaults = await getPublicSeoDefaults();
-  return buildMetadata({
-    record: { title: "News Corner", summary: "Latest updates, achievements, project milestones and company announcements from Zakir Enterprise." },
-    defaults,
+  return pageMetadata("news-index", {
+    title: "News Corner",
+    summary: "Latest updates, achievements, project milestones and company announcements from Zakir Enterprise.",
     path: "/news",
   });
 }

@@ -2,14 +2,16 @@ import Link from "next/link";
 import { Arrow as A2, ArrowUpRight as AUR, SvcIcon } from "./site-ui";
 import { MediaImage } from "./media/media-image";
 import { getPublishedServices } from "@/lib/data/services";
+import { getIndexHero } from "@/src/lib/pages/index-hero";
 
 // Public Services directory — server component on getPublishedServices (services-fe-public
 // §A/§C/§D). Replaces the static SERVICES import + SERVICE_IMAGE_BY_TITLE with the published
-// read; the "{n} Core Services" count + first-4 capabilities are derived. Hero/intro/final-CTA
-// copy stays static here — the PAGES-managed source lands with pages-fe-public (Wave C, §D).
+// read; the "{n} Core Services" count + first-4 capabilities are derived. Hero eyebrow/heading/
+// sub now come from PAGES (services-index) via getIndexHero (pages-fe-public §D), falling back to
+// the static copy when the page isn't published.
 
 export async function ServicesPageContent() {
-  const { data: services } = await getPublishedServices();
+  const [{ data: services }, indexHero] = await Promise.all([getPublishedServices(), getIndexHero("services-index")]);
   const total = services.length;
   const featuredCapabilities = services.slice(0, 4);
   const heroStats = [
@@ -26,14 +28,17 @@ export async function ServicesPageContent() {
         <div className="container">
           <div className="svc-hero-grid">
             <div>
-              <span className="microlabel on-dark">Services Portfolio</span>
+              <span className="microlabel on-dark">{indexHero?.eyebrow ?? "Services Portfolio"}</span>
               <h1>
-                Engineered <span className="accent">services</span> for
-                <span className="gold"> complex delivery.</span>
+                {indexHero?.heading ?? (
+                  <>
+                    Engineered <span className="accent">services</span> for<span className="gold"> complex delivery.</span>
+                  </>
+                )}
               </h1>
               <p className="sub">
-                Explore Zakir Enterprise&apos;s complete execution portfolio across infrastructure, structural systems, utilities, land
-                development and project management.
+                {indexHero?.subheading ??
+                  "Explore Zakir Enterprise's complete execution portfolio across infrastructure, structural systems, utilities, land development and project management."}
               </p>
               <div className="svc-hero-buttons">
                 <Link href="/lets-collaborate" className="btn btn-primary">

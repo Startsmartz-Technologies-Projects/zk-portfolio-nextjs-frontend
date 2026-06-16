@@ -3,6 +3,7 @@ import { Arrow } from "./site-ui";
 import { CertificationsDirectory, type CertItem } from "./certifications/certifications-directory";
 import { getPublishedCertifications, getCertificationFacets } from "@/lib/data/certifications";
 import { getTermList } from "@/src/lib/site/taxonomy";
+import { getIndexHero } from "@/src/lib/pages/index-hero";
 
 // Public Certifications directory — server component on getPublishedCertifications +
 // getCertificationFacets (certifications-fe-public §A/§D). No detail route; the document library
@@ -10,10 +11,11 @@ import { getTermList } from "@/src/lib/site/taxonomy";
 // intro/trust/CTA copy stays static — the PAGES-managed source lands with pages-fe-public (Wave C).
 
 export async function CertificationsPageContent() {
-  const [listed, facets, categoryTerms] = await Promise.all([
+  const [listed, facets, categoryTerms, indexHero] = await Promise.all([
     getPublishedCertifications({ pageSize: 100 }),
     getCertificationFacets(),
     getTermList("certifications-category"),
+    getIndexHero("certifications-index"), // hero chrome from PAGES (§D)
   ]);
 
   const items = listed.data as Array<CertItem & { id: string }>;
@@ -34,12 +36,18 @@ export async function CertificationsPageContent() {
             <span className="sep">/</span>
             <span className="current">Certifications</span>
           </div>
-          <span className="ct-hero-label">Trust &amp; Compliance</span>
+          <span className="ct-hero-label">{indexHero?.eyebrow ?? "Trust & Compliance"}</span>
           <h1>
-            Certifications
-            <br />&amp; Credentials.
+            {indexHero?.heading ?? (
+              <>
+                Certifications
+                <br />&amp; Credentials.
+              </>
+            )}
           </h1>
-          <p className="ct-hero-sub">Official registrations, approvals, and certifications that reinforce capability, quality, and readiness.</p>
+          <p className="ct-hero-sub">
+            {indexHero?.subheading ?? "Official registrations, approvals, and certifications that reinforce capability, quality, and readiness."}
+          </p>
           <div className="ct-hero-ctas">
             <Link href="/lets-collaborate" className="btn btn-primary">
               Contact Us <Arrow />
