@@ -23,6 +23,7 @@ export const listUsersSchema = z.object({
   q: z.string().optional(),
   role: z.enum(['admin', 'editor']).optional(),
   status: z.enum(['active', 'suspended']).optional(),
+  includeDeleted: z.boolean().optional(),
   page: z.number().int().min(1).optional(),
   pageSize: z.number().int().min(1).max(100).optional(),
 })
