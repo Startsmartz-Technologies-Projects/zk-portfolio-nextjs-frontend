@@ -10,6 +10,8 @@ export interface AuditLogFilters {
   actorId?: string | null
   action?: AuditAction
   entityType?: string
+  /** Exclude these entity types — used by the Dashboard to scope an editor's feed (FR-DASH-004). Ignored when `entityType` is set. */
+  entityTypeNotIn?: string[]
   entityId?: string
   /** Inclusive lower / upper bound on `created_at`. */
   from?: Date
@@ -51,6 +53,7 @@ function buildWhere(f: AuditLogFilters): Prisma.AuditLogEntryWhereInput {
   if (f.actorId !== undefined) where.actorId = f.actorId
   if (f.action) where.action = f.action
   if (f.entityType) where.entityType = f.entityType
+  else if (f.entityTypeNotIn?.length) where.entityType = { notIn: f.entityTypeNotIn }
   if (f.entityId) where.entityId = f.entityId
   if (f.q) where.summary = { contains: f.q, mode: 'insensitive' }
   if (f.from || f.to) {
