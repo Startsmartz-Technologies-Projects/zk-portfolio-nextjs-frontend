@@ -18,6 +18,7 @@ import {
   archiveCertification,
   setHomeSeals,
   bulkCertifications,
+  collectPublishIssues,
   CERTS_REVALIDATE_TAG,
   CERTS_BASE_PATH,
 } from '@/lib/data/certifications'
@@ -120,6 +121,12 @@ export async function setHomeSealsAction(input: unknown) {
   await audit({ actorId: principal.user_id, action: 'update', entityType: 'certification', summary: `Set home seals (${data.ordered_ids.length})`, metadata: { ordered_ids: data.ordered_ids } })
   revalidate()
   return result
+}
+
+/** Read-only publish-gate issues for a saved certification, surfaced in the editor publish panel. */
+export async function publishIssuesCertAction(id: string) {
+  await requireCapability('content')
+  return collectPublishIssues(id)
 }
 
 export async function bulkCertificationsAction(input: unknown) {
