@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Arrow, ArrowUpRight, SvcIcon } from "../site-ui";
 import { MediaImage } from "../media/media-image";
 import { Counter } from "./counter";
-import { ProjectCard, type ProjectCardData, badgeClass } from "../projects/project-card";
+import { ClientsFilter } from "./clients-filter";
+import { IntentCards } from "./intent-cards";
+import { type ProjectCardData, badgeClass } from "../projects/project-card";
 import type { MediaRef } from "@/lib/data/media";
 
 // PAGES section renderer (pages-fe-public §A). Server component: iterates a published page's
@@ -29,6 +31,7 @@ export type PageItem = {
   // Resolved stat_strip/achievements items use label/sublabel (the data layer maps title→label).
   label?: string | null;
   sublabel?: string | null;
+  meta?: unknown; // e.g. mvv "Core Values" → { values: string[] }
 };
 export type PageSection = {
   type: string;
@@ -51,6 +54,8 @@ export type SectionRecords = {
   projects?: ProjectCardData[];
   services?: Array<{ slug: string; title: string; subtitle: string | null; icon: string | null; hero_image: MediaRef | null; service_number: number }>;
   certifications?: Array<{ slug: string; seal_label: string | null; seal_id: string | null; seal_validity: string | null; category: { label: string } | null }>;
+  // SITE contact for the Collaborate contact_panel chrome (§E).
+  contact?: { phone: string; email: string; officeAddress: string };
 };
 
 // ── Small shared bits ───────────────────────────────────────────────────────
@@ -403,6 +408,252 @@ function FinalCta({ s }: { s: PageSection }) {
   );
 }
 
+// ── About sections ───────────────────────────────────────────────────────────
+function StorySection({ s }: { s: PageSection }) {
+  return (
+    <section className="story-section">
+      <div className="container">
+        <div className="story-grid">
+          <div className="story-collage">
+            <MediaImage media={s.background_image} fill sizes="(max-width: 980px) 100vw, 50vw" />
+          </div>
+          <div className="story-copy">
+            {s.eyebrow && <span className="microlabel">{s.eyebrow}</span>}
+            {s.heading && <h2>{s.heading}</h2>}
+            {s.body && <p>{s.body}</p>}
+            {(s.items?.length ?? 0) > 0 && (
+              <div className="story-stats">
+                {s.items!.map((it) => (
+                  <div key={it.id} className="item">
+                    <div className="n">{it.value ?? it.title}{it.unit && <span className="plus">{it.unit}</span>}</div>
+                    <div className="lbl">{it.title}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MvvSection({ s }: { s: PageSection }) {
+  return (
+    <section className="mvv-section">
+      <div className="container">
+        <SectionHead s={s} />
+        <div className="mvv-grid">
+          {(s.items ?? []).map((it, idx) => {
+            const values = (it.meta as { values?: string[] } | null)?.values ?? [];
+            return (
+              <div key={it.id} className={`mvv-card ${idx === 1 ? "highlight" : ""}`.trim()}>
+                {it.icon && (
+                  <div className="mvv-ico">
+                    <SvcIcon kind={it.icon} />
+                  </div>
+                )}
+                <h3>{it.title}</h3>
+                {it.body && <p>{it.body}</p>}
+                {values.length > 0 && (
+                  <ul className="mvv-values">
+                    {values.map((v) => (
+                      <li key={v}>{v}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TimelineSection({ s }: { s: PageSection }) {
+  const items = s.items ?? [];
+  return (
+    <section className="cd-process">
+      <div className="container">
+        <div className="cd-section-head">
+          <div>
+            {s.eyebrow && <span className="microlabel on-dark">{s.eyebrow}</span>}
+            {s.heading && <h2>{s.heading}</h2>}
+          </div>
+          {s.subheading && <p className="head-right" style={{ color: "rgba(255,255,255,0.65)" }}>{s.subheading}</p>}
+        </div>
+        <div className="cd-process-track">
+          {items.map((t, i) => (
+            <div key={t.id} className="cd-process-step">
+              <div className="cd-process-connector">
+                <span className="cd-process-dot" />
+                {i < items.length - 1 && <span className="cd-process-line" />}
+              </div>
+              <div className="cd-process-body">
+                <div className="cd-process-num">{t.value}</div>
+                <h4>{t.title}</h4>
+                {t.body && <p>{t.body}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LeadershipMessage({ s }: { s: PageSection }) {
+  return (
+    <section className="leader-msg">
+      <div className="container">
+        <div className="leader-msg-grid">
+          <div className="leader-portrait">
+            <MediaImage media={s.background_image} fill sizes="(max-width: 980px) 100vw, 40vw" />
+          </div>
+          <div className="leader-copy">
+            {s.eyebrow && <span className="microlabel">{s.eyebrow}</span>}
+            {s.heading && <h2>{s.heading}</h2>}
+            {s.body && (
+              <div className="leader-quote">
+                <p>{s.body}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WhyUsSection({ s }: { s: PageSection }) {
+  return (
+    <section className="why-section">
+      <div className="container">
+        <SectionHead s={s} />
+        <div className="why-grid">
+          {(s.items ?? []).map((it) => (
+            <div key={it.id} className="why-item">
+              {it.icon && (
+                <div className="why-ico">
+                  <SvcIcon kind={it.icon} />
+                </div>
+              )}
+              <h4>{it.title}</h4>
+              {(it.body ?? it.subtitle) && <p>{it.body ?? it.subtitle}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AchievementsSection({ s }: { s: PageSection }) {
+  return (
+    <section className="ach-section">
+      <div className="container">
+        <div className="section-head single" style={{ textAlign: "center" }}>
+          {s.eyebrow && <span className="microlabel on-dark">{s.eyebrow}</span>}
+          {s.heading && <h2>{s.heading}</h2>}
+        </div>
+        <div className="ach-grid">
+          {(s.items ?? []).map((it, idx) => {
+            const label = it.label ?? it.title;
+            const n = Number.parseInt(it.value ?? "", 10);
+            return (
+              <div key={it.id ?? idx} className="ach-cell">
+                <div className="n">
+                  {Number.isFinite(n) ? <Counter to={n} suffix={it.unit ?? ""} /> : <>{it.value}<span className="unit">{it.unit}</span></>}
+                </div>
+                <div className="lbl">{label}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ClientsFilterable({ s }: { s: PageSection }) {
+  const items = (s.items ?? []).map((it) => ({ id: it.id, tag: it.tag ?? null, title: it.title ?? null }));
+  if (items.length === 0) return null;
+  return (
+    <section className="trust-section">
+      <div className="container">
+        <div className="section-head single" style={{ textAlign: "center" }}>
+          {s.eyebrow && <span className="microlabel" style={{ justifyContent: "center" }}>{s.eyebrow}</span>}
+          {s.heading && <h2>{s.heading}</h2>}
+        </div>
+        <ClientsFilter items={items} />
+      </div>
+    </section>
+  );
+}
+
+// ── Collaborate sections ─────────────────────────────────────────────────────
+function TrustHook({ s }: { s: PageSection }) {
+  return (
+    <section className="trusthook">
+      <div className="container">
+        {s.heading && <h2>{s.heading}</h2>}
+        <div className="trust-chips">
+          {(s.items ?? []).map((it) => (
+            <span key={it.id} className="trust-chip">
+              {it.title}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function IntentCardsSection({ s }: { s: PageSection }) {
+  const items = (s.items ?? []).map((it) => ({ id: it.id, icon: it.icon ?? null, title: it.title ?? null, body: it.body ?? null }));
+  return (
+    <section className="section-pad">
+      <div className="container">
+        <SectionHead s={s} />
+        <IntentCards items={items} />
+      </div>
+    </section>
+  );
+}
+
+function ContactPanel({ s, records }: { s: PageSection; records: SectionRecords }) {
+  const contact = records.contact;
+  return (
+    <section className="section-pad section-soft">
+      <div className="container">
+        <SectionHead s={s} />
+        {contact && (
+          <div className="lc-side" style={{ marginTop: 20 }}>
+            <div className="side-card">
+              <h5>Contact</h5>
+              <ul>
+                <li>
+                  <strong>Phone</strong>
+                  {contact.phone}
+                </li>
+                <li>
+                  <strong>Email</strong>
+                  {contact.email}
+                </li>
+                <li>
+                  <strong>Head Office</strong>
+                  {contact.officeAddress}
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 /** Render a single section by type. Unknown/Wave-D types render nothing (forward-compatible). */
 function renderSection(s: PageSection, i: number, records: SectionRecords) {
   switch (s.type) {
@@ -426,9 +677,28 @@ function renderSection(s: PageSection, i: number, records: SectionRecords) {
       return <CtaBanner key={i} s={s} />;
     case "final_cta":
       return <FinalCta key={i} s={s} />;
-    // testimonials, network_strip, insights_strip, news_strip, story, mvv, timeline, why_us,
-    // achievements, leadership_*, clients_filterable, trust_hook, intent_cards, contact_panel,
-    // culture → handled in the About/Collaborate slice; unknown types render nothing.
+    case "story":
+      return <StorySection key={i} s={s} />;
+    case "mvv":
+      return <MvvSection key={i} s={s} />;
+    case "timeline":
+      return <TimelineSection key={i} s={s} />;
+    case "leadership_message":
+      return <LeadershipMessage key={i} s={s} />;
+    case "why_us":
+      return <WhyUsSection key={i} s={s} />;
+    case "achievements":
+      return <AchievementsSection key={i} s={s} />;
+    case "clients_filterable":
+      return <ClientsFilterable key={i} s={s} />;
+    case "trust_hook":
+      return <TrustHook key={i} s={s} />;
+    case "intent_cards":
+      return <IntentCardsSection key={i} s={s} />;
+    case "contact_panel":
+      return <ContactPanel key={i} s={s} records={records} />;
+    // testimonials, network_strip, insights_strip, news_strip, leadership_team, culture →
+    // not seeded on the singleton pages today; unknown types render nothing (forward-compatible).
     default:
       return null;
   }

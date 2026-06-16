@@ -3,6 +3,23 @@
 import * as React from "react";
 import { Arrow, ArrowUpRight, SvcIcon } from "./site-ui";
 
+// Page chrome resolved server-side from PAGES (lets-collaborate) + the SITE bundle and passed in
+// (pages-fe-public §E). The inquiry form below keeps its own INTENT_ITEMS (the form's id↔type map
+// is the leads-fe-public-form task, Wave D) — chrome only overrides the hero/trust-hook copy +
+// contact lines, each with a static fallback so a missing page never blanks the page.
+export type CollaborateChrome = {
+  heroEyebrow: string | null;
+  heroHeading: string | null;
+  heroSub: string | null;
+  trustHeading: string | null;
+  trustChips: string[];
+  intentEyebrow: string | null;
+  intentHeading: string | null;
+  intentSub: string | null;
+  intentItems: Array<{ icon: string; title: string; description: string }>;
+  contact: { phone: string; email: string; officeAddress: string };
+};
+
 const HERO_IMAGE =
   "https://res.cloudinary.com/dk4csiouq/image/upload/v1778497992/Collobarote_Hero_fgpdk5.jpg";
 
@@ -67,7 +84,7 @@ const INITIAL_FORM: FormState = {
   message: "",
 };
 
-export function LetsCollaboratePageContent() {
+export function LetsCollaboratePageContent({ chrome }: { chrome?: CollaborateChrome }) {
   const [intent, setIntent] = React.useState<InquiryType | "">("");
   const [form, setForm] = React.useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -125,12 +142,17 @@ export function LetsCollaboratePageContent() {
         <div className="container lc-hero-inner">
           <div className="lc-hero-grid">
             <div>
-              <span className="microlabel on-dark">Collaborate - Quote - Build</span>
+              <span className="microlabel on-dark">{chrome?.heroEyebrow ?? "Collaborate - Quote - Build"}</span>
               <h1>
-                Let&apos;s Build Something <span className="accent">Great</span> Together
+                {chrome?.heroHeading ?? (
+                  <>
+                    Let&apos;s Build Something <span className="accent">Great</span> Together
+                  </>
+                )}
               </h1>
               <p className="lc-sub">
-                From private developments to government-scale infrastructure, Zakir Enterprise is ready to collaborate, quote and execute with confidence across all 64 districts of Bangladesh.
+                {chrome?.heroSub ??
+                  "From private developments to government-scale infrastructure, Zakir Enterprise is ready to collaborate, quote and execute with confidence across all 64 districts of Bangladesh."}
               </p>
               <div className="lc-hero-ctas">
                 <a href="#form" className="btn btn-primary">
@@ -171,9 +193,12 @@ export function LetsCollaboratePageContent() {
 
       <section className="trusthook">
         <div className="container">
-          <h2>We collaborate with developers, businesses, institutions and government stakeholders to deliver quality construction solutions across Bangladesh.</h2>
+          <h2>
+            {chrome?.trustHeading ??
+              "We collaborate with developers, businesses, institutions and government stakeholders to deliver quality construction solutions across Bangladesh."}
+          </h2>
           <div className="trust-chips">
-            {["Nationwide Capability", "Skilled Workforce", "Timely Delivery", "Trusted Execution", "Multi-Sector Expertise"].map((chip) => (
+            {(chrome?.trustChips?.length ? chrome.trustChips : ["Nationwide Capability", "Skilled Workforce", "Timely Delivery", "Trusted Execution", "Multi-Sector Expertise"]).map((chip) => (
               <span key={chip} className="trust-chip">
                 {chip}
               </span>
