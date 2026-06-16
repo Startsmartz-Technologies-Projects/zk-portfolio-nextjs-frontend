@@ -19,6 +19,7 @@ import {
   setFeatured,
   bulkProjects,
   getPreviewUrl,
+  collectPublishIssues,
   PROJECTS_REVALIDATE_TAG,
   PROJECTS_BASE_PATH,
 } from '@/lib/data/projects'
@@ -145,4 +146,12 @@ export async function bulkProjectsAction(input: unknown) {
 export async function previewProjectAction(id: string) {
   await requireCapability('content')
   return getPreviewUrl(id)
+}
+
+/** Read-only: the publish-gate issues for a saved project, so the editor can surface
+ *  them proactively in the publish panel (FR-PROJ-029). The server still re-checks on
+ *  publishProjectAction (the authoritative gate). */
+export async function publishIssuesAction(id: string) {
+  await requireCapability('content')
+  return collectPublishIssues(id)
 }
