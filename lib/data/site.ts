@@ -208,6 +208,34 @@ export async function reorderTerms(_actorId: string | null, slug: string, ordere
   return listTerms(slug, { includeInactive: true })
 }
 
+/**
+ * Published-record usage count per term for a whole vocabulary (FR-SITE-013), so the
+ * admin manager can show the usage indicator and decide delete-vs-merge before acting
+ * (server-action throws are redacted in prod, so the client can't rely on catching the
+ * 409). Mirrors `countTermReferences` across the same consuming FK columns, batched.
+ */
+export async function listTermUsage(slug: string): Promise<Record<string, number>> {
+  const tax = await getTaxonomyOrThrow(slug)
+  const terms = await db.taxonomyTerm.findMany({ where: { taxonomyId: tax.id }, select: { id: true } })
+  const ids = terms.map((t) => t.id)
+  const usage: Record<string, number> = Object.fromEntries(ids.map((id) => [id, 0]))
+  if (ids.length === 0) return usage
+
+  const [projCat, projLoc, blog, news, cert] = await Promise.all([
+    db.project.groupBy({ by: ['categoryId'], where: { categoryId: { in: ids } }, _count: { _all: true } }),
+    db.project.groupBy({ by: ['locationId'], where: { locationId: { in: ids } }, _count: { _all: true } }),
+    db.article.groupBy({ by: ['categoryId'], where: { categoryId: { in: ids } }, _count: { _all: true } }),
+    db.newsStory.groupBy({ by: ['categoryId'], where: { categoryId: { in: ids } }, _count: { _all: true } }),
+    db.certification.groupBy({ by: ['categoryId'], where: { categoryId: { in: ids } }, _count: { _all: true } }),
+  ])
+  for (const r of projCat) if (r.categoryId && r.categoryId in usage) usage[r.categoryId] += r._count._all
+  for (const r of projLoc) if (r.locationId && r.locationId in usage) usage[r.locationId] += r._count._all
+  for (const r of blog) if (r.categoryId && r.categoryId in usage) usage[r.categoryId] += r._count._all
+  for (const r of news) if (r.categoryId && r.categoryId in usage) usage[r.categoryId] += r._count._all
+  for (const r of cert) if (r.categoryId && r.categoryId in usage) usage[r.categoryId] += r._count._all
+  return usage
+}
+
 // Reference usage across consuming content modules (FR-SITE-013). Each content
 // module wires its category/location FK columns here as it lands; a referenced term
 // is 409-blocked from delete and is re-pointed (not orphaned) on merge.

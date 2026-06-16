@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { requireCapability } from '@/lib/users/rbac'
 import { audit } from '@/lib/users/audit'
 import { ValidationError, ConflictError } from '@/lib/errors'
-import { listTaxonomies, listTerms, addTerm, updateTerm, reorderTerms, deleteTerm, mergeTerm, getPublicTermList, type TermRef } from '@/lib/data/site'
+import { listTaxonomies, listTerms, listTermUsage, addTerm, updateTerm, reorderTerms, deleteTerm, mergeTerm, getPublicTermList, type TermRef } from '@/lib/data/site'
 import { termCreateSchema, termUpdateSchema, termOrderSchema } from '@/lib/validation/site'
 
 function parse<T>(schema: z.ZodType<T>, input: unknown): T {
@@ -24,6 +24,13 @@ export async function listTaxonomiesAction() {
 export async function listTermsAction(slug: string, includeInactive = false) {
   await requireCapability('site_settings')
   return listTerms(slug, { includeInactive })
+}
+
+// Per-term published-record usage for the manager's usage indicator + the safe
+// delete-vs-merge decision (FR-SITE-013). Admin-only.
+export async function termUsageAction(slug: string): Promise<Record<string, number>> {
+  await requireCapability('site_settings')
+  return listTermUsage(slug)
 }
 
 // Read for the editor-field taxonomy selector — available to editors AND admins
