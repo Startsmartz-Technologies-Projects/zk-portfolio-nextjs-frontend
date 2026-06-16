@@ -1,23 +1,21 @@
-"use client";
-
-import * as React from "react";
 import Link from "next/link";
 import { Arrow } from "./site-ui";
-import { BLOG_CATEGORIES, BLOG_DATA, type BlogArticle } from "@/src/data/blog-data";
+import { MediaImage } from "./media/media-image";
+import { BlogCard, blogInitials } from "./blog/blog-card";
+import { BlogToolbar, type ChipOption } from "./blog/blog-toolbar";
+import { getPublishedArticles, getFeaturedArticles, getArticleFacets } from "@/lib/data/blog";
+import { getTermList } from "@/src/lib/site/taxonomy";
 
-const BSearch = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
-    <circle cx="11" cy="11" r="7" />
-    <line x1="16" y1="16" x2="21" y2="21" />
-  </svg>
-);
+// Public Blog index — server component on getPublishedArticles/getFeaturedArticles/getArticleFacets
+// (blog-fe-public §A/§D). Search/category/sort/pagination via query params; the toolbar is a client
+// island. Hero/intro/newsletter copy stays static here — the PAGES-managed source lands with
+// pages-fe-public (Wave C, §D).
 
 const BStar = ({ size = 12 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <polygon points="12,2 15,9 22,9 16,14 18,22 12,17 6,22 8,14 2,9 9,9" />
   </svg>
 );
-
 const BClock = ({ size = 13 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="10" />
@@ -25,93 +23,39 @@ const BClock = ({ size = 13 }: { size?: number }) => (
   </svg>
 );
 
-export function blogInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .filter((c) => /[A-Z]/i.test(c))
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
+const PAGE_SIZE = 6;
 
-function BlogCard({ item, limeIdx }: { item: BlogArticle; limeIdx?: boolean }) {
-  return (
-    <Link href={`/blogs/${item.id}`} className="blog-card" style={{ textDecoration: "none" }}>
-      <div className="blog-card-img">
-        <div className="img" style={{ backgroundImage: `url(${item.image})` }} />
-        <span className={`blog-card-cat ${limeIdx ? "lime" : ""}`}>{item.category}</span>
-      </div>
-      <div className="blog-card-body">
-        <div className="blog-card-meta">
-          <span>{item.date}</span>
-          <span className="dot" />
-          <span>{item.readTime}</span>
-        </div>
-        <h3>{item.title}</h3>
-        <p>{item.excerpt}</p>
-        <div className="blog-card-foot">
-          <div className="blog-card-author">
-            <div className="av">{blogInitials(item.author)}</div>
-            <span>{item.author}</span>
-          </div>
-          <span className="blog-card-more">
-            Read More <Arrow size={12} />
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
+export type BlogIndexState = { q: string; category: string; sort: string; page: number };
 
-export function BlogPageContent() {
-  const [query, setQuery] = React.useState("");
-  const [activeCat, setActiveCat] = React.useState("all");
-  const [sort, setSort] = React.useState("latest");
-  const [page, setPage] = React.useState(1);
+export async function BlogPageContent({ state }: { state: BlogIndexState }) {
+  const [listed, featuredRes, facets, categoryTerms] = await Promise.all([
+    getPublishedArticles({
+      page: state.page,
+      pageSize: PAGE_SIZE,
+      q: state.q || undefined,
+      sort: (state.sort as "latest" | "popular" | "featured") || undefined,
+      category: state.category || undefined,
+    }),
+    getFeaturedArticles(),
+    getArticleFacets(),
+    getTermList("blog-category"),
+  ]);
 
-  const counts = React.useMemo(() => {
-    const c: Record<string, number> = { all: BLOG_DATA.length };
-    BLOG_CATEGORIES.forEach((k) => {
-      c[k] = 0;
-    });
-    BLOG_DATA.forEach((n) => {
-      if (c[n.category] !== undefined) c[n.category]++;
-    });
-    return c;
-  }, []);
+  const items = listed.data;
+  const total = listed.meta.total;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const featured = featuredRes.data[0] ?? null;
 
-  const list = React.useMemo(() => {
-    let arr = BLOG_DATA.slice();
-    if (activeCat !== "all") arr = arr.filter((n) => n.category === activeCat);
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      arr = arr.filter(
-        (n) =>
-          n.title.toLowerCase().includes(q) ||
-          n.excerpt.toLowerCase().includes(q) ||
-          n.category.toLowerCase().includes(q) ||
-          n.author.toLowerCase().includes(q) ||
-          n.tags.join(" ").toLowerCase().includes(q),
-      );
-    }
-    if (sort === "latest") arr.sort((a, b) => b.dateISO.localeCompare(a.dateISO));
-    else if (sort === "popular") arr.sort((a, b) => b.popularity - a.popularity);
-    else if (sort === "featured") arr.sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
-    return arr;
-  }, [query, activeCat, sort]);
-
-  const featured = React.useMemo(() => BLOG_DATA.find((n) => n.featured) || BLOG_DATA[0], []);
-  const items = React.useMemo(() => list.filter((n) => n.id !== featured.id), [list, featured]);
-
-  React.useEffect(() => {
-    setPage(1);
-  }, [items.length]);
-
-  const PAGE = 6;
-  const totalPages = Math.max(1, Math.ceil(items.length / PAGE));
-  const start = (page - 1) * PAGE;
-  const visible = items.slice(start, start + PAGE);
+  const catCounts = new Map(facets.categories.map((c) => [c.slug, c.count]));
+  // "Articles Published" = total published set. When no filter is active `total` already equals it;
+  // under an active filter we fall back to the unfiltered sum across category facets + any uncategorized.
+  const filterActive = !!(state.q || state.category);
+  const facetSum = facets.categories.reduce((n, c) => n + c.count, 0);
+  const totalPublished = filterActive ? Math.max(total, facetSum) : total;
+  const chips: ChipOption[] = [
+    { value: "", label: "All", count: filterActive ? Math.max(total, facetSum) : total },
+    ...categoryTerms.map((t) => ({ value: t.slug, label: t.label, count: catCounts.get(t.slug) ?? 0 })),
+  ];
 
   return (
     <>
@@ -121,13 +65,13 @@ export function BlogPageContent() {
           <div className="bg-crumbs">
             <Link href="/">Home</Link>
             <span className="sep">/</span>
-            <span className="current">Insights & Articles</span>
+            <span className="current">Insights &amp; Articles</span>
           </div>
-          <span className="bg-microlabel">Insights & Articles</span>
+          <span className="bg-microlabel">Insights &amp; Articles</span>
           <h1>
             Construction Knowledge,
             <br />
-            <span className="accent">Industry Updates</span> & Project Insights
+            <span className="accent">Industry Updates</span> &amp; Project Insights
           </h1>
           <p className="bg-hero-sub">
             Expert articles from Zakir Enterprise on construction, engineering, project delivery, and infrastructure development.
@@ -157,11 +101,11 @@ export function BlogPageContent() {
             <p>The Zakir Enterprise Insights desk publishes long-form technical notes, field methodology and industry commentary from active projects.</p>
             <div className="bg-intro-stats">
               <div>
-                <div className="n">{BLOG_DATA.length}+</div>
+                <div className="n">{totalPublished}+</div>
                 <div className="l">Articles Published</div>
               </div>
               <div>
-                <div className="n">{BLOG_CATEGORIES.length}</div>
+                <div className="n">{categoryTerms.length}</div>
                 <div className="l">Topic Categories</div>
               </div>
               <div>
@@ -173,77 +117,54 @@ export function BlogPageContent() {
         </div>
       </section>
 
-      <div className="bg-toolbar">
-        <div className="container">
-          <div className="bg-toolbar-inner">
-            <div className="bg-search">
-              <BSearch />
-              <input type="text" placeholder="Search articles, topics, engineers..." value={query} onChange={(e) => setQuery(e.target.value)} />
-            </div>
-            <div className="bg-chips-wrap">
-              <button className={`bg-chip ${activeCat === "all" ? "active" : ""}`} onClick={() => setActiveCat("all")}>
-                All <span className="count">{counts.all}</span>
-              </button>
-              {BLOG_CATEGORIES.map((c) => (
-                <button key={c} className={`bg-chip ${activeCat === c ? "active" : ""}`} onClick={() => setActiveCat(c)}>
-                  {c} <span className="count">{counts[c] || 0}</span>
-                </button>
-              ))}
-            </div>
-            <div className="bg-sort">
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="latest">Latest</option>
-                <option value="popular">Popular</option>
-                <option value="featured">Featured</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BlogToolbar q={state.q} category={state.category} sort={state.sort} chips={chips} />
 
-      <section className="bg-featured" id="featured">
-        <div className="container">
-          <div className="bg-section-head">
-            <span className="microlabel">Featured This Week</span>
-            <h2>Editor's selection.</h2>
-          </div>
-          <div className="bg-featured-card">
-            <div className="bg-featured-img" style={{ backgroundImage: `url(${featured.image})` }}>
-              <div className="bg-featured-badge">
-                <BStar /> Featured Article
-              </div>
+      {featured && (
+        <section className="bg-featured" id="featured">
+          <div className="container">
+            <div className="bg-section-head">
+              <span className="microlabel">Featured This Week</span>
+              <h2>Editor&apos;s selection.</h2>
             </div>
-            <div className="bg-featured-body">
-              <div className="bg-featured-meta">
-                <span className="cat">{featured.category}</span>
-                <span className="dot" />
-                <span>{featured.date}</span>
-                <span className="dot" />
-                <span>
-                  <BClock /> {featured.readTime}
-                </span>
-              </div>
-              <h2>{featured.title}</h2>
-              <p>{featured.excerpt}</p>
-              <div className="bg-author-line">
-                <div className="bg-author-avatar">{blogInitials(featured.author)}</div>
-                <div className="bg-author-info">
-                  <div className="name">{featured.author}</div>
-                  <div className="role">{featured.authorRole}</div>
+            <div className="bg-featured-card">
+              <div className="bg-featured-img">
+                <MediaImage media={featured.cover_image} fill sizes="(max-width: 980px) 100vw, 50vw" />
+                <div className="bg-featured-badge">
+                  <BStar /> Featured Article
                 </div>
               </div>
-              <div className="btn-row">
-                <Link href={`/blogs/${featured.id}`} className="btn btn-primary">
-                  Read Article <Arrow />
-                </Link>
-                <a href="#grid" className="btn btn-outline-dark">
-                  Browse All Articles
-                </a>
+              <div className="bg-featured-body">
+                <div className="bg-featured-meta">
+                  {featured.category && <span className="cat">{featured.category.label}</span>}
+                  <span className="dot" />
+                  {featured.display_date && <span>{featured.display_date}</span>}
+                  <span className="dot" />
+                  <span>
+                    <BClock /> {featured.read_time}
+                  </span>
+                </div>
+                <h2>{featured.title}</h2>
+                {featured.excerpt && <p>{featured.excerpt}</p>}
+                <div className="bg-author-line">
+                  <div className="bg-author-avatar">{blogInitials(featured.author_name)}</div>
+                  <div className="bg-author-info">
+                    <div className="name">{featured.author_name}</div>
+                    <div className="role">{featured.author_role}</div>
+                  </div>
+                </div>
+                <div className="btn-row">
+                  <Link href={`/blogs/${featured.slug}`} className="btn btn-primary">
+                    Read Article <Arrow />
+                  </Link>
+                  <a href="#grid" className="btn btn-outline-dark">
+                    Browse All Articles
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="bg-grid-section" id="grid">
         <div className="container">
@@ -253,7 +174,7 @@ export function BlogPageContent() {
               <h2 style={{ marginTop: 14 }}>Latest from the editorial desk.</h2>
             </div>
             <div className="count-label">
-              Showing <strong style={{ color: "var(--forest)" }}>{visible.length}</strong> of {list.length} {list.length === 1 ? "article" : "articles"} · Page {page} of {totalPages}
+              Showing <strong style={{ color: "var(--forest)" }}>{items.length}</strong> of {total} {total === 1 ? "article" : "articles"} · Page {state.page} of {totalPages}
             </div>
           </div>
           {items.length === 0 ? (
@@ -263,33 +184,29 @@ export function BlogPageContent() {
             </div>
           ) : (
             <div className="bg-grid">
-              {visible.map((it, i) => (
-                <BlogCard key={it.id} item={it} limeIdx={i === 1 || i === 3} />
+              {items.map((it, i) => (
+                <BlogCard key={it.id} item={it} lime={i === 1 || i === 3} />
               ))}
             </div>
           )}
 
           {totalPages > 1 && (
             <div className="bg-pagination">
-              <button className="bg-page-btn nav-arrow" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
-                ← Prev
-              </button>
+              {state.page > 1 && (
+                <Link className="bg-page-btn nav-arrow" href={pageHref(state, state.page - 1)} scroll={false}>
+                  ← Prev
+                </Link>
+              )}
               {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  className={`bg-page-btn ${page === i + 1 ? "active" : ""}`}
-                  onClick={() => {
-                    setPage(i + 1);
-                    const el = document.getElementById("grid");
-                    if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: "smooth" });
-                  }}
-                >
+                <Link key={i} className={`bg-page-btn ${state.page === i + 1 ? "active" : ""}`} href={pageHref(state, i + 1)} scroll={false}>
                   {String(i + 1).padStart(2, "0")}
-                </button>
+                </Link>
               ))}
-              <button className="bg-page-btn nav-arrow" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-                Next →
-              </button>
+              {state.page < totalPages && (
+                <Link className="bg-page-btn nav-arrow" href={pageHref(state, state.page + 1)} scroll={false}>
+                  Next →
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -320,3 +237,12 @@ export function BlogPageContent() {
   );
 }
 
+function pageHref(state: BlogIndexState, page: number): string {
+  const params = new URLSearchParams();
+  if (state.q) params.set("q", state.q);
+  if (state.category) params.set("category", state.category);
+  if (state.sort && state.sort !== "latest") params.set("sort", state.sort);
+  if (page > 1) params.set("page", String(page));
+  const qs = params.toString();
+  return qs ? `/blogs?${qs}` : "/blogs";
+}
