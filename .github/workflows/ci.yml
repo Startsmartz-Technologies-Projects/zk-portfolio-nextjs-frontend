@@ -1,0 +1,23 @@
+name: CI
+
+# Static gate on every change headed for the integration branch. Type-checking needs no
+# database, so it runs in CI on every PR/push to `features`. The runtime smoke
+# (`npm run smoke`) needs a reachable dev DB, so it stays a local/pre-merge step per the
+# git-workflow skill's smoke gate — it is not run here.
+on:
+  push:
+    branches: [features]
+  pull_request:
+    branches: [features]
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
