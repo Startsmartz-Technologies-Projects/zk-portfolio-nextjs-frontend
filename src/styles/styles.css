@@ -159,15 +159,15 @@ h1, h2, h3, h4, h5 {
   font-size: 17px;
 }
 .nav-logo .nav-logo-img {
+  /* Sized, positioned box so the logo's next/image (rendered in `fill` mode — the logo
+     MediaRef carries no intrinsic dimensions) is constrained instead of filling the page. */
+  position: relative;
   display: block;
   height: 44px;
-  width: auto;
-  max-width: min(220px, 36vw);
+  width: min(220px, 36vw);
+  flex-shrink: 0;
 }
 .nav-logo .nav-logo-img img {
-  height: 100%;
-  width: auto;
-  max-width: 100%;
   object-fit: contain;
   object-position: left center;
 }
@@ -1759,7 +1759,7 @@ footer.footer {
 
   /* Nav */
   .nav-inner { padding: 12px 18px; gap: 12px; }
-  .nav-logo .nav-logo-img { height: 36px; max-width: min(180px, 42vw); }
+  .nav-logo .nav-logo-img { height: 36px; width: min(180px, 42vw); }
   .nav-menu { top: 64px; padding: 10px 20px 18px; }
 
   /* Hero */
