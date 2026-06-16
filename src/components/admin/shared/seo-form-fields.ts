@@ -40,7 +40,8 @@ export interface SeoDetail {
   noindex: boolean;
 }
 
-export function seoFromDetail(seo: SeoDetail): SeoFormValues {
+export function seoFromDetail(seo: SeoDetail | undefined | null): SeoFormValues {
+  if (!seo) return emptySeo();
   return {
     metaTitle: seo.meta_title ?? "",
     metaDescription: seo.meta_description ?? "",
@@ -67,6 +68,6 @@ export function seoToInput(seo: SeoFormValues) {
 }
 
 /** Resolve the og_image thumbnail URL from a SeoDetail (for the sidebar's initial value). */
-export function ogImageUrl(seo: SeoDetail): string | null {
-  return seo.og_image && "url" in seo.og_image ? seo.og_image.url : null;
+export function ogImageUrl(seo: SeoDetail | undefined | null): string | null {
+  return seo?.og_image && "url" in seo.og_image ? seo.og_image.url : null;
 }

@@ -19,6 +19,7 @@ import {
   setFeatured,
   bulkArticles,
   getPreviewUrl,
+  collectPublishIssues,
   BLOG_REVALIDATE_TAG,
   BLOG_BASE_PATH,
 } from '@/lib/data/blog'
@@ -133,4 +134,10 @@ export async function bulkArticlesAction(input: unknown) {
 export async function previewArticleAction(id: string) {
   await requireCapability('content')
   return getPreviewUrl(id)
+}
+
+/** Read-only publish-gate issues for a saved article, surfaced in the editor publish panel. */
+export async function publishIssuesArticleAction(id: string) {
+  await requireCapability('content')
+  return collectPublishIssues(id)
 }
