@@ -4,8 +4,8 @@ import { revalidatePublicSite } from '@/lib/revalidate'
 import { z } from 'zod'
 import { requireCapability } from '@/lib/users/rbac'
 import { audit } from '@/lib/users/audit'
-import { ValidationError } from '@/lib/errors'
-import { listTaxonomies, listTerms, addTerm, updateTerm, reorderTerms, deleteTerm, mergeTerm } from '@/lib/data/site'
+import { ValidationError, ConflictError } from '@/lib/errors'
+import { listTaxonomies, listTerms, addTerm, updateTerm, reorderTerms, deleteTerm, mergeTerm, getPublicTermList, type TermRef } from '@/lib/data/site'
 import { termCreateSchema, termUpdateSchema, termOrderSchema } from '@/lib/validation/site'
 
 function parse<T>(schema: z.ZodType<T>, input: unknown): T {
@@ -24,6 +24,48 @@ export async function listTaxonomiesAction() {
 export async function listTermsAction(slug: string, includeInactive = false) {
   await requireCapability('site_settings')
   return listTerms(slug, { includeInactive })
+}
+
+// Read for the editor-field taxonomy selector — available to editors AND admins
+// (capability `content`), unlike the Admin-only management reads above. Returns the
+// active term list as denormalized TermRefs (FR-SITE-014/015/023).
+export async function listTermRefsAction(slug: string): Promise<TermRef[]> {
+  await requireCapability('content')
+  return getPublicTermList(slug)
+}
+
+// Result-returning inline create for the editor-field selector (FR-SITE-012/019/021, BR-6).
+// Admin-only (server-enforced); returns a discriminated result so the client can show the
+// duplicate-slug / denied messages reliably (server-action throws are redacted in prod).
+export type CreateTermResult =
+  | { ok: true; term: TermRef }
+  | { ok: false; reason: 'duplicate' | 'invalid' | 'forbidden' | 'error'; message?: string }
+
+export async function createTermForFieldAction(slug: string, input: unknown): Promise<CreateTermResult> {
+  let principal: Awaited<ReturnType<typeof requireCapability>>
+  try {
+    principal = await requireCapability('site_settings')
+  } catch {
+    return { ok: false, reason: 'forbidden' }
+  }
+
+  const parsed = termCreateSchema.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false, reason: 'invalid', message: parsed.error.issues[0]?.message }
+  }
+
+  try {
+    const term = await addTerm(principal.user_id, slug, parsed.data)
+    await audit({ actorId: principal.user_id, action: 'create', entityType: 'taxonomy_term', entityId: term.id, summary: `Added term '${term.label}' to '${slug}'` })
+    revalidatePublicSite()
+    return { ok: true, term: { id: term.id, slug: term.slug, label: term.label } }
+  } catch (e) {
+    if (e instanceof ConflictError) {
+      return { ok: false, reason: 'duplicate', message: 'A term with this slug already exists in this vocabulary.' }
+    }
+    if (e instanceof ValidationError) return { ok: false, reason: 'invalid', message: e.message }
+    return { ok: false, reason: 'error' }
+  }
 }
 
 export async function addTermAction(slug: string, input: unknown) {
