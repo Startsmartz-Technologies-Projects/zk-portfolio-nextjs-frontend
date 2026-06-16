@@ -31,6 +31,12 @@ async function guardAdmin(request: NextRequest, pathname: string): Promise<NextR
     return NextResponse.redirect(loginUrl)
   }
 
+  // Bare /admin → the Dashboard landing — a real HTTP redirect for every client
+  // (the authoritative auth() re-check still runs in the app layout).
+  if (pathname === '/admin') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  }
+
   // DB-side revocation + user-status check added in auth-be-2
   return NextResponse.next()
 }

@@ -6,9 +6,15 @@ import { verifySessionToken } from '@/lib/auth/jwt'
 import { SESSION_COOKIE } from '@/lib/auth/cookies'
 import { UnauthorizedError } from '@/lib/users/rbac'
 import { changeOwnPassword } from '@/lib/auth/password-change'
-import { listUserSessions, revokeOwnSession, type SessionListItem } from '@/lib/auth/session'
+import {
+  listUserSessions,
+  revokeOwnSession,
+  revokeOtherSessions,
+  type SessionListItem,
+} from '@/lib/auth/session'
 import { changePasswordSchema } from '@/lib/validation/auth'
 import { PasswordPolicyError } from '@/lib/auth/errors'
+import { InvalidCredentialsError } from '@/lib/auth/login'
 
 // Self-service account server actions (FR-AUTH-007/010). These deliberately use
 // `auth()` directly — NOT requireCapability — so a `must_change_password` user can
@@ -42,4 +48,49 @@ export async function revokeSessionAction(sessionId: string): Promise<{ revoked:
   const { userId } = await requireSession()
   const revoked = await revokeOwnSession(userId, sessionId)
   return { revoked }
+}
+
+// "Log out everywhere" — revoke every other live session, keeping the caller's current
+// one (FR-AUTH-007). Distinct from the password-change revoke (which is automatic).
+export async function signOutOtherSessionsAction(): Promise<{ count: number }> {
+  const { userId, sid } = await requireSession()
+  const count = await revokeOtherSessions(userId, sid)
+  return { count }
+}
+
+// Result-returning change-password for the UI. Unlike `changePasswordAction` (which
+// throws), this returns a discriminated result so the client can branch reliably —
+// server-action error messages are redacted in production, so a thrown error can't be
+// inspected client-side (FR-AUTH-010/012; validation per AUTH §12).
+export type ChangePasswordResult =
+  | { ok: true }
+  | { ok: false; reason: 'invalid_current' | 'policy' | 'unauthorized'; messages?: string[] }
+
+export async function submitPasswordChange(input: {
+  currentPassword: string
+  newPassword: string
+}): Promise<ChangePasswordResult> {
+  let session: { userId: string; sid: string }
+  try {
+    session = await requireSession()
+  } catch {
+    return { ok: false, reason: 'unauthorized' }
+  }
+
+  const parsed = changePasswordSchema.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false, reason: 'policy', messages: parsed.error.issues.map((i) => i.message) }
+  }
+
+  try {
+    await changeOwnPassword(session.userId, session.sid, parsed.data)
+    return { ok: true }
+  } catch (e) {
+    if (e instanceof PasswordPolicyError) {
+      return { ok: false, reason: 'policy', messages: e.details.map((d) => d.message) }
+    }
+    if (e instanceof InvalidCredentialsError) return { ok: false, reason: 'invalid_current' }
+    if (e instanceof UnauthorizedError) return { ok: false, reason: 'unauthorized' }
+    throw e
+  }
 }
