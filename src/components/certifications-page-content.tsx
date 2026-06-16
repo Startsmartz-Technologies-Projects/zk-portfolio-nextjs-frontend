@@ -1,197 +1,28 @@
-﻿"use client";
-
-import * as React from "react";
 import Link from "next/link";
-import { Arrow, ArrowUpRight } from "./site-ui";
-import { CERTIFICATIONS, type CertificationItem } from "../data/certifications";
+import { Arrow } from "./site-ui";
+import { CertificationsDirectory, type CertItem } from "./certifications/certifications-directory";
+import { getPublishedCertifications, getCertificationFacets } from "@/lib/data/certifications";
+import { getTermList } from "@/src/lib/site/taxonomy";
 
-function CertThumb({ item }: { item: CertificationItem }) {
-  return (
-    <div className={`ct-thumb ${item.thumbClass}`}>
-      <div className="ct-thumb-frame">
-        <div className="ct-thumb-header">
-          <div className="ct-thumb-mark">Z</div>
-          <div className="ct-thumb-id">{item.number}</div>
-        </div>
-        <div className="ct-thumb-title">Certificate of {item.category.split(" ")[0]}</div>
-        <div className="ct-thumb-auth">{item.authority}</div>
-        <div className="ct-thumb-footer">
-          <div className={`ct-thumb-seal ${item.accent}`} />
-        </div>
-      </div>
-    </div>
-  );
-}
+// Public Certifications directory — server component on getPublishedCertifications +
+// getCertificationFacets (certifications-fe-public §A/§D). No detail route; the document library
+// (toolbar + grid + ?preview=<slug> modal) is a client island fed by the server-fetched set. Hero/
+// intro/trust/CTA copy stays static — the PAGES-managed source lands with pages-fe-public (Wave C).
 
-function CtCard({ item, onPreview }: { item: CertificationItem; onPreview: (i: CertificationItem) => void }) {
-  return (
-    <div className="ct-card">
-      <div className="ct-card-thumb">
-        <CertThumb item={item} />
-        <span className={`ct-status ${item.status.replace(/\s+/g, "-").toLowerCase()}`}>{item.status}</span>
-      </div>
-      <div className="ct-card-body">
-        <span className="ct-chip">{item.category}</span>
-        <h3>{item.title}</h3>
-        <div className="ct-card-auth">{item.authority}</div>
-        <div className="ct-card-meta">
-          <div>
-            <span className="k">Issued</span>
-            <span className="v">{item.issued}</span>
-          </div>
-          <div>
-            <span className="k">Valid Until</span>
-            <span className="v">{item.expiry}</span>
-          </div>
-        </div>
-        <div className="ct-card-foot">
-          <span className="ct-card-num">{item.number}</span>
-          <button className="ct-preview" onClick={() => onPreview(item)}>
-            Preview <ArrowUpRight size={12} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+export async function CertificationsPageContent() {
+  const [listed, facets, categoryTerms] = await Promise.all([
+    getPublishedCertifications({ pageSize: 100 }),
+    getCertificationFacets(),
+    getTermList("certifications-category"),
+  ]);
 
-function CtModal({ item, onClose }: { item: CertificationItem; onClose: () => void }) {
-  React.useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  const items = listed.data as Array<CertItem & { id: string }>;
+  const total = listed.meta.total;
+  const renewedCount = facets.statuses.find((s) => s.value === "Renewed")?.count ?? items.filter((c) => c.status === "Renewed").length;
 
-  return (
-    <div className="ct-modal-backdrop" onClick={onClose}>
-      <div className="ct-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="ct-modal-close" onClick={onClose}>
-          ×
-        </button>
-        <div className="ct-modal-body">
-          <div className="ct-modal-preview">
-            <CertThumb item={item} />
-          </div>
-          <div className="ct-modal-info">
-            <span className="ct-chip">{item.category}</span>
-            <h3>{item.title}</h3>
-            <p className="ct-modal-desc">{item.description}</p>
-            <div className="ct-modal-meta">
-              <div>
-                <span className="k">Issuing Authority</span>
-                <span className="v">{item.authority}</span>
-              </div>
-              <div>
-                <span className="k">Certificate No.</span>
-                <span className="v">{item.number}</span>
-              </div>
-              <div>
-                <span className="k">Issue Date</span>
-                <span className="v">{item.issued}</span>
-              </div>
-              <div>
-                <span className="k">Valid Until</span>
-                <span className="v">{item.expiry}</span>
-              </div>
-              <div>
-                <span className="k">Status</span>
-                <span className="v">
-                  <span className={`ct-status inline ${item.status.replace(/\s+/g, "-").toLowerCase()}`}>{item.status}</span>
-                </span>
-              </div>
-            </div>
-            <div className="ct-modal-ctas">
-              <button className="btn btn-outline-dark" onClick={onClose}>
-                Close Preview
-              </button>
-            </div>
-            <div className="ct-modal-note">
-              Document preview is a visual representation. Original verified copies are provided during pre-qualification on request.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function CertificationsPageContent() {
-  const [q, setQ] = React.useState("");
-  const [cat, setCat] = React.useState("All");
-  const [status, setStatus] = React.useState("All");
-  const [sort, setSort] = React.useState("recent");
-  const [preview, setPreview] = React.useState<CertificationItem | null>(null);
-
-  const categories = React.useMemo(
-    () => ["All", ...Array.from(new Set(CERTIFICATIONS.map((c) => c.category)))],
-    []
-  );
-  const statuses = React.useMemo(
-    () => ["All", ...Array.from(new Set(CERTIFICATIONS.map((c) => c.status)))],
-    []
-  );
-
-  const filtered = React.useMemo(() => {
-    let list = CERTIFICATIONS.filter((c) => {
-      if (cat !== "All" && c.category !== cat) return false;
-      if (status !== "All" && c.status !== status) return false;
-      if (q) {
-        const s = q.toLowerCase();
-        if (!c.title.toLowerCase().includes(s) && !c.authority.toLowerCase().includes(s) && !c.number.toLowerCase().includes(s)) return false;
-      }
-      return true;
-    });
-
-    if (sort === "title") list = [...list].sort((a, b) => a.title.localeCompare(b.title));
-    if (sort === "expiry") list = [...list].sort((a, b) => a.expiry.localeCompare(b.expiry));
-    return list;
-  }, [q, cat, status, sort]);
-
-  const setPreviewInUrl = React.useCallback(
-    (id: string | null) => {
-      if (typeof window === "undefined") return;
-      const url = new URL(window.location.href);
-      if (id) url.searchParams.set("preview", id);
-      else url.searchParams.delete("preview");
-      if (!url.hash) {
-        url.hash = "certs";
-      }
-      window.history.replaceState({}, "", url.toString());
-    },
-    []
-  );
-
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const previewId = new URLSearchParams(window.location.search).get("preview");
-    if (!previewId) return;
-    const target = CERTIFICATIONS.find((c) => c.id === previewId);
-    if (target) {
-      setPreview(target);
-    }
-  }, []);
-
-  const openPreview = React.useCallback(
-    (item: CertificationItem) => {
-      setPreview(item);
-      setPreviewInUrl(item.id);
-    },
-    [setPreviewInUrl]
-  );
-
-  const closePreview = React.useCallback(() => {
-    setPreview(null);
-    setPreviewInUrl(null);
-  }, [setPreviewInUrl]);
-
-  const clearFilters = React.useCallback(() => {
-    setQ("");
-    setCat("All");
-    setStatus("All");
-    setSort("recent");
-  }, []);
+  // Filter option labels from the SITE taxonomy helper + facet statuses ("All" first).
+  const categories = ["All", ...categoryTerms.map((t) => t.label)];
+  const statuses = ["All", ...facets.statuses.map((s) => s.value)];
 
   return (
     <>
@@ -203,10 +34,10 @@ export function CertificationsPageContent() {
             <span className="sep">/</span>
             <span className="current">Certifications</span>
           </div>
-          <span className="ct-hero-label">Trust & Compliance</span>
+          <span className="ct-hero-label">Trust &amp; Compliance</span>
           <h1>
             Certifications
-            <br />& Credentials.
+            <br />&amp; Credentials.
           </h1>
           <p className="ct-hero-sub">Official registrations, approvals, and certifications that reinforce capability, quality, and readiness.</p>
           <div className="ct-hero-ctas">
@@ -220,11 +51,11 @@ export function CertificationsPageContent() {
           <div className="ct-hero-meta">
             <div className="m">
               <span className="k">Documents On File</span>
-              <span className="v">{CERTIFICATIONS.length} Active</span>
+              <span className="v">{total} Active</span>
             </div>
             <div className="m">
-              <span className="k">Renewed Recently</span>
-              <span className="v">{CERTIFICATIONS.filter((c) => c.status === "Renewed Recently").length} Updated</span>
+              <span className="k">Recently Renewed</span>
+              <span className="v">{renewedCount} Updated</span>
             </div>
             <div className="m">
               <span className="k">Compliance Cycle</span>
@@ -247,11 +78,11 @@ export function CertificationsPageContent() {
             <span className="microlabel">Why Certifications Matter</span>
             <h2 className="ct-intro-head">
               Certified capability
-              <br />
-               <span className="accent">verified in writing.</span>
+              <br /> <span className="accent">verified in writing.</span>
             </h2>
             <p className="ct-intro-lede">
-              Zakir Enterprise maintains the registrations, licenses, and professional certifications necessary to support public and private sector construction projects across Bangladesh.
+              Zakir Enterprise maintains the registrations, licenses, and professional certifications necessary to support public and private sector
+              construction projects across Bangladesh.
             </p>
           </div>
           <div className="ct-intro-right">
@@ -293,69 +124,8 @@ export function CertificationsPageContent() {
             </div>
             <p>Browse, filter, and preview every document we hold - each one current, verified, and available on request for pre-qualification.</p>
           </div>
-          <div className="ct-toolbar">
-            <div className="ct-toolbar-search">
-              <input type="text" placeholder="Search by title, authority, or number..." value={q} onChange={(e) => setQ(e.target.value)} />
-            </div>
-            <div className="ct-toolbar-filters">
-              <div className="ct-select">
-                <label>Category</label>
-                <select value={cat} onChange={(e) => setCat(e.target.value)}>
-                  {categories.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="ct-select">
-                <label>Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                  {statuses.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="ct-select">
-                <label>Sort by</label>
-                <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                  <option value="recent">Most Recent</option>
-                  <option value="title">Title A-Z</option>
-                  <option value="expiry">Expiry Date</option>
-                </select>
-              </div>
-              <button className="ct-clear" onClick={clearFilters}>
-                Clear Filters
-              </button>
-            </div>
-            <div className="ct-toolbar-count">
-              <span>
-                <strong>{filtered.length}</strong> documents
-              </span>
-            </div>
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="ct-empty">
-              <div className="ct-empty-icon">
-                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square">
-                  <rect x="4" y="4" width="16" height="16" />
-                  <path d="M4 4 L20 20" />
-                </svg>
-              </div>
-              <h4>No documents match those filters</h4>
-              <p>Try clearing the search or selecting a different category.</p>
-              <button className="btn btn-dark" onClick={clearFilters}>
-                Reset filters
-              </button>
-            </div>
-          ) : (
-            <div className="ct-grid">
-              {filtered.map((item) => (
-                <CtCard key={item.id} item={item} onPreview={openPreview} />
-              ))}
-            </div>
-          )}
+          <CertificationsDirectory items={items} categories={categories} statuses={statuses} />
         </div>
-        {preview && <CtModal item={preview} onClose={closePreview} />}
       </section>
 
       <section className="ct-trust">
@@ -405,7 +175,7 @@ export function CertificationsPageContent() {
                   <line x1="18" y1="12" x2="21" y2="12" />
                 </svg>
               </div>
-              <h4>Ready for Public & Private Projects</h4>
+              <h4>Ready for Public &amp; Private Projects</h4>
               <p>Pre-qualified and deployable for nationwide infrastructure, commercial, and civil project scopes.</p>
             </div>
           </div>
@@ -424,7 +194,7 @@ export function CertificationsPageContent() {
             </h2>
           </div>
           <div className="ct-cta-right">
-            <p>Let's discuss your next project with a team backed by execution experience and professional credentials.</p>
+            <p>Let&apos;s discuss your next project with a team backed by execution experience and professional credentials.</p>
             <div className="ct-cta-btns">
               <Link href="/lets-collaborate" className="btn btn-primary">
                 Contact Us <Arrow />
@@ -439,4 +209,3 @@ export function CertificationsPageContent() {
     </>
   );
 }
-
