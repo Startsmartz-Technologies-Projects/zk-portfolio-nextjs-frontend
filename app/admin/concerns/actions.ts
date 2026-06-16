@@ -19,6 +19,7 @@ import {
   setDefaultConcern,
   reorderConcerns,
   getPreviewUrl,
+  collectPublishIssues,
   CONCERNS_REVALIDATE_TAG,
   CONCERNS_BASE_PATH,
 } from '@/lib/data/concerns'
@@ -136,4 +137,10 @@ export async function reorderConcernsAction(input: unknown) {
 export async function previewConcernAction(id: string) {
   await requireCapability('content')
   return getPreviewUrl(id)
+}
+
+/** Read-only publish-gate issues for a saved concern, surfaced in the editor publish panel. */
+export async function publishIssuesConcernAction(id: string) {
+  await requireCapability('content')
+  return collectPublishIssues(id)
 }
