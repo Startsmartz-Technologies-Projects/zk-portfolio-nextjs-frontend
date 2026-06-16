@@ -1,0 +1,61 @@
+/*
+ * Admin design tokens — foundations §2, derived from the brand layer (ADR 0002) and
+ * re-scaled for density. Scoped to `.admin-scope` so the public site's tokens/typography
+ * are untouched (the admin layout wraps all `/admin/*` UI in this class). shadcn/ui
+ * components read the standard token names (--background, --primary, --border, …); the
+ * `--admin-*` and `--status-*` aliases carry the semantic names used by chrome + badges.
+ */
+
+.admin-scope {
+  /* shadcn semantic tokens (foundations §2 colour table) */
+  --background: #f7f7f5; /* Off White — app background */
+  --foreground: #1d1f1e; /* primary text */
+  --card: #ffffff;
+  --card-foreground: #1d1f1e;
+  --popover: #ffffff;
+  --popover-foreground: #1d1f1e;
+  --primary: #b4de35; /* Brand Lime — accent only (never large fills) */
+  --primary-foreground: #111111; /* Dark Charcoal on lime */
+  --secondary: #e8e3db; /* Warm Concrete — subtle fills */
+  --secondary-foreground: #1d1f1e;
+  --muted: #e8e3db;
+  --muted-foreground: #6b6f6a; /* Text Gray — secondary text, placeholders */
+  --accent: #e8e3db;
+  --accent-foreground: #1d1f1e;
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --border: #d9d6cf; /* Border Gray */
+  --input: #d9d6cf;
+  --ring: #8dac24; /* Deep Lime — focus ring, AA on light */
+  --radius: 0.5rem; /* 8px base (inputs/buttons); cards 10px, modals 12px via component classes */
+
+  /* semantic aliases for shell chrome */
+  --admin-surface: #ffffff;
+  --admin-surface-2: #e8e3db;
+  --admin-focus: #8dac24;
+
+  /* status palette (foundations §2 — never colour-only; always paired with a label/icon) */
+  --status-draft: #c9c3ba;
+  --status-published: #5e6e22;
+  --status-archived: #a68b71;
+  --status-danger: #b3261e;
+  --status-warning: #9a6a00;
+
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px; /* foundations §2 body/input */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings/labels use Manrope (already preloaded by the root layout's font link). */
+.admin-scope :is(h1, h2, h3, h4, h5, h6),
+.admin-scope .font-heading {
+  font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Numeric/tabular data may opt into tabular figures (foundations §2). */
+.admin-scope .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

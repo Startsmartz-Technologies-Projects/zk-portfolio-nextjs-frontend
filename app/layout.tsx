@@ -9,6 +9,7 @@ import { getSiteChrome } from "@/src/lib/site/chrome";
 import { REVALIDATE } from "@/src/lib/site/taxonomy";
 import { Nav } from "@/src/components/nav";
 import { Footer } from "@/src/components/footer";
+import { ChromeGate } from "@/src/components/chrome-gate";
 
 // ISR convention (web-fe-site-chrome / FR-SITE-020): chrome + SEO defaults are revalidated
 // on this window, so a SITE settings change propagates within ~60s without a redeploy.
@@ -66,9 +67,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <OrganizationJsonLd organization={organization} />
       </head>
       <body>
-        <Nav site={chrome} />
+        {/* Public marketing chrome — suppressed on /admin/* (the admin surface, ADR 0002). */}
+        <ChromeGate>
+          <Nav site={chrome} />
+        </ChromeGate>
         {children}
-        <Footer site={chrome} />
+        <ChromeGate>
+          <Footer site={chrome} />
+        </ChromeGate>
       </body>
     </html>
   );
