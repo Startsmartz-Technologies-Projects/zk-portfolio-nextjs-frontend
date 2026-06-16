@@ -54,3 +54,18 @@ export const COLLECTION_SECTION_TYPES: SectionType[] = [
   "insights_strip",
   "news_strip",
 ];
+
+/**
+ * Canonical feed key per collection section type. `source_key` is system-determined and
+ * read-only in the editor (SRS §8), so a newly-added collection section must be stamped with
+ * its feed key here — otherwise publish fails ("source_key required") with no UI remedy.
+ * Mirrors prisma/seed/pages.seed.ts; keep in sync if a feed key changes.
+ */
+export const COLLECTION_SOURCE_KEYS: Partial<Record<SectionType, string>> = {
+  featured_projects: "projects.featured",
+  featured_services: "services.featured",
+  featured_certifications: "certifications.home-seals",
+  network_strip: "concerns.published",
+  insights_strip: "blog.featured",
+  news_strip: "news.featured",
+};

@@ -1,5 +1,6 @@
 import type { UpdatePageInput } from "@/lib/validation/pages";
 import type { PageAdmin, SectionAdmin, SectionItemAdmin } from "./types";
+import { COLLECTION_SOURCE_KEYS } from "./types";
 import { seoFromDetail, type SeoFormValues } from "@/src/components/admin/shared/seo-form-fields";
 
 // Map the admin page shape (snake_case, resolved media refs) ↔ the updatePage server
@@ -79,7 +80,9 @@ export function blankSection(type: SectionAdmin["type"]): SectionAdmin {
     cta_primary: null,
     cta_secondary: null,
     max_items: null,
-    source_key: null,
+    // Collection sections carry a system-determined feed key (read-only); stamp it so a
+    // newly-added strip can publish. Non-collection types stay null.
+    source_key: COLLECTION_SOURCE_KEYS[type] ?? null,
     settings: null,
     items: [],
   } as SectionAdmin;

@@ -154,8 +154,10 @@ function Inner({ initial, canViewAuditLog, seoDefaults, metadataBase }: PageEdit
   }
 
   async function onPublish() {
-    // Persist pending edits first so publish validates the latest content.
-    if (dirty) {
+    // Persist pending edits first so publish validates the latest content. `dirty` only
+    // tracks section edits; SEO lives in the RHF form, so check its dirty flag too —
+    // otherwise SEO-only edits are silently dropped on publish.
+    if (dirty || form.formState.isDirty) {
       const saved = await save();
       if (!saved) return;
     }
