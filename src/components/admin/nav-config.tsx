@@ -96,7 +96,6 @@ export const CREATE_ITEMS: CreateItem[] = [
   { label: "News article", href: "/admin/news/new", capability: "content" },
   { label: "Certification", href: "/admin/certifications/new", capability: "content" },
   { label: "Concern", href: "/admin/concerns/new", capability: "content" },
-  { label: "Page", href: "/admin/pages/new", capability: "content" },
 ];
 
 /** Groups with their items filtered to the role's capabilities; empty groups dropped. */
