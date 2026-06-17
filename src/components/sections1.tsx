@@ -5,9 +5,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Arrow, ArrowUpRight } from "./site-ui";
-
-const LOGO_IMAGE_URL =
-  "https://res.cloudinary.com/dk4csiouq/image/upload/v1777193277/Heading_28_nm42pj.png";
+import { MediaImage } from "@/src/components/media/media-image";
+import type { SiteChrome } from "@/src/lib/site/chrome";
 
 // Photography URLs - real commercial construction imagery from Unsplash
 export const IMG = {
@@ -49,7 +48,7 @@ export const IMG = {
     "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80&auto=format&fit=crop",
 };
 
-export function Nav({ scrolled }) {
+export function Nav({ scrolled, site }: { scrolled: boolean; site: SiteChrome }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
 
@@ -83,7 +82,7 @@ export function Nav({ scrolled }) {
       <div className="nav-inner">
         <Link href={homeFile} className="nav-logo" onClick={() => setOpen(false)}>
           <span className="nav-logo-img">
-            <img src={LOGO_IMAGE_URL} alt="Zakir Enterprise Logo" />
+            <MediaImage media={site.logoPrimary} fallback={<strong>{site.brandName}</strong>} />
           </span>
         </Link>
         <ul className={`nav-menu ${open ? "open" : ""}`}>
@@ -116,10 +115,12 @@ export function Nav({ scrolled }) {
           </li>
         </ul>
         <div className="nav-cta">
-          <div className="nav-phone">
-            <span>Call us</span>
-            <strong>+8801791026074</strong>
-          </div>
+          {site.phone ? (
+            <div className="nav-phone">
+              <span>Call us</span>
+              <strong>{site.phone}</strong>
+            </div>
+          ) : null}
           <Link href="/lets-collaborate" className="btn btn-primary nav-cta-btn">
             Let's Collaborate <Arrow />
           </Link>
@@ -142,7 +143,7 @@ export function Nav({ scrolled }) {
   );
 }
 
-export function Hero({ variant }) {
+export function Hero({ variant }: { variant?: string }) {
   const bg =
     variant === "crane"
       ? IMG.heroCrane
@@ -319,7 +320,7 @@ export function Stats() {
   );
 }
 
-function Counter({ to, dur = 1400 }) {
+function Counter({ to, dur = 1400 }: { to: number; dur?: number }) {
   const [val, setVal] = React.useState(0);
   const ref = React.useRef(null);
   const started = React.useRef(false);
@@ -329,7 +330,7 @@ function Counter({ to, dur = 1400 }) {
         if (e.isIntersecting && !started.current) {
           started.current = true;
           const start = performance.now();
-          const tick = (t) => {
+          const tick = (t: number) => {
             const p = Math.min(1, (t - start) / dur);
             const eased = 1 - Math.pow(1 - p, 3);
             setVal(Math.round(to * eased));

@@ -3,6 +3,9 @@ import * as React from "react";
 import Link from "next/link";
 import { Arrow as A3, ArrowUpRight as AUR3, ChevronLeft, ChevronRight, Social } from "./site-ui";
 import { IMG } from "./sections1";
+import { MediaImage } from "@/src/components/media/media-image";
+import { socialIconKey } from "@/src/lib/site/social";
+import type { SiteChrome } from "@/src/lib/site/chrome";
 
 // Trusted-by, Testimonials, Insights, News, CTA, Footer
 
@@ -170,10 +173,7 @@ export function CTABanner() {
   );
 }
 
-export function Footer() {
-  const footerLogo =
-    "https://res.cloudinary.com/dk4csiouq/image/upload/v1777196761/Heading_34_lflrda.png";
-
+export function Footer({ site }: { site: SiteChrome }) {
   return (
     <footer id="contact" className="footer" data-screen-label="15 Footer">
       <div className="container">
@@ -181,16 +181,16 @@ export function Footer() {
           <div className="footer-brand">
             <Link href="/" className="nav-logo">
               <span className="nav-logo-img" style={{ height: 48, maxWidth: "100%" }}>
-                <img src={footerLogo} alt="Zakir Enterprise Logo" />
+                <MediaImage media={site.logoFooter} fallback={<strong>{site.brandName}</strong>} />
               </span>
             </Link>
-            <p>A Bangladesh-based construction firm delivering government, commercial and private works with disciplined execution and dependable project management.</p>
+            {site.brandDescription ? <p>{site.brandDescription}</p> : null}
             <div className="footer-contact">
               <strong>Head Office</strong>
-              House 42, Road 11, Banani,<br/>Dhaka 1213, Bangladesh<br/>
+              <span style={{ whiteSpace: "pre-line" }}>{site.officeAddress}</span>
               <strong style={{ marginTop: 14 }}>Get in touch</strong>
-              zakirenterprise307@gmail.com<br/>
-              +8801791026074
+              {site.email ? <>{site.email}<br/></> : null}
+              {site.phone}
             </div>
           </div>
           <div className="footer-col">
@@ -235,13 +235,16 @@ export function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2026 Zakir Enterprise Ltd. · All rights reserved · Trade License · Dhaka</span>
-          <div className="footer-socials">
-            <a href="#" aria-label="Facebook"><Social k="fb"/></a>
-            <a href="#" aria-label="LinkedIn"><Social k="li"/></a>
-            <a href="#" aria-label="Instagram"><Social k="ig"/></a>
-            <a href="#" aria-label="YouTube"><Social k="yt"/></a>
-          </div>
+          <span>{site.copyright}</span>
+          {site.socials.length > 0 ? (
+            <div className="footer-socials">
+              {site.socials.map((s) => (
+                <a key={s.platform} href={s.url} aria-label={s.platform} target="_blank" rel="noopener noreferrer">
+                  <Social k={socialIconKey(s.platform)} />
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </footer>

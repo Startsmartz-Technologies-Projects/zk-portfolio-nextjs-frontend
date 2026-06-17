@@ -1,0 +1,1304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── AUTH module (auth-be-1) ──────────────────────────────────────────────
+// Owner of the cross-cutting `User` entity (see docs/srs/auth.md §8).
+// Email uniqueness is case-insensitive; normalization to lowercase is done at
+// the app layer (login / user-admin) — see auth-be-2 / users-be-2.
+
+enum Role {
+  admin
+  editor
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+model User {
+  id                     String           @id @default(uuid()) @db.Uuid
+  email                  String           @unique
+  passwordHash           String           @map("password_hash")
+  fullName               String           @map("full_name")
+  role                   Role
+  status                 UserStatus       @default(active)
+  mustChangePassword     Boolean          @default(false) @map("must_change_password")
+  lastLoginAt            DateTime?        @map("last_login_at")
+  createdById            String?          @map("created_by") @db.Uuid
+  updatedById            String?          @map("updated_by") @db.Uuid
+  createdBy              User?            @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers           User[]           @relation("UserCreatedBy")
+  updatedBy              User?            @relation("UserUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedUsers           User[]           @relation("UserUpdatedBy")
+  sessions               AuthSession[]
+  auditLogEntries        AuditLogEntry[]
+  mediaCreated           MediaAsset[]     @relation("MediaAssetCreatedBy")
+  mediaUpdated           MediaAsset[]     @relation("MediaAssetUpdatedBy")
+  companyProfilesCreated CompanyProfile[] @relation("CompanyProfileCreatedBy")
+  companyProfilesUpdated CompanyProfile[] @relation("CompanyProfileUpdatedBy")
+  seoSettingsCreated     SeoSettings[]    @relation("SeoSettingsCreatedBy")
+  seoSettingsUpdated     SeoSettings[]    @relation("SeoSettingsUpdatedBy")
+  redirectsCreated       Redirect[]       @relation("RedirectCreatedBy")
+  redirectsUpdated       Redirect[]       @relation("RedirectUpdatedBy")
+  projectsCreated        Project[]        @relation("ProjectCreatedBy")
+  projectsUpdated        Project[]        @relation("ProjectUpdatedBy")
+  servicesCreated        Service[]        @relation("ServiceCreatedBy")
+  servicesUpdated        Service[]        @relation("ServiceUpdatedBy")
+  articlesCreated        Article[]        @relation("ArticleCreatedBy")
+  articlesUpdated        Article[]        @relation("ArticleUpdatedBy")
+  newsCreated            NewsStory[]      @relation("NewsStoryCreatedBy")
+  newsUpdated            NewsStory[]      @relation("NewsStoryUpdatedBy")
+  certificationsCreated  Certification[]  @relation("CertificationCreatedBy")
+  certificationsUpdated  Certification[]  @relation("CertificationUpdatedBy")
+  concernsCreated        Concern[]        @relation("ConcernCreatedBy")
+  concernsUpdated        Concern[]        @relation("ConcernUpdatedBy")
+  pagesCreated           Page[]           @relation("PageCreatedBy")
+  pagesUpdated           Page[]           @relation("PageUpdatedBy")
+  leadsAssigned          Lead[]           @relation("LeadAssignee")
+  leadNotes              LeadNote[]       @relation("LeadNoteAuthor")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  deletedAt              DateTime?        @map("deleted_at")
+
+  @@map("users")
+}
+
+model AuthSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent  String?   @map("user_agent")
+  ip         String?
+  expiresAt  DateTime  @map("expires_at")
+  lastUsedAt DateTime? @map("last_used_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([revokedAt])
+  @@map("auth_sessions")
+}
+
+// ── USERS module (users-be-1) ────────────────────────────────────────────
+// Owner of the cross-cutting `AuditLogEntry` entity (see docs/srs/users-roles.md §8.1).
+// Append-only / immutable: no updated_at, no deleted_at, and no update/delete path in
+// the data layer (FR-USERS-017, BR-5). The two-role capability policy (§8.2) is code,
+// not data — see lib/users/capabilities.ts. There are NO Role/Permission/grant tables.
+
+enum AuditAction {
+  create
+  update
+  delete
+  restore
+  publish
+  unpublish
+  archive
+  login
+  login_failed
+  logout
+  password_change
+  password_reset
+  session_revoke
+  role_change
+  settings_change
+  merge
+  redirect_change
+  access_denied
+}
+
+model AuditLogEntry {
+  id         String      @id @default(uuid()) @db.Uuid
+  actorId    String?     @map("actor_id") @db.Uuid
+  actor      User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     AuditAction
+  entityType String      @map("entity_type")
+  entityId   String?     @map("entity_id")
+  summary    String
+  metadata   Json?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@index([actorId])
+  @@index([entityType])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_log_entries")
+}
+
+// ── MEDIA module (media-be-1) ────────────────────────────────────────────
+// Owner of the cross-cutting `MediaAsset` entity (see docs/srs/media.md §8.1).
+// One flat library of images + documents (resource_type); Cloudinary-only in v1
+// (provider enum, §8.3/§16). Not ContentBase — its own active/soft-deleted
+// lifecycle, no draft/publish. `alt_present`, reference usage, MediaRef and
+// transformation URLs are all derived/computed, never stored (§8.2).
+//
+// Nullability notes vs §8.1: `bytes`/`width`/`height` are nullable because rows
+// can be seeded from a URL alone (no file introspection) — real uploads
+// (FR-MEDIA-002) always populate them. `created_by`/`updated_by` are nullable
+// SetNull audit FKs, matching the platform convention (auth-be-1) and allowing
+// System-seeded assets.
+
+enum ResourceType {
+  image
+  document
+}
+
+enum MediaProvider {
+  cloudinary
+}
+
+model MediaAsset {
+  id                String                   @id @default(uuid()) @db.Uuid
+  resourceType      ResourceType             @map("resource_type")
+  provider          MediaProvider            @default(cloudinary)
+  publicId          String                   @map("public_id")
+  url               String
+  format            String
+  bytes             Int?
+  width             Int?
+  height            Int?
+  altText           String?                  @map("alt_text")
+  title             String?
+  originalFilename  String?                  @map("original_filename")
+  tags              String[]
+  createdById       String?                  @map("created_by") @db.Uuid
+  updatedById       String?                  @map("updated_by") @db.Uuid
+  createdBy         User?                    @relation("MediaAssetCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?                    @relation("MediaAssetUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  brandAssets       BrandAsset[]
+  seoSettings       SeoSettings[]
+  projectCovers     Project[]                @relation("ProjectCoverImage")
+  projectOgImages   Project[]                @relation("ProjectSeoOgImage")
+  projectGallery    ProjectGalleryItem[]
+  serviceHeroes     Service[]                @relation("ServiceHeroImage")
+  serviceMachines   Service[]                @relation("ServiceMachineImage")
+  serviceCtas       Service[]                @relation("ServiceCtaImage")
+  serviceOgImages   Service[]                @relation("ServiceSeoOgImage")
+  articleCovers     Article[]                @relation("ArticleCoverImage")
+  articleOgImages   Article[]                @relation("ArticleSeoOgImage")
+  newsCovers        NewsStory[]              @relation("NewsStoryCoverImage")
+  newsOgImages      NewsStory[]              @relation("NewsStorySeoOgImage")
+  newsGallery       NewsGalleryItem[]
+  certificationDocs Certification[]          @relation("CertificationDocument")
+  concernHeroes     Concern[]                @relation("ConcernHeroImage")
+  concernOgImages   Concern[]                @relation("ConcernSeoOgImage")
+  concernShowcase   ConcernShowcaseProject[]
+  concernGallery    ConcernGalleryItem[]
+  pageSectionBgs    PageSection[]            @relation("PageSectionBackground")
+  sectionItemImages SectionItem[]
+  pageOgImages      Page[]                   @relation("PageSeoOgImage")
+  leadAttachments   LeadAttachment[]         @relation("LeadAttachmentMedia")
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+  deletedAt         DateTime?                @map("deleted_at")
+
+  @@index([resourceType])
+  @@index([format])
+  @@index([createdAt])
+  @@index([tags], type: Gin)
+  @@map("media_assets")
+}
+
+// ── SITE module (site-be-1) ──────────────────────────────────────────────
+// Owner of the cross-cutting `TaxonomyTerm` and `SettingValue` entities (see
+// docs/srs/site-settings.md §8). Also the company profile (singleton), social
+// links, authored KPI stats, and the four brand-asset slots (each a MediaAsset
+// ref). Nav/footer link STRUCTURE is NOT modeled (stays in front-end, BR-8).
+// Derived metrics (years_experience, projects_count, …) are never stored (BR-2/3).
+// Field sets follow the §8.x tables; audit FKs are on the singleton (§8.1) only.
+
+enum SocialPlatform {
+  facebook
+  linkedin
+  instagram
+  youtube
+  twitter
+  other
+}
+
+enum BrandAssetKey {
+  logo_primary
+  logo_footer
+  favicon
+  og_default
+}
+
+enum SettingType {
+  int
+  bool
+  string
+  media
+  json
+}
+
+model CompanyProfile {
+  id                String       @id @default(uuid()) @db.Uuid
+  name              String
+  legalName         String?      @map("legal_name")
+  tagline           String?
+  brandDescription  String?      @map("brand_description")
+  establishmentYear Int          @map("establishment_year")
+  email             String
+  phone             String
+  whatsapp          String?
+  officeAddress     String       @map("office_address")
+  businessHours     String?      @map("business_hours")
+  coverageSummary   String?      @map("coverage_summary")
+  copyrightText     String       @map("copyright_text")
+  socialLinks       SocialLink[]
+  createdById       String?      @map("created_by") @db.Uuid
+  updatedById       String?      @map("updated_by") @db.Uuid
+  createdBy         User?        @relation("CompanyProfileCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?        @relation("CompanyProfileUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  @@map("company_profiles")
+}
+
+model SocialLink {
+  id        String         @id @default(uuid()) @db.Uuid
+  profileId String         @map("profile_id") @db.Uuid
+  profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform  SocialPlatform
+  url       String
+  position  Int            @default(0)
+
+  @@index([profileId])
+  @@map("social_links")
+}
+
+model CompanyStat {
+  id       String  @id @default(uuid()) @db.Uuid
+  key      String  @unique
+  label    String
+  value    String
+  unit     String?
+  position Int     @default(0)
+
+  @@map("company_stats")
+}
+
+model BrandAsset {
+  id      String        @id @default(uuid()) @db.Uuid
+  key     BrandAssetKey @unique
+  mediaId String        @map("media_id") @db.Uuid
+  media   MediaAsset    @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@map("brand_assets")
+}
+
+model Taxonomy {
+  id       String         @id @default(uuid()) @db.Uuid
+  slug     String         @unique
+  label    String
+  isShared Boolean        @default(false) @map("is_shared")
+  terms    TaxonomyTerm[]
+
+  @@map("taxonomies")
+}
+
+model TaxonomyTerm {
+  id                 String          @id @default(uuid()) @db.Uuid
+  taxonomyId         String          @map("taxonomy_id") @db.Uuid
+  taxonomy           Taxonomy        @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
+  slug               String
+  label              String
+  position           Int             @default(0)
+  isActive           Boolean         @default(true) @map("is_active")
+  projectsInCategory Project[]       @relation("ProjectCategory")
+  projectsInLocation Project[]       @relation("ProjectLocation")
+  articlesInCategory Article[]       @relation("ArticleCategory")
+  newsInCategory     NewsStory[]     @relation("NewsStoryCategory")
+  certsInCategory    Certification[] @relation("CertificationCategory")
+
+  @@unique([taxonomyId, slug])
+  @@index([taxonomyId])
+  @@map("taxonomy_terms")
+}
+
+model SettingValue {
+  id          String      @id @default(uuid()) @db.Uuid
+  key         String      @unique
+  type        SettingType
+  value       String
+  isPublic    Boolean     @default(false) @map("is_public")
+  description String
+
+  @@map("setting_values")
+}
+
+// ── SEO module (seo-be-1) ────────────────────────────────────────────────
+// Owns the `SeoSettings` singleton and the `Redirect` store (see docs/srs/seo.md §8).
+// The per-record `SeoMeta` columns are NOT here — each content module embeds them
+// on its own record (overview §6.2). This module owns the canonical SeoMeta *type*
+// + fallback resolver as shared code (lib/seo/seo-meta.ts), not a table. Sitemap
+// entries are derived, never stored (§8.4). `default_og_image` references a
+// MediaAsset (SITE og_default); Organization JSON-LD is sourced from SITE.
+//
+// RedirectStatus values are HTTP codes; Prisma enum members can't be bare digits,
+// so they're named and @map'd to the DB labels '301'/'302'.
+
+enum RobotsPolicy {
+  index_follow
+  noindex_nofollow
+  custom
+}
+
+enum RedirectStatus {
+  permanent @map("301")
+  temporary @map("302")
+}
+
+enum RedirectSource {
+  system
+  manual
+}
+
+model SeoSettings {
+  id                     String       @id @default(uuid()) @db.Uuid
+  siteTitleTemplate      String       @map("site_title_template")
+  defaultMetaDescription String       @map("default_meta_description")
+  metadataBase           String       @map("metadata_base")
+  defaultOgImageId       String?      @map("default_og_image") @db.Uuid
+  defaultOgImage         MediaAsset?  @relation(fields: [defaultOgImageId], references: [id], onDelete: SetNull)
+  twitterHandle          String?      @map("twitter_handle")
+  defaultRobots          RobotsPolicy @default(index_follow) @map("default_robots")
+  jsonldTypes            String[]     @default(["Organization", "Article", "NewsArticle", "Service", "FAQPage", "BreadcrumbList"]) @map("jsonld_types")
+  googleSiteVerification String?      @map("google_site_verification")
+  bingSiteVerification   String?      @map("bing_site_verification")
+  createdById            String?      @map("created_by") @db.Uuid
+  updatedById            String?      @map("updated_by") @db.Uuid
+  createdBy              User?        @relation("SeoSettingsCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy              User?        @relation("SeoSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  @@map("seo_settings")
+}
+
+model Redirect {
+  id          String         @id @default(uuid()) @db.Uuid
+  fromPath    String         @unique @map("from_path")
+  toPath      String         @map("to_path")
+  status      RedirectStatus @default(permanent)
+  source      RedirectSource
+  isActive    Boolean        @default(true) @map("is_active")
+  note        String?
+  createdById String?        @map("created_by") @db.Uuid
+  updatedById String?        @map("updated_by") @db.Uuid
+  createdBy   User?          @relation("RedirectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?          @relation("RedirectUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  @@map("redirects")
+}
+
+// ── Shared content-workflow enum (overview §4) ───────────────────────────
+// The publishing lifecycle every ContentBase collection shares (Projects first,
+// then Services/Blog/News/Certifications/Concerns/Pages). Distinct from a
+// collection's real-world status enum (e.g. Project.delivery_status — BR-2).
+
+enum ContentStatus {
+  draft
+  published
+  archived
+}
+
+// ── PROJECTS module (projects-be-1) ──────────────────────────────────────
+// The richest content collection and the structural template for the other
+// collections (see docs/srs/projects.md §8). `Project` extends ContentBase
+// (overview §6.1: status/published_at/created_by/updated_by/timestamps/deleted_at)
+// and embeds SeoMeta as `seo_*` columns (overview §6.2 — owned by SEO as a type,
+// stored per-record here). `category`/`location` are nullable FKs to SITE
+// `TaxonomyTerm` (`projects-category` / shared `location`); `cover_image`/gallery/
+// `seo_og_image` are FKs to MEDIA `MediaAsset`. category/location/cover/start_date
+// are nullable so a minimal draft needs only a title (FR-PROJ-006) — presence is
+// enforced at publish time (§12), not by the DB. `delivery_status` (real-world) is
+// independent of `status` (workflow) — BR-2. Year + duration are DERIVED from
+// start/end dates, never stored (BR-7). Slug is globally unique incl. soft-deleted
+// rows (edge 1). Child collections (scopes/highlights/gallery/related) are ordered
+// by `position` and cascade-delete with the project.
+
+enum ClientType {
+  Government
+  Commercial
+  Private
+}
+
+enum DeliveryStatus {
+  Completed
+  Ongoing
+  Planning
+}
+
+enum BadgeStyle {
+  default
+  lime
+  black
+  gold
+}
+
+model Project {
+  id                    String               @id @default(uuid()) @db.Uuid
+  // ContentBase (overview §6.1)
+  status                ContentStatus        @default(draft)
+  publishedAt           DateTime?            @map("published_at")
+  // Identity & listing-card fields
+  legacyId              String?              @unique @map("legacy_id")
+  slug                  String               @unique
+  title                 String
+  summary               String?
+  categoryId            String?              @map("category_id") @db.Uuid
+  category              TaxonomyTerm?        @relation("ProjectCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  clientType            ClientType?          @map("client_type")
+  deliveryStatus        DeliveryStatus       @default(Completed) @map("delivery_status")
+  locationId            String?              @map("location_id") @db.Uuid
+  location              TaxonomyTerm?        @relation("ProjectLocation", fields: [locationId], references: [id], onDelete: Restrict)
+  locationDetail        String?              @map("location_detail")
+  startDate             DateTime?            @map("start_date") @db.Date
+  endDate               DateTime?            @map("end_date") @db.Date
+  coverImageId          String?              @map("cover_image") @db.Uuid
+  coverImage            MediaAsset?          @relation("ProjectCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  badgeText             String?              @map("badge_text")
+  badgeStyle            BadgeStyle           @default(default) @map("badge_style")
+  featured              Boolean              @default(false)
+  featuredOrder         Int?                 @map("featured_order")
+  // Detail content
+  overviewTitle         String?              @map("overview_title")
+  overviewBody          String?              @map("overview_body")
+  pullQuote             String?              @map("pull_quote")
+  client                String?
+  servicesDelivered     String[]             @map("services_delivered")
+  scopeDescription      String?              @map("scope_description")
+  galleryHeading        String?              @map("gallery_heading")
+  galleryDescription    String?              @map("gallery_description")
+  highlightsDescription String?              @map("highlights_description")
+  caseStudyChallenge    String?              @map("case_study_challenge")
+  caseStudyApproach     String?              @map("case_study_approach")
+  caseStudyResult       String?              @map("case_study_result")
+  ctaHeading            String?              @map("cta_heading")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle          String?              @map("seo_meta_title")
+  seoMetaDescription    String?              @map("seo_meta_description")
+  seoCanonicalUrl       String?              @map("seo_canonical_url")
+  seoOgImageId          String?              @map("seo_og_image") @db.Uuid
+  seoOgImage            MediaAsset?          @relation("ProjectSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle            String?              @map("seo_og_title")
+  seoOgDescription      String?              @map("seo_og_description")
+  seoNoindex            Boolean              @default(false) @map("seo_noindex")
+  // Child collections
+  scopes                ProjectScope[]
+  highlights            ProjectHighlight[]
+  gallery               ProjectGalleryItem[]
+  related               ProjectRelatedItem[] @relation("ProjectRelatedFrom")
+  relatedBy             ProjectRelatedItem[] @relation("ProjectRelatedTo")
+  // Audit (ContentBase)
+  createdById           String?              @map("created_by") @db.Uuid
+  updatedById           String?              @map("updated_by") @db.Uuid
+  createdBy             User?                @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy             User?                @relation("ProjectUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt             DateTime             @default(now()) @map("created_at")
+  updatedAt             DateTime             @updatedAt @map("updated_at")
+  deletedAt             DateTime?            @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([locationId])
+  @@index([clientType])
+  @@index([deliveryStatus])
+  @@index([featured, featuredOrder])
+  @@index([deletedAt])
+  @@map("projects")
+}
+
+model ProjectScope {
+  id          String  @id @default(uuid()) @db.Uuid
+  projectId   String  @map("project_id") @db.Uuid
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  icon        String
+  value       String
+  title       String
+  description String?
+  position    Int     @default(0)
+
+  @@index([projectId])
+  @@map("project_scopes")
+}
+
+model ProjectHighlight {
+  id        String  @id @default(uuid()) @db.Uuid
+  projectId String  @map("project_id") @db.Uuid
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number    String
+  unit      String?
+  title     String
+  body      String?
+  position  Int     @default(0)
+
+  @@index([projectId])
+  @@map("project_highlights")
+}
+
+model ProjectGalleryItem {
+  id        String     @id @default(uuid()) @db.Uuid
+  projectId String     @map("project_id") @db.Uuid
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String     @map("media_id") @db.Uuid
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  caption   String?
+  position  Int        @default(0)
+
+  @@index([projectId])
+  @@index([mediaId])
+  @@map("project_gallery_items")
+}
+
+model ProjectRelatedItem {
+  id               String  @id @default(uuid()) @db.Uuid
+  projectId        String  @map("project_id") @db.Uuid
+  project          Project @relation("ProjectRelatedFrom", fields: [projectId], references: [id], onDelete: Cascade)
+  relatedProjectId String  @map("related_project_id") @db.Uuid
+  relatedProject   Project @relation("ProjectRelatedTo", fields: [relatedProjectId], references: [id], onDelete: Cascade)
+  position         Int     @default(0)
+
+  @@unique([projectId, relatedProjectId])
+  @@index([projectId])
+  @@index([relatedProjectId])
+  @@map("project_related_items")
+}
+
+// ── SERVICES module (services-be-1) ──────────────────────────────────────
+// The service catalog (see docs/srs/services.md §8). `Service` extends ContentBase
+// + embeds SeoMeta (seo_* columns). A small, manually-ordered set — no taxonomy,
+// filtering, featured, or related (§8.8). Three MediaAsset FKs (hero/machine/cta,
+// all nullable for drafts; cta falls back to the SITE default). `position` is the
+// app-managed contiguous catalog order — a plain indexed Int rather than a DB unique
+// constraint, so soft-delete + atomic reorder stay simple (BR-2 enforced in the
+// reorder action). Six ordered child collections cascade-delete with the service.
+
+model Service {
+  id                  String               @id @default(uuid()) @db.Uuid
+  status              ContentStatus        @default(draft)
+  publishedAt         DateTime?            @map("published_at")
+  legacyId            String?              @unique @map("legacy_id")
+  slug                String               @unique
+  title               String
+  subtitle            String?
+  icon                String?
+  position            Int                  @default(0)
+  heroImageId         String?              @map("hero_image") @db.Uuid
+  heroImage           MediaAsset?          @relation("ServiceHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+  machineImageId      String?              @map("machine_image") @db.Uuid
+  machineImage        MediaAsset?          @relation("ServiceMachineImage", fields: [machineImageId], references: [id], onDelete: SetNull)
+  ctaImageId          String?              @map("cta_image") @db.Uuid
+  ctaImage            MediaAsset?          @relation("ServiceCtaImage", fields: [ctaImageId], references: [id], onDelete: SetNull)
+  // Overview + section copy
+  overviewTitle       String?              @map("overview_title")
+  overviewLead        String?              @map("overview_lead")
+  overviewBody        String[]             @map("overview_body")
+  overviewBullets     String[]             @map("overview_bullets")
+  scopeTitle          String?              @map("scope_title")
+  scopeLead           String?              @map("scope_lead")
+  processTitle        String?              @map("process_title")
+  processLead         String?              @map("process_lead")
+  benefitsTitle       String?              @map("benefits_title")
+  benefitsLead        String?              @map("benefits_lead")
+  capabilityTitle     String?              @map("capability_title")
+  capabilityLead      String?              @map("capability_lead")
+  capabilityBodyTitle String?              @map("capability_body_title")
+  capabilityBodyDesc  String?              @map("capability_body_desc")
+  faqTitle            String?              @map("faq_title")
+  faqLead             String?              @map("faq_lead")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle        String?              @map("seo_meta_title")
+  seoMetaDescription  String?              @map("seo_meta_description")
+  seoCanonicalUrl     String?              @map("seo_canonical_url")
+  seoOgImageId        String?              @map("seo_og_image") @db.Uuid
+  seoOgImage          MediaAsset?          @relation("ServiceSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle          String?              @map("seo_og_title")
+  seoOgDescription    String?              @map("seo_og_description")
+  seoNoindex          Boolean              @default(false) @map("seo_noindex")
+  // Child collections
+  meta                ServiceMetaItem[]
+  scope               ServiceScopeItem[]
+  process             ServiceProcessItem[]
+  benefits            ServiceBenefitItem[]
+  machine             ServiceMachineItem[]
+  faq                 ServiceFaqItem[]
+  // Audit (ContentBase)
+  createdById         String?              @map("created_by") @db.Uuid
+  updatedById         String?              @map("updated_by") @db.Uuid
+  createdBy           User?                @relation("ServiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy           User?                @relation("ServiceUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  deletedAt           DateTime?            @map("deleted_at")
+
+  @@index([status])
+  @@index([position])
+  @@index([deletedAt])
+  @@map("services")
+}
+
+model ServiceMetaItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  serviceId String  @map("service_id") @db.Uuid
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+  position  Int     @default(0)
+
+  @@index([serviceId])
+  @@map("service_meta_items")
+}
+
+model ServiceScopeItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  serviceId String  @map("service_id") @db.Uuid
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  icon      String?
+  title     String
+  body      String?
+  position  Int     @default(0)
+
+  @@index([serviceId])
+  @@map("service_scope_items")
+}
+
+model ServiceProcessItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  serviceId String  @map("service_id") @db.Uuid
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  tag       String?
+  title     String
+  body      String?
+  position  Int     @default(0)
+
+  @@index([serviceId])
+  @@map("service_process_items")
+}
+
+model ServiceBenefitItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  serviceId String  @map("service_id") @db.Uuid
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  icon      String?
+  title     String
+  body      String?
+  position  Int     @default(0)
+
+  @@index([serviceId])
+  @@map("service_benefit_items")
+}
+
+model ServiceMachineItem {
+  id          String  @id @default(uuid()) @db.Uuid
+  serviceId   String  @map("service_id") @db.Uuid
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  position    Int     @default(0)
+
+  @@index([serviceId])
+  @@map("service_machine_items")
+}
+
+model ServiceFaqItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  serviceId String  @map("service_id") @db.Uuid
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String?
+  position  Int     @default(0)
+
+  @@index([serviceId])
+  @@map("service_faq_items")
+}
+
+// ── BLOG module (blog-be-1) ──────────────────────────────────────────────
+// Editorial articles (see docs/srs/blog.md §8). `Article` extends ContentBase +
+// embeds SeoMeta. Unlike Projects/Services the rich content is a single JSONB
+// `body` block document (lead split out as `body_lead`; §8.2) rather than child
+// tables — `img` blocks reference MediaAssets by id inside the JSON (so MEDIA's
+// delete-guard text-scans the body). `category` is a nullable FK to the SITE
+// blog-category vocabulary; `tags` are freeform. `article_date` (editorial) is
+// independent of `published_at` (workflow, BR-4). Related articles are auto-derived
+// (same category → recent), not stored. read_time is derived unless overridden.
+
+model Article {
+  id                 String        @id @default(uuid()) @db.Uuid
+  status             ContentStatus @default(draft)
+  publishedAt        DateTime?     @map("published_at")
+  legacyId           String?       @unique @map("legacy_id")
+  slug               String        @unique
+  title              String
+  excerpt            String?
+  coverImageId       String?       @map("cover_image") @db.Uuid
+  coverImage         MediaAsset?   @relation("ArticleCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  categoryId         String?       @map("category_id") @db.Uuid
+  category           TaxonomyTerm? @relation("ArticleCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  tags               String[]
+  authorName         String?       @map("author_name")
+  authorRole         String?       @map("author_role")
+  authorBio          String?       @map("author_bio")
+  articleDate        DateTime?     @map("article_date") @db.Date
+  readTimeMinutes    Int?          @map("read_time_minutes")
+  featured           Boolean       @default(false)
+  popularity         Int           @default(0)
+  bodyLead           String?       @map("body_lead")
+  body               Json?
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?       @map("seo_meta_title")
+  seoMetaDescription String?       @map("seo_meta_description")
+  seoCanonicalUrl    String?       @map("seo_canonical_url")
+  seoOgImageId       String?       @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?   @relation("ArticleSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?       @map("seo_og_title")
+  seoOgDescription   String?       @map("seo_og_description")
+  seoNoindex         Boolean       @default(false) @map("seo_noindex")
+  // Audit (ContentBase)
+  createdById        String?       @map("created_by") @db.Uuid
+  updatedById        String?       @map("updated_by") @db.Uuid
+  createdBy          User?         @relation("ArticleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?         @relation("ArticleUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([featured])
+  @@index([articleDate])
+  @@index([deletedAt])
+  @@map("articles")
+}
+
+// ── NEWS module (news-be-1) ──────────────────────────────────────────────
+// The "News Corner" (see docs/srs/news.md §8). Blog's close sibling — `NewsStory`
+// extends ContentBase + embeds SeoMeta, with a JSONB `body` block document, but the
+// body is a FLAT block list (h2/h3/p/ul/quote/callout/img) and there is NO author
+// (BR-9 — SITE newsroom byline) and NO popularity. Adds an ordered `gallery` child
+// table. category → SITE news-category vocab; tags freeform; article_date editorial
+// (BR-4); related auto-derived; read_time derived/overridable.
+
+model NewsStory {
+  id                 String            @id @default(uuid()) @db.Uuid
+  status             ContentStatus     @default(draft)
+  publishedAt        DateTime?         @map("published_at")
+  legacyId           String?           @unique @map("legacy_id")
+  slug               String            @unique
+  title              String
+  excerpt            String?
+  coverImageId       String?           @map("cover_image") @db.Uuid
+  coverImage         MediaAsset?       @relation("NewsStoryCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
+  categoryId         String?           @map("category_id") @db.Uuid
+  category           TaxonomyTerm?     @relation("NewsStoryCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  tags               String[]
+  articleDate        DateTime?         @map("article_date") @db.Date
+  readTimeMinutes    Int?              @map("read_time_minutes")
+  featured           Boolean           @default(false)
+  bodyLead           String?           @map("body_lead")
+  body               Json?
+  gallery            NewsGalleryItem[]
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?           @map("seo_meta_title")
+  seoMetaDescription String?           @map("seo_meta_description")
+  seoCanonicalUrl    String?           @map("seo_canonical_url")
+  seoOgImageId       String?           @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?       @relation("NewsStorySeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?           @map("seo_og_title")
+  seoOgDescription   String?           @map("seo_og_description")
+  seoNoindex         Boolean           @default(false) @map("seo_noindex")
+  createdById        String?           @map("created_by") @db.Uuid
+  updatedById        String?           @map("updated_by") @db.Uuid
+  createdBy          User?             @relation("NewsStoryCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?             @relation("NewsStoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  deletedAt          DateTime?         @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([featured])
+  @@index([articleDate])
+  @@index([deletedAt])
+  @@map("news_stories")
+}
+
+model NewsGalleryItem {
+  id       String     @id @default(uuid()) @db.Uuid
+  storyId  String     @map("story_id") @db.Uuid
+  story    NewsStory  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  mediaId  String     @map("media_id") @db.Uuid
+  media    MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  caption  String?
+  position Int        @default(0)
+
+  @@index([storyId])
+  @@index([mediaId])
+  @@map("news_gallery_items")
+}
+
+// ── CERTIFICATIONS module (certifications-be-1) ──────────────────────────
+// Credentials/licenses/work-experience records (see docs/srs/certifications.md §8).
+// `Certification` extends ContentBase but, uniquely, does NOT embed SeoMeta — there
+// is no per-record detail page or public URL (BR-8), so no sitemap/redirect wiring.
+// `status` is the ContentBase workflow; `cert_status` is the real-world standing
+// (CertStatus). `document` is an optional MediaAsset (scan/PDF). `legacy_ref` is the
+// non-unique legacy id (duplicates exist — BR-7), distinct from the generated unique
+// `slug`. A curated `show_on_home` subset carries the home-page seal fields + order.
+
+enum CertStatus {
+  Active
+  Completed
+  Expired
+  Renewed
+}
+
+enum CertTone {
+  paper
+  slate
+  cream
+}
+
+enum CertSealShape {
+  round
+  hex
+}
+
+model Certification {
+  id           String        @id @default(uuid()) @db.Uuid
+  status       ContentStatus @default(draft)
+  publishedAt  DateTime?     @map("published_at")
+  legacyRef    String?       @map("legacy_ref")
+  slug         String        @unique
+  title        String
+  authority    String?
+  number       String?
+  categoryId   String?       @map("category_id") @db.Uuid
+  category     TaxonomyTerm? @relation("CertificationCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  certStatus   CertStatus    @default(Active) @map("cert_status")
+  issuedDate   DateTime?     @map("issued_date") @db.Date
+  expiryDate   DateTime?     @map("expiry_date") @db.Date
+  description  String?
+  documentId   String?       @map("document") @db.Uuid
+  document     MediaAsset?   @relation("CertificationDocument", fields: [documentId], references: [id], onDelete: SetNull)
+  tone         CertTone      @default(paper)
+  sealShape    CertSealShape @default(round) @map("seal_shape")
+  showOnHome   Boolean       @default(false) @map("show_on_home")
+  sealLabel    String?       @map("seal_label")
+  sealId       String?       @map("seal_id")
+  sealValidity String?       @map("seal_validity")
+  sealOrder    Int?          @map("seal_order")
+  createdById  String?       @map("created_by") @db.Uuid
+  updatedById  String?       @map("updated_by") @db.Uuid
+  createdBy    User?         @relation("CertificationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy    User?         @relation("CertificationUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  @@index([status])
+  @@index([categoryId])
+  @@index([certStatus])
+  @@index([showOnHome, sealOrder])
+  @@index([deletedAt])
+  @@map("certifications")
+}
+
+// ── CONCERNS module (concerns-be-1) ──────────────────────────────────────
+// Group/sister-company profiles (see docs/srs/concerns.md §8). `Concern` extends
+// ContentBase + embeds SeoMeta; rich detail page at /concern-detail/<slug>. Exactly
+// one published concern is the `is_default` landing (enforced app-side, set-default
+// clears the previous). `related` concerns are DERIVED (other published, in order —
+// BR-4), not stored. `position` is the app-managed nav order (plain indexed Int).
+// Seven ordered child collections cascade-delete; showcase + gallery items carry
+// MediaAsset images.
+
+model Concern {
+  id                 String                   @id @default(uuid()) @db.Uuid
+  status             ContentStatus            @default(draft)
+  publishedAt        DateTime?                @map("published_at")
+  legacyId           String?                  @unique @map("legacy_id")
+  slug               String                   @unique
+  name               String
+  short              String?
+  tagline            String?
+  intro              String?
+  establishedYear    Int?                     @map("established_year")
+  code               String?
+  heroImageId        String?                  @map("hero_image") @db.Uuid
+  heroImage          MediaAsset?              @relation("ConcernHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+  isDefault          Boolean                  @default(false) @map("is_default")
+  position           Int                      @default(0)
+  overviewTitle      String?                  @map("overview_title")
+  overviewBody       String[]                 @map("overview_body")
+  overviewMission    String?                  @map("overview_mission")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?                  @map("seo_meta_title")
+  seoMetaDescription String?                  @map("seo_meta_description")
+  seoCanonicalUrl    String?                  @map("seo_canonical_url")
+  seoOgImageId       String?                  @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?              @relation("ConcernSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?                  @map("seo_og_title")
+  seoOgDescription   String?                  @map("seo_og_description")
+  seoNoindex         Boolean                  @default(false) @map("seo_noindex")
+  // Child collections
+  facts              ConcernFact[]
+  services           ConcernService[]
+  why                ConcernWhy[]
+  showcase           ConcernShowcaseProject[]
+  process            ConcernProcessStep[]
+  gallery            ConcernGalleryItem[]
+  faqs               ConcernFaq[]
+  // Audit (ContentBase)
+  createdById        String?                  @map("created_by") @db.Uuid
+  updatedById        String?                  @map("updated_by") @db.Uuid
+  createdBy          User?                    @relation("ConcernCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?                    @relation("ConcernUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+  deletedAt          DateTime?                @map("deleted_at")
+
+  @@index([status])
+  @@index([position])
+  @@index([isDefault])
+  @@index([deletedAt])
+  @@map("concerns")
+}
+
+model ConcernFact {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  big       String
+  label     String
+  sub       String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_facts")
+}
+
+model ConcernService {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  icon      String?
+  title     String
+  copy      String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_services")
+}
+
+model ConcernWhy {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  number    String?
+  title     String
+  copy      String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_why")
+}
+
+model ConcernShowcaseProject {
+  id        String      @id @default(uuid()) @db.Uuid
+  concernId String      @map("concern_id") @db.Uuid
+  concern   Concern     @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  title     String
+  location  String?
+  category  String?
+  summary   String?
+  imageId   String?     @map("image") @db.Uuid
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  position  Int         @default(0)
+
+  @@index([concernId])
+  @@index([imageId])
+  @@map("concern_showcase_projects")
+}
+
+model ConcernProcessStep {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  step      String?
+  title     String
+  copy      String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_process_steps")
+}
+
+model ConcernGalleryItem {
+  id        String     @id @default(uuid()) @db.Uuid
+  concernId String     @map("concern_id") @db.Uuid
+  concern   Concern    @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  mediaId   String     @map("media_id") @db.Uuid
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  caption   String?
+  position  Int        @default(0)
+
+  @@index([concernId])
+  @@index([mediaId])
+  @@map("concern_gallery_items")
+}
+
+model ConcernFaq {
+  id        String  @id @default(uuid()) @db.Uuid
+  concernId String  @map("concern_id") @db.Uuid
+  concern   Concern @relation(fields: [concernId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String?
+  position  Int     @default(0)
+
+  @@index([concernId])
+  @@map("concern_faqs")
+}
+
+// ── PAGES module (pages-be-1) ────────────────────────────────────────────
+// Marketing-page composition (see docs/srs/pages.md §8). A hybrid model: `Page` is
+// one of 8 FIXED singletons (PageKey, never created/deleted — BR-1) extending
+// ContentBase + embedding SeoMeta; `PageSection` is a typed, ordered, visibility-
+// toggled block with chrome + (for collection-backed sections) max_items/source_key
+// + a settings JSON; `SectionItem` is one generic ordered child whose nullable fields
+// are used per the §8.5 matrix (incl. `stat_key` — stat NUMBERS are never stored,
+// they resolve from SITE/derived at request time, BR-3). PageKey enum members use
+// underscores; the hyphenated public key is the @map'd DB label.
+
+enum PageKey {
+  home
+  about
+  lets_collaborate     @map("lets-collaborate")
+  projects_index       @map("projects-index")
+  services_index       @map("services-index")
+  blog_index           @map("blog-index")
+  news_index           @map("news-index")
+  certifications_index @map("certifications-index")
+}
+
+enum SectionType {
+  hero
+  expertise_cards
+  stat_strip
+  about_intro
+  featured_projects
+  featured_services
+  featured_certifications
+  logo_wall
+  testimonials
+  cta_banner
+  story
+  mvv
+  timeline
+  leadership_message
+  why_us
+  achievements
+  clients_filterable
+  final_cta
+  intent_cards
+  trust_hook
+  contact_panel
+  network_strip
+  insights_strip
+  news_strip
+  leadership_team
+  culture
+}
+
+model Page {
+  id                 String        @id @default(uuid()) @db.Uuid
+  status             ContentStatus @default(draft)
+  publishedAt        DateTime?     @map("published_at")
+  key                PageKey       @unique
+  path               String
+  adminTitle         String        @map("admin_title")
+  // Embedded SeoMeta (overview §6.2)
+  seoMetaTitle       String?       @map("seo_meta_title")
+  seoMetaDescription String?       @map("seo_meta_description")
+  seoCanonicalUrl    String?       @map("seo_canonical_url")
+  seoOgImageId       String?       @map("seo_og_image") @db.Uuid
+  seoOgImage         MediaAsset?   @relation("PageSeoOgImage", fields: [seoOgImageId], references: [id], onDelete: SetNull)
+  seoOgTitle         String?       @map("seo_og_title")
+  seoOgDescription   String?       @map("seo_og_description")
+  seoNoindex         Boolean       @default(false) @map("seo_noindex")
+  sections           PageSection[]
+  createdById        String?       @map("created_by") @db.Uuid
+  updatedById        String?       @map("updated_by") @db.Uuid
+  createdBy          User?         @relation("PageCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?         @relation("PageUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+
+  @@index([status])
+  @@map("pages")
+}
+
+model PageSection {
+  id                String        @id @default(uuid()) @db.Uuid
+  pageId            String        @map("page_id") @db.Uuid
+  page              Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type              SectionType
+  position          Int           @default(0)
+  isVisible         Boolean       @default(true) @map("is_visible")
+  eyebrow           String?
+  heading           String?
+  subheading        String?
+  body              String?
+  variant           String?
+  backgroundImageId String?       @map("background_image") @db.Uuid
+  backgroundImage   MediaAsset?   @relation("PageSectionBackground", fields: [backgroundImageId], references: [id], onDelete: SetNull)
+  ctaPrimaryLabel   String?       @map("cta_primary_label")
+  ctaPrimaryUrl     String?       @map("cta_primary_url")
+  ctaSecondaryLabel String?       @map("cta_secondary_label")
+  ctaSecondaryUrl   String?       @map("cta_secondary_url")
+  maxItems          Int?          @map("max_items")
+  sourceKey         String?       @map("source_key")
+  settings          Json?
+  items             SectionItem[]
+
+  @@index([pageId])
+  @@map("page_sections")
+}
+
+model SectionItem {
+  id        String      @id @default(uuid()) @db.Uuid
+  sectionId String      @map("section_id") @db.Uuid
+  section   PageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  position  Int         @default(0)
+  icon      String?
+  imageId   String?     @map("image") @db.Uuid
+  image     MediaAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  tag       String?
+  title     String?
+  subtitle  String?
+  body      String?
+  value     String?
+  unit      String?
+  statKey   String?     @map("stat_key")
+  isActive  Boolean     @default(false) @map("is_active")
+  linkUrl   String?     @map("link_url")
+  linkLabel String?     @map("link_label")
+  meta      Json?
+
+  @@index([sectionId])
+  @@map("section_items")
+}
+
+// ── LEADS module (leads-be-1) ────────────────────────────────────────────
+// The Inquiries / Leads inbox (see docs/srs/inquiries.md §8). NOT a content
+// collection: `Lead` does NOT extend ContentBase and has no SeoMeta / publish
+// workflow (BR-3). It carries the public Let's-Collaborate payload + a triage
+// lifecycle (`status` = LeadStatus) + soft-delete + audit timestamps.
+// `reference_no` is System-generated `ZE-NNNNNN`, never client-supplied (BR-2).
+// `inquiry_type` and `status` are Prisma enums; `budget`/`timeline` are stored as
+// the RAW form labels — string option-sets in lib/leads/options.ts, NOT enums
+// (the values contain spaces) — and `services` is a string[] of interested-service
+// labels (validated against the same option sets). `created_by` does NOT apply —
+// submissions are public/anonymous (BR-7); the only User FKs are the triage
+// `assignee` and a note's `author`. Attachments are private MEDIA `document`
+// assets tagged `lead` (BR-4). `submitted_ip`/`user_agent` are retained for spam
+// analysis only. The `inquiry_type` value set is shared with PAGES `intent_cards`
+// (which owns the display copy) — BR-5.
+
+enum InquiryType {
+  quote
+  new
+  collab
+  gov
+  tender
+  vendor
+  sub
+  partner
+  general
+}
+
+enum LeadStatus {
+  new
+  in_review
+  contacted
+  qualified
+  won
+  lost
+  spam
+  archived
+}
+
+model Lead {
+  id          String           @id @default(uuid()) @db.Uuid
+  referenceNo String           @unique @map("reference_no")
+  name        String
+  company     String?
+  phone       String
+  email       String
+  subject     String
+  inquiryType InquiryType      @map("inquiry_type")
+  services    String[]
+  budget      String?
+  location    String?
+  timeline    String?
+  bidName     String?          @map("bid_name")
+  message     String
+  status      LeadStatus       @default(new)
+  assigneeId  String?          @map("assignee_id") @db.Uuid
+  assignee    User?            @relation("LeadAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  isSpam      Boolean          @default(false) @map("is_spam")
+  sourcePage  String           @map("source_page")
+  submittedIp String?          @map("submitted_ip")
+  userAgent   String?          @map("user_agent")
+  attachments LeadAttachment[]
+  notes       LeadNote[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  deletedAt   DateTime?        @map("deleted_at")
+
+  @@index([status])
+  @@index([inquiryType])
+  @@index([createdAt])
+  @@index([email])
+  @@index([assigneeId])
+  @@index([isSpam])
+  @@index([deletedAt])
+  @@map("leads")
+}
+
+model LeadAttachment {
+  id       String     @id @default(uuid()) @db.Uuid
+  leadId   String     @map("lead_id") @db.Uuid
+  lead     Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  mediaId  String     @map("media_id") @db.Uuid
+  media    MediaAsset @relation("LeadAttachmentMedia", fields: [mediaId], references: [id], onDelete: Restrict)
+  position Int        @default(0)
+
+  @@index([leadId])
+  @@index([mediaId])
+  @@map("lead_attachments")
+}
+
+model LeadNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  leadId    String   @map("lead_id") @db.Uuid
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String?  @map("author_id") @db.Uuid
+  author    User?    @relation("LeadNoteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([leadId])
+  @@map("lead_notes")
+}

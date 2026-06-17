@@ -1,86 +1,47 @@
-"use client";
-
-import * as React from "react";
 import Link from "next/link";
 import { Arrow } from "./site-ui";
-import { BLOG_DATA, getBlogBody, getBlogById, type BlogBlock } from "@/src/data/blog-data";
-import { blogInitials } from "./blog-page-content";
+import { MediaImage } from "./media/media-image";
+import { BlogCard, blogInitials } from "./blog/blog-card";
+import { BlockBody, type BlockBody as BlockBodyType } from "./blog/block-body";
+import type { getPublishedArticleBySlug } from "@/lib/data/blog";
 
-function BdBlocks({ blocks }: { blocks: BlogBlock[] }) {
-  return (
-    <>
-      {blocks.map((b, i) => {
-        if (b.kind === "p") return <p key={i}>{b.text}</p>;
-        if (b.kind === "h3") return <h3 key={i}>{b.heading}</h3>;
-        if (b.kind === "ul")
-          return (
-            <ul key={i}>
-              {b.items.map((it, j) => (
-                <li key={j} dangerouslySetInnerHTML={{ __html: it }} />
-              ))}
-            </ul>
-          );
-        if (b.kind === "quote")
-          return (
-            <div key={i} className="bd-pullquote">
-              <blockquote>{b.text}</blockquote>
-              {b.cite && <cite>- {b.cite}</cite>}
-            </div>
-          );
-        if (b.kind === "stats")
-          return (
-            <div key={i} className="bd-data-card">
-              {b.items.map((s, j) => (
-                <div key={j} className="stat">
-                  <div className="big">{s.big}</div>
-                  <div className="lbl">{s.lbl}</div>
-                </div>
-              ))}
-            </div>
-          );
-        if (b.kind === "img")
-          return (
-            <div key={i} className="bd-inline-img">
-              <div className="frame" style={{ backgroundImage: `url(${b.url})` }} />
-              {b.cap && <div className="cap">{b.cap}</div>}
-            </div>
-          );
-        return null;
-      })}
-    </>
-  );
-}
+// Public Blog detail — server component on getPublishedArticleBySlug (blog-fe-public §A/§C/§E).
+// Body renders from the block document (img blocks already resolved to MediaRef); related from
+// detail.related; author bio uses the per-article value with the SITE default fallback (resolved
+// in the data layer). The whole page is server-rendered — no client island.
 
-export function BlogDetailPageContent({ id }: { id: string }) {
-  const article = getBlogById(id) || BLOG_DATA[0];
-  const body = getBlogBody(article);
-  const related = BLOG_DATA.filter((n) => n.id !== article.id).slice(0, 3);
+type Article = NonNullable<Awaited<ReturnType<typeof getPublishedArticleBySlug>>>;
+
+export function BlogDetailPageContent({ article }: { article: Article }) {
+  const related = (article.related ?? []) as Array<Parameters<typeof BlogCard>[0]["item"]>;
 
   return (
     <>
       <section className="bd-hero">
-        <div className="bd-hero-bg" style={{ backgroundImage: `url(${article.image})` }} />
+        <div className="bd-hero-bg">
+          <MediaImage media={article.cover_image} fill priority sizes="100vw" />
+        </div>
         <div className="bd-hero-inner">
           <div className="bg-crumbs" style={{ marginBottom: 28 }}>
             <Link href="/">Home</Link>
             <span className="sep">/</span>
             <Link href="/blogs">Blogs</Link>
             <span className="sep">/</span>
-            <span className="current">Article</span>
+            <span className="current">{article.category?.label ?? "Article"}</span>
           </div>
           <div className="bd-header-meta">
-            <span className="bd-pill">{article.category}</span>
-            <span className="bd-meta-item">{article.date}</span>
-            <span className="bd-meta-item">{article.readTime}</span>
-            <span className="bd-meta-item">{article.author}</span>
+            {article.category && <span className="bd-pill">{article.category.label}</span>}
+            {article.display_date && <span className="bd-meta-item">{article.display_date}</span>}
+            <span className="bd-meta-item">{article.read_time}</span>
+            {article.author_name && <span className="bd-meta-item">{article.author_name}</span>}
           </div>
           <h1>{article.title}</h1>
           <div className="bd-hero-author">
             <div className="bd-author-block">
-              <div className="bd-author-avatar">{blogInitials(article.author)}</div>
+              <div className="bd-author-avatar">{blogInitials(article.author_name)}</div>
               <div className="bd-author-info">
-                <div className="name">{article.author}</div>
-                <div className="role">{article.authorRole}</div>
+                <div className="name">{article.author_name}</div>
+                <div className="role">{article.author_role}</div>
               </div>
             </div>
           </div>
@@ -90,23 +51,21 @@ export function BlogDetailPageContent({ id }: { id: string }) {
       <section className="bd-article">
         <div className="bd-article-inner">
           <div className="bd-body-wrap">
-            <div className="bd-hero-image" style={{ backgroundImage: `url(${article.image})` }} />
+            <div className="bd-hero-image" style={{ position: "relative" }}>
+              <MediaImage media={article.cover_image} fill sizes="(max-width: 980px) 100vw, 720px" />
+            </div>
             <div className="bd-body">
-              <p className="lead">{body.lead}</p>
-              {body.sections.map((s) => (
-                <section key={s.id} id={s.id}>
-                  <h2>{s.heading}</h2>
-                  <BdBlocks blocks={s.blocks} />
-                </section>
-              ))}
-              <div className="bd-tags">
-                <span className="lbl">Tags</span>
-                {body.tags.map((t) => (
-                  <Link key={t} href={`/blogs?q=${encodeURIComponent(t)}`} className="bd-tag">
-                    {t}
-                  </Link>
-                ))}
-              </div>
+              <BlockBody body={article.body as BlockBodyType} lead={article.body_lead} />
+              {article.tags.length > 0 && (
+                <div className="bd-tags">
+                  <span className="lbl">Tags</span>
+                  {article.tags.map((t) => (
+                    <Link key={t} href={`/blogs?q=${encodeURIComponent(t)}`} className="bd-tag">
+                      {t}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -114,13 +73,13 @@ export function BlogDetailPageContent({ id }: { id: string }) {
             <div className="bd-card bd-author-card">
               <div className="bd-card-label">Written by</div>
               <div className="bd-author-card-head">
-                <div className="bd-author-card-avatar">{blogInitials(article.author)}</div>
+                <div className="bd-author-card-avatar">{blogInitials(article.author_name)}</div>
                 <div>
-                  <div className="bd-author-card-name">{article.author}</div>
-                  <div className="bd-author-card-role">{article.authorRole}</div>
+                  <div className="bd-author-card-name">{article.author_name}</div>
+                  <div className="bd-author-card-role">{article.author_role}</div>
                 </div>
               </div>
-              <p className="bd-author-card-bio">Writing from Zakir Enterprise's live project portfolio across Bangladesh.</p>
+              <p className="bd-author-card-bio">{article.author_bio}</p>
               <Link href="/lets-collaborate" className="btn btn-primary">
                 Contact Author <Arrow />
               </Link>
@@ -129,39 +88,26 @@ export function BlogDetailPageContent({ id }: { id: string }) {
         </div>
       </section>
 
-      <section className="bd-related">
-        <div className="container">
-          <div className="bd-related-head">
-            <div>
-              <span className="microlabel">Keep Reading</span>
-              <h2>Related articles.</h2>
-            </div>
-            <Link href="/blogs" className="btn btn-outline-dark">
-              View All Articles <Arrow />
-            </Link>
-          </div>
-          <div className="bd-related-grid">
-            {related.map((it) => (
-              <Link key={it.id} href={`/blogs/${it.id}`} className="blog-card" style={{ textDecoration: "none" }}>
-                <div className="blog-card-img">
-                  <div className="img" style={{ backgroundImage: `url(${it.image})` }} />
-                  <span className="blog-card-cat">{it.category}</span>
-                </div>
-                <div className="blog-card-body">
-                  <div className="blog-card-meta">
-                    <span>{it.date}</span>
-                    <span className="dot" />
-                    <span>{it.readTime}</span>
-                  </div>
-                  <h3>{it.title}</h3>
-                  <p>{it.excerpt}</p>
-                </div>
+      {related.length > 0 && (
+        <section className="bd-related">
+          <div className="container">
+            <div className="bd-related-head">
+              <div>
+                <span className="microlabel">Keep Reading</span>
+                <h2>Related articles.</h2>
+              </div>
+              <Link href="/blogs" className="btn btn-outline-dark">
+                View All Articles <Arrow />
               </Link>
-            ))}
+            </div>
+            <div className="bd-related-grid">
+              {related.map((it) => (
+                <BlogCard key={it.slug} item={it} showAuthor={false} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   );
 }
-

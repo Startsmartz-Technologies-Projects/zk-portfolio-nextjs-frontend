@@ -1,10 +1,25 @@
 import Link from "next/link";
 import { Arrow as A2, ArrowUpRight as AUR, SvcIcon } from "./site-ui";
 import { IMG } from "./sections1";
-import { CERTIFICATIONS } from "../data/certifications";
-import { PROJECTS as ALL_PROJECTS } from "@/src/data/projects-data";
 import { SERVICE_IMAGE_BY_TITLE } from "@/src/data/brand-assets";
 import { SERVICES } from "@/src/data/services-data";
+import { MediaImage } from "./media/media-image";
+import type { ProjectCardData } from "./projects/project-card";
+
+// Home "Featured Projects" data (projects-fe-public §F): the home page (a server route) fetches
+// getFeaturedProjects() and threads the list down to <Projects>, replacing the old
+// ALL_PROJECTS.slice static read. The list items are a subset of ProjectListItem.
+export type HomeFeaturedProject = ProjectCardData & { id: string };
+
+// Home certification seals (certifications-fe-public §E): the home route fetches getHomeSeals()
+// and threads the seals down to <Certifications>, replacing the old static CERTIFICATIONS.slice.
+export type HomeSeal = {
+  slug: string;
+  seal_label: string | null;
+  seal_id: string | null;
+  seal_validity: string | null;
+  category: { label: string } | null;
+};
 
 // About, Projects, Services, Business Network, Certifications
 
@@ -78,15 +93,15 @@ export function About() {
   );
 }
 
-export function Projects() {
-  const projects = ALL_PROJECTS.slice(0, 6).map((project, index) => ({
-    cat: project.cat,
+export function Projects({ featuredProjects = [] }: { featuredProjects?: HomeFeaturedProject[] }) {
+  const projects = featuredProjects.slice(0, 6).map((project, index) => ({
+    cat: project.category?.label ?? "",
     title: project.title,
-    size: project.location,
-    img: project.img,
-    num: project.id.replace(/^P/, "P-"),
-    href: `/projects/${encodeURIComponent(project.id)}`,
+    size: project.location_detail || project.location?.label || "",
+    cover: project.cover_image,
+    href: `/projects/${project.slug}`,
     tall: index === 0,
+    key: project.id,
   }));
   return (
     <section
@@ -108,17 +123,16 @@ export function Projects() {
         <div className="projects-grid">
           {projects.map((p) => (
             <Link
-              key={p.num}
+              key={p.key}
               href={p.href}
               className={`project ${p.tall ? "tall" : ""}`}
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              <div
-                className="p-img"
-                style={{ backgroundImage: `url(${p.img})` }}
-              />
+              <div className="p-img">
+                <MediaImage media={p.cover} fill sizes="(max-width: 980px) 100vw, 33vw" />
+              </div>
 
-              <span className="p-size">{p.size}</span>
+              {p.size && <span className="p-size">{p.size}</span>}
               <div className="p-body">
                 <div>
                   <div className="p-cat">{p.cat}</div>
@@ -283,8 +297,9 @@ export function Network() {
   );
 }
 
-export function Certifications() {
-  const certs = CERTIFICATIONS.slice(0, 4);
+export function Certifications({ homeSeals = [] }: { homeSeals?: HomeSeal[] }) {
+  const certs = homeSeals.slice(0, 4);
+  if (certs.length === 0) return null;
 
   return (
     <section
@@ -307,8 +322,8 @@ export function Certifications() {
         <div className="certs-grid certs-grid-one-row">
           {certs.map((c) => (
             <Link
-              key={c.id}
-              href={`/certifications?preview=${encodeURIComponent(c.id)}#certs`}
+              key={c.slug}
+              href={`/certifications?preview=${encodeURIComponent(c.slug)}#certs`}
               className="cert"
               style={{ textDecoration: "none", color: "inherit" }}
             >
@@ -320,13 +335,13 @@ export function Certifications() {
                   lineHeight: 1.05,
                 }}
               >
-                {c.homeSeal}
+                {c.seal_label}
               </div>
               <div>
-                <h4>{c.title}</h4>
-                <div className="cert-id">{c.homeId}</div>
+                <h4>{c.category?.label ?? c.seal_label}</h4>
+                <div className="cert-id">{c.seal_id}</div>
               </div>
-              <div className="cert-valid">{c.homeValid}</div>
+              <div className="cert-valid">{c.seal_validity}</div>
             </Link>
           ))}
         </div>

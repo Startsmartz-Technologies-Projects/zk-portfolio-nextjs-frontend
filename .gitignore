@@ -6,3 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .env*
+!.env.example
+dev.log
+tmp-next-*.log
+
+# TypeScript incremental build cache
+*.tsbuildinfo

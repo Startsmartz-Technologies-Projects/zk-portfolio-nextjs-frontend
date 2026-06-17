@@ -1,21 +1,21 @@
 import Link from "next/link";
 import { Arrow as A2, ArrowUpRight as AUR, SvcIcon } from "./site-ui";
-import { SERVICES } from "@/src/data/services-data";
-import { SERVICE_IMAGE_BY_TITLE } from "@/src/data/brand-assets";
+import { MediaImage } from "./media/media-image";
+import { getPublishedServices } from "@/lib/data/services";
+import { getIndexHero } from "@/src/lib/pages/index-hero";
 
-export function ServicesPageContent() {
-  const services = SERVICES.map((service) => ({
-    slug: service.slug,
-    title: service.title,
-    subtitle: service.subtitle,
-    heroImage: service.heroImage,
-    icon: service.icon,
-    num: String(service.serviceNo).padStart(2, "0"),
-  }));
+// Public Services directory — server component on getPublishedServices (services-fe-public
+// §A/§C/§D). Replaces the static SERVICES import + SERVICE_IMAGE_BY_TITLE with the published
+// read; the "{n} Core Services" count + first-4 capabilities are derived. Hero eyebrow/heading/
+// sub now come from PAGES (services-index) via getIndexHero (pages-fe-public §D), falling back to
+// the static copy when the page isn't published.
 
+export async function ServicesPageContent() {
+  const [{ data: services }, indexHero] = await Promise.all([getPublishedServices(), getIndexHero("services-index")]);
+  const total = services.length;
   const featuredCapabilities = services.slice(0, 4);
   const heroStats = [
-    { label: "Portfolio", value: `${services.length} Core Services` },
+    { label: "Portfolio", value: `${total} Core Services` },
     { label: "Coverage", value: "Nationwide Project Support" },
     { label: "Delivery", value: "Engineering-Led Execution" },
     { label: "Projects", value: "Public, Industrial, Private" },
@@ -24,23 +24,21 @@ export function ServicesPageContent() {
   return (
     <>
       <section className="svc-hero">
-        <div
-          className="svc-hero-bg"
-          style={{ backgroundImage: "url(/images/service_hero.png)" }}
-        />
+        <div className="svc-hero-bg" style={{ backgroundImage: "url(/images/service_hero.png)" }} />
         <div className="container">
           <div className="svc-hero-grid">
             <div>
-              <span className="microlabel on-dark">Services Portfolio</span>
+              <span className="microlabel on-dark">{indexHero?.eyebrow ?? "Services Portfolio"}</span>
               <h1>
-                Engineered <span className="accent">services</span> for
-                <span className="gold"> complex delivery.</span>
+                {indexHero?.heading ?? (
+                  <>
+                    Engineered <span className="accent">services</span> for<span className="gold"> complex delivery.</span>
+                  </>
+                )}
               </h1>
               <p className="sub">
-                Explore Zakir Enterprise&apos;s complete execution portfolio across
-                infrastructure, structural systems, utilities, land development
-                and project management, converted into a production React page
-                instead of serving the static HTML directly.
+                {indexHero?.subheading ??
+                  "Explore Zakir Enterprise's complete execution portfolio across infrastructure, structural systems, utilities, land development and project management."}
               </p>
               <div className="svc-hero-buttons">
                 <Link href="/lets-collaborate" className="btn btn-primary">
@@ -75,13 +73,10 @@ export function ServicesPageContent() {
           <div className="svc-intro-grid">
             <div>
               <span className="microlabel">What We Deliver</span>
-              <h2>Capability structured like the servicePage reference, but rendered natively in React.</h2>
+              <h2>A full-spectrum construction partner.</h2>
               <p>
-                The page now follows the visual hierarchy from your
-                public/servicePage design while keeping the content driven by the
-                existing application data. That means you can keep updating the
-                service records in one place and this listing page will stay in
-                sync.
+                Every service line is handled by specialized teams with the equipment, methodology and accountability the work demands —
+                from heavy civil infrastructure to structural systems and project management.
               </p>
             </div>
 
@@ -107,28 +102,17 @@ export function ServicesPageContent() {
               <span className="num">SERVICE DIRECTORY / 02</span>
               <h2>Browse every execution vertical in the current portfolio.</h2>
             </div>
-            <p className="head-right">
-              Each card routes into the existing detail pages, so the visual
-              redesign stays aligned with your current Next.js information
-              architecture.
-            </p>
+            <p className="head-right">Each card routes into the full service detail with scope, process, capability and FAQ.</p>
           </div>
 
           <div className="svc-grid">
             {services.map((service) => (
-              <Link
-                key={service.slug}
-                href={`/service-details/${service.slug}`}
-                className="svc-card"
-              >
+              <Link key={service.slug} href={`/service-details/${service.slug}`} className="svc-card">
                 <div className="sc-img-wrap">
-                  <div
-                    className="sc-img"
-                    style={{
-                      backgroundImage: `url(${SERVICE_IMAGE_BY_TITLE[service.title] || service.heroImage})`,
-                    }}
-                  />
-                  <span className="sc-num">{service.num}</span>
+                  <div className="sc-img">
+                    <MediaImage media={service.hero_image} fill sizes="(max-width: 980px) 100vw, 33vw" />
+                  </div>
+                  <span className="sc-num">{String(service.service_number).padStart(2, "0")}</span>
                   <div className="sc-ico">
                     <div aria-hidden="true">
                       <SvcIcon kind={service.icon} />
@@ -160,15 +144,11 @@ export function ServicesPageContent() {
           <div>
             <span className="microlabel on-dark">Ready To Start</span>
             <h2>
-              Bring your next <span className="gold">project scope</span> to
-              our engineering team.
+              Bring your next <span className="gold">project scope</span> to our engineering team.
             </h2>
           </div>
           <div className="svc-final-cta-right">
-            <p>
-              Get a structured discussion for planning, resource strategy,
-              timeline, and delivery method before execution starts.
-            </p>
+            <p>Get a structured discussion for planning, resource strategy, timeline, and delivery method before execution starts.</p>
             <div className="svc-final-cta-btns">
               <Link href="/lets-collaborate" className="btn btn-primary">
                 Let&apos;s Collaborate <A2 />

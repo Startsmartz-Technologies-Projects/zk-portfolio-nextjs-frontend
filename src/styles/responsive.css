@@ -181,16 +181,14 @@ a[href^="tel:"] {
   }
 
   .nav-logo .nav-logo-img {
+    position: relative;
     display: block;
     height: 40px;
-    width: auto;
-    max-width: min(200px, 40vw);
+    width: min(200px, 40vw);
+    flex-shrink: 0;
   }
 
   .nav-logo .nav-logo-img img {
-    width: auto;
-    height: 100%;
-    max-width: 100%;
     object-fit: contain;
     object-position: left center;
   }
