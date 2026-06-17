@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import "../src/styles/styles.css";
 import "../src/styles/legacy_pages.css";
@@ -6,14 +6,13 @@ import "../src/styles/responsive.css";
 import { getPublicSeoDefaults } from "@/lib/data/seo";
 import { OrganizationJsonLd } from "@/src/components/seo/json-ld";
 import { getSiteChrome } from "@/src/lib/site/chrome";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
 import { Nav } from "@/src/components/nav";
 import { Footer } from "@/src/components/footer";
 import { ChromeGate } from "@/src/components/chrome-gate";
 
 // ISR convention (web-fe-site-chrome / FR-SITE-020): chrome + SEO defaults are revalidated
 // on this window, so a SITE settings change propagates within ~60s without a redeploy.
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 export const viewport = {
   width: "device-width",

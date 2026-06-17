@@ -9,13 +9,11 @@ import { getPublishedProjectBySlug } from "@/lib/data/projects";
 import { getPublicSeoDefaults } from "@/lib/data/seo";
 import { buildMetadata } from "@/src/lib/seo/build-metadata";
 import { BreadcrumbJsonLd } from "@/src/components/seo/json-ld";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
-
 // Public Project detail — server component on getPublishedProjectBySlug (projects-fe-public
 // §A/§B/§C/§E/§G). Renders fully server-side from the published read; the gallery lightbox is
 // the only client island. Draft/archived/deleted slugs resolve to null → 404 (BR-4).
 
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 type Params = { slug: string };
 

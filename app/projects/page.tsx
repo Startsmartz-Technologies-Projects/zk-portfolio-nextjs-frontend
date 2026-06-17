@@ -6,7 +6,7 @@ import { ProjectCard, badgeClass } from "@/src/components/projects/project-card"
 import { ProjectsFilterBar, type ProjectsFilterState, type FacetOption } from "@/src/components/projects/projects-filter-bar";
 import { FeaturedCarousel } from "@/src/components/projects/featured-carousel";
 import { getPublishedProjects, getFeaturedProjects, getProjectFacets, getProjectStats } from "@/lib/data/projects";
-import { getTermList, REVALIDATE } from "@/src/lib/site/taxonomy";
+import { getTermList } from "@/src/lib/site/taxonomy";
 import { getSiteBundle } from "@/lib/data/site";
 import { getIndexHero } from "@/src/lib/pages/index-hero";
 import { pageMetadata } from "@/src/lib/pages/page-metadata";
@@ -16,7 +16,7 @@ import { pageMetadata } from "@/src/lib/pages/page-metadata";
 // fully server-rendered (no client fetch, no "Loading…" HTML). Interactive controls live in
 // client islands (filter bar, featured carousel) fed by props.
 
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 const PAGE_SIZE = 6;
 
