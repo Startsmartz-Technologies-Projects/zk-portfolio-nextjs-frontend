@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { CertificationsPageContent } from "@/src/components/certifications-page-content";
 import { pageMetadata } from "@/src/lib/pages/page-metadata";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
-
 // Public Certifications directory route (certifications-fe-public §A/§F). Server-rendered; ISR per
 // the shared convention. No per-record SeoMeta (no detail URLs, BR-8) — page metadata now comes
 // from the PAGES certifications-index SeoMeta (pages-fe-public §G).
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("certifications-index", {

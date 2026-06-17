@@ -8,12 +8,10 @@ import { getHomeSeals } from "@/lib/data/certifications";
 import { getPublicSeoDefaults } from "@/lib/data/seo";
 import { buildMetadata } from "@/src/lib/seo/build-metadata";
 import { isImageRef } from "@/src/lib/media/ref";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
-
 // Home route (pages-fe-public §A/§B/§C/§G). Server-rendered from getPublishedPage('home') via the
 // section renderer; collection-backed strips (source_key) get their records from each collection's
 // lib/data. generateMetadata from the page SeoMeta; ISR per the shared convention.
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 const imgUrl = (m: unknown) => (isImageRef(m as never) ? (m as { url: string }).url : null);
 

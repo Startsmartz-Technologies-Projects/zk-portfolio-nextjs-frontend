@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { BlogPageContent, type BlogIndexState } from "@/src/components/blog-page-content";
 import { pageMetadata } from "@/src/lib/pages/page-metadata";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
 // Public Blog index route (blog-fe-public §A/§F). Server-rendered; metadata from the PAGES
 // blog-index SeoMeta (pages-fe-public §G), ISR per the shared convention. Article URLs are
 // aggregated into the sitemap by Wave-A getPublicSitemap (respecting noindex).
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("blog-index", {
