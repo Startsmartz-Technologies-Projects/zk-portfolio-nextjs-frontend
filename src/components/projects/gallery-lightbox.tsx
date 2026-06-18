@@ -40,16 +40,18 @@ function Lightbox({ images, idx, onClose, setIdx }: { images: string[]; idx: num
 }
 
 /**
- * Wraps the server-rendered gallery tiles. `tiles` is one node per gallery cell (already
- * styled with its grid class and containing a fill <MediaImage>); `urls[i]` is the full-size
- * image URL for tile i, opened in the lightbox.
+ * Wraps the server-rendered gallery tiles. `tiles[i]` is the fill <MediaImage> cell for tile i;
+ * `tileClasses[i]` carries the grid-span class (feature/tall) — it MUST live on this trigger
+ * wrapper, which is the real grid child, so the grid sizing/spans apply (a tile styled deeper
+ * would not be a grid item and would collapse to zero height). `urls[i]` is the full-size image
+ * URL opened in the lightbox.
  */
-export function GalleryLightbox({ tiles, urls }: { tiles: React.ReactNode[]; urls: string[] }) {
+export function GalleryLightbox({ tiles, tileClasses = [], urls }: { tiles: React.ReactNode[]; tileClasses?: string[]; urls: string[] }) {
   const [open, setOpen] = React.useState<number | null>(null);
   return (
     <>
       {tiles.map((tile, i) => (
-        <div key={i} className="gallery-cell-trigger" role="button" tabIndex={0} onClick={() => setOpen(i)} onKeyDown={(e) => { if (e.key === "Enter") setOpen(i); }}>
+        <div key={i} className={`gallery-cell-trigger ${tileClasses[i] ?? ""}`.trim()} role="button" tabIndex={0} onClick={() => setOpen(i)} onKeyDown={(e) => { if (e.key === "Enter") setOpen(i); }}>
           {tile}
           <div className="expand">
             <ExpandIcon />

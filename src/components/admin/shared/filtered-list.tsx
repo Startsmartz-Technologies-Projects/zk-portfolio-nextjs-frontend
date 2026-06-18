@@ -271,7 +271,7 @@ export function FilteredList<TRow extends { id: string }>({
             />
           )
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative w-full overflow-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border [&_th]:h-11 [&_th]:bg-secondary/40 [&_th]:px-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">

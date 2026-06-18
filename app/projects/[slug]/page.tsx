@@ -53,14 +53,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<Pa
   // feature (2×2), second is tall, the rest flow. Empty gallery → section hidden.
   const galleryItems = detail.gallery;
   const galleryUrls = galleryItems.map((g) => imageUrlOf(g.media)).filter((u): u is string => !!u);
-  const galleryTiles = galleryItems.map((g, i) => {
-    const cls = i === 0 ? "gallery-item gallery-feature" : i === 1 ? "gallery-item gallery-tall" : "gallery-item";
-    return (
-      <div className={cls} key={g.id}>
-        <MediaImage media={g.media} fill sizes="(max-width: 720px) 100vw, 50vw" />
-      </div>
-    );
-  });
+  // The span classes (feature/tall) must sit on the actual grid child — which is the
+  // <GalleryLightbox> trigger wrapper, not the tile — so the grid sizing applies. We pass
+  // them as `tileClasses` and the tile itself just fills its cell.
+  const tileClasses = galleryItems.map((_, i) =>
+    i === 0 ? "gallery-feature" : i === 1 ? "gallery-tall" : "",
+  );
+  const galleryTiles = galleryItems.map((g) => (
+    <div className="gallery-item" key={g.id}>
+      <MediaImage media={g.media} fill sizes="(max-width: 720px) 100vw, 50vw" />
+    </div>
+  ));
 
   const meta = [
     { k: "Client", v: detail.client },
@@ -211,7 +214,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<Pa
               {detail.gallery_description && <p className="head-right">{detail.gallery_description}</p>}
             </div>
             <div className="gallery-grid">
-              <GalleryLightbox tiles={galleryTiles} urls={galleryUrls} />
+              <GalleryLightbox tiles={galleryTiles} tileClasses={tileClasses} urls={galleryUrls} />
             </div>
           </div>
         </section>

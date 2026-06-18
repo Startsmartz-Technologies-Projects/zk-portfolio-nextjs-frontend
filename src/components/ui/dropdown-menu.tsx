@@ -55,11 +55,14 @@ DropdownMenuSubContent.displayName =
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
+>(({ className, sideOffset = 4, collisionPadding = 8, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
+      // Keep the menu off the viewport edges so a row's right-aligned actions
+      // menu (e.g. the Services / Projects list) never spills past the right side.
+      collisionPadding={collisionPadding}
       className={cn(
         // `admin-scope` so this portalled content (rendered at <body>, outside the
         // admin layout's `.admin-scope` wrapper) inherits the admin design tokens

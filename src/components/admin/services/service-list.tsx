@@ -336,7 +336,7 @@ export function ServiceList() {
             <EmptyState icon={<Wrench className="h-8 w-8 text-muted-foreground" />} title="No services yet" description="Create your first service." action={<Button asChild size="sm"><Link href="/admin/services/new">New service</Link></Button>} />
           )
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative w-full overflow-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border [&_th]:h-11 [&_th]:bg-secondary/40 [&_th]:px-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">
@@ -349,7 +349,8 @@ export function ServiceList() {
                     />
                   </th>
                   <th className="w-14"></th>
-                  <th>Service</th>
+                  {/* Service absorbs spare width so the row fills the table (no right-side gap). */}
+                  <th className="w-full">Service</th>
                   <th>Order</th>
                   <th>Status</th>
                   <th>Updated</th>

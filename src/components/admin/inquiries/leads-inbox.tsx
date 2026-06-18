@@ -167,13 +167,14 @@ export function LeadsInbox({ principalId, principalName, canManage }: LeadsInbox
       </div>
 
       {/* Table */}
-      <div className="rounded-[10px] border border-border bg-card shadow-sm">
+      <div className="relative w-full overflow-auto rounded-[10px] border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border [&_th]:h-11 [&_th]:bg-secondary/40 [&_th]:px-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">
               <th>Ref</th>
               <th>From</th>
-              <th>Subject</th>
+              {/* Subject absorbs spare width so the row fills the table (no right-side gap). */}
+              <th className="w-full">Subject</th>
               <th>Type</th>
               <th>Status</th>
               <th>Assignee</th>
@@ -197,7 +198,7 @@ export function LeadsInbox({ principalId, principalName, canManage }: LeadsInbox
                       <span className="font-medium text-foreground">{l.name}</span>
                       {l.company && <span className="block text-xs text-muted-foreground">{l.company}</span>}
                     </td>
-                    <td className="max-w-[18rem]">
+                    <td className="w-full max-w-0">
                       <span className="line-clamp-1">{l.subject}</span>
                       {l.attachment_count > 0 && <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground"><Paperclip className="h-3 w-3" /> {l.attachment_count}</span>}
                     </td>

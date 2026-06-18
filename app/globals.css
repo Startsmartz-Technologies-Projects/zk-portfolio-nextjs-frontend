@@ -5,6 +5,10 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Reserve the vertical scrollbar's gutter at all times so the page width is constant
+     whether or not the scrollbar is showing — prevents the sideways jump when Radix
+     (react-remove-scroll) hides the scrollbar to lock body scroll on dropdown/dialog open. */
+  scrollbar-gutter: stable;
 }
 
 html,
@@ -15,4 +19,18 @@ body {
 
 body {
   min-height: 100dvh;
+}
+
+/* react-remove-scroll (used by every Radix overlay) sets `data-scroll-locked` on <body> and
+   injects (gapMode "margin", the Radix default) `overflow:hidden` + `margin-right:<scrollbar>px
+   !important` to compensate for the scrollbar it removes. Because the `scrollbar-gutter: stable`
+   above already keeps that width reserved, that extra margin is double-compensation: it shrinks
+   the page and exposes a white gutter on the right when a dropdown/dialog opens.
+   We cancel it — but react-remove-scroll injects its <style> into <head> at runtime, AFTER this
+   stylesheet, so an equal-specificity `body[data-scroll-locked]` rule would lose the
+   later-wins tie even with !important. `html body[data-scroll-locked]` outranks it on
+   specificity (two type selectors vs one), so ours wins regardless of injection order. */
+html body[data-scroll-locked] {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
 }

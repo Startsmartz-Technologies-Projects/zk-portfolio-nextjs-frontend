@@ -309,13 +309,16 @@ export function ProjectList({ isAdmin }: { isAdmin: boolean }) {
       {
         accessorKey: "title",
         header: "Title",
+        // `w-full` makes Title the flex column that absorbs the table's spare width,
+        // so the remaining columns size to their content instead of all bunching left.
+        meta: { className: "w-full" },
         cell: ({ row }) => (
           <Link
             href={`/admin/projects/${row.original.id}`}
             className="font-medium text-foreground underline-offset-2 hover:underline"
             title={row.original.title}
           >
-            <span className="line-clamp-2 max-w-[20rem]">{row.original.title}</span>
+            <span className="line-clamp-2">{row.original.title}</span>
           </Link>
         ),
       },
@@ -520,7 +523,10 @@ export function ProjectList({ isAdmin }: { isAdmin: boolean }) {
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id}>
                   {hg.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={(header.column.columnDef.meta as { className?: string } | undefined)?.className}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -533,7 +539,10 @@ export function ProjectList({ isAdmin }: { isAdmin: boolean }) {
               {table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={(cell.column.columnDef.meta as { className?: string } | undefined)?.className}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
