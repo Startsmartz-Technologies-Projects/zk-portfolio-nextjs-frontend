@@ -622,6 +622,9 @@
 .trust-sectors {
   display: flex; justify-content: center; gap: 36px;
   margin-top: 18px;
+  /* Gap before the partner grid. In the CMS renderer the chips sit outside
+     .trust-head, so the head's margin-bottom no longer spaces them — keep it here. */
+  margin-bottom: 50px;
   flex-wrap: wrap;
 }
 .trust-sectors .ts-chip {

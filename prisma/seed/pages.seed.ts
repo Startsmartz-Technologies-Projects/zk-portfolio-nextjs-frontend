@@ -9,8 +9,9 @@ import { parseCloudinaryUrl } from './media.seed'
 // sections (Home Network/Insights/News, About Team/Culture) are seeded is_visible=
 // false. Stat sections store a `stat_key` (SITE CompanyStat key or a derived metric)
 // — never a number (BR-3). Collection-backed sections store chrome + max_items +
-// source_key — never records (BR-4). Image URLs resolve to MediaAsset rows where
-// Cloudinary; Unsplash placeholders → null (re-author). Idempotent: keyed on page.key
+// source_key — never records (BR-4). Image URLs resolve to MediaAsset rows: Cloudinary
+// plus the allowlisted non-Cloudinary stock hosts (Unsplash/S3) so heroes render until
+// those assets are re-homed to Cloudinary. Idempotent: keyed on page.key
 // (a page already present keeps its admin-edited sections — never re-seeded).
 
 interface SeedItem {
@@ -68,7 +69,7 @@ const HOME_STAT_ITEMS: SeedItem[] = [
   { statKey: 'team_size', title: 'Skilled Team', subtitle: 'Engineers, managers, technicians' },
 ]
 
-const PAGES_SEED: SeedPage[] = [
+export const PAGES_SEED: SeedPage[] = [
   // ─────────────────────────────────────────────────────── HOME
   {
     key: 'home',
@@ -88,7 +89,7 @@ const PAGES_SEED: SeedPage[] = [
         ctaPrimaryUrl: '/lets-collaborate',
         ctaSecondaryLabel: 'Explore Project',
         ctaSecondaryUrl: '/projects',
-        settings: { ticker: 'NATIONWIDE - SINCE 2010', bottom: 'Dhaka - Chattogram - Sylhet - Khulna - Rajshahi' },
+        settings: { ticker: 'NATIONWIDE - SINCE 2010', bottom: 'Dhaka - Chattogram - Sylhet - Khulna - Rajshahi', accent: 'Precision' },
         items: [
           { title: 'Nationwide Operations', subtitle: '64 districts' },
           { title: 'Quality Execution', subtitle: 'ISO aligned' },
@@ -118,7 +119,7 @@ const PAGES_SEED: SeedPage[] = [
         backgroundImage: 'https://res.cloudinary.com/dk4csiouq/image/upload/v1778308523/WhatsApp_Image_2026-05-09_at_12.32.27_PM_evnsal.jpg',
         ctaPrimaryLabel: 'Learn More About Us',
         ctaPrimaryUrl: '/about',
-        settings: { overlay: { value: '15', unit: '+', label: 'Years delivering public & private works' } },
+        settings: { overlay: { value: '15', unit: '+', label: 'Years delivering public & private works' }, accent: 'building trust.' },
         items: [
           { title: 'Disciplined site execution' },
           { title: 'Safety-first methodology' },
@@ -255,6 +256,7 @@ const PAGES_SEED: SeedPage[] = [
           { statKey: 'districts_covered', title: 'Districts' },
           { image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=900&q=80&auto=format&fit=crop', tag: 'collage' },
           { image: 'https://images.unsplash.com/photo-1517089596392-fb9a9033e05b?w=900&q=80&auto=format&fit=crop', tag: 'collage' },
+          { image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=80&auto=format&fit=crop', tag: 'collage' },
         ],
       },
       {
@@ -305,7 +307,7 @@ const PAGES_SEED: SeedPage[] = [
         type: 'leadership_message',
         subheading: 'MESSAGE FROM MANAGEMENT',
         heading: 'Commitment to Excellence',
-        body: 'At Zakir Enterprise, we believe construction is more than building structures - it is about creating lasting value through expertise, innovation, and responsible execution. We emphasize strong coordination between engineering, planning, and execution teams to maintain quality standards, meet timelines, and exceed client expectations.',
+        body: 'At Zakir Enterprise, we believe construction is more than building structures - it is about creating lasting value through expertise, innovation, and responsible execution. With years of industry experience, our leadership ensures that every project is delivered with professionalism, precision, and accountability.\n\nWe emphasize strong coordination between engineering, planning, and execution teams to maintain quality standards, meet timelines, and exceed client expectations. Our commitment extends beyond project completion, focusing on durability, sustainability, and long-term performance.',
         backgroundImage: 'https://s3.ap-south-1.amazonaws.com/emr.buckett/WhatsApp%20Image%202025-10-18%20at%209.50.02%20AM.jpeg',
         settings: { signature: { name: 'Abu Zakir', role: 'Founder & Managing Director' }, quote: 'We are dedicated to delivering construction solutions that reflect quality, integrity, and long-term value for our clients and communities.' },
       },
@@ -447,7 +449,7 @@ const PAGES_SEED: SeedPage[] = [
 
 // Collection index pages (hero + featured/stat chrome + CTA). Index hero/intro/CTA
 // chrome is PAGES-owned (resolving the deferred references in the collection SRSs §11.C).
-const INDEX_PAGES: SeedPage[] = [
+export const INDEX_PAGES: SeedPage[] = [
   {
     key: 'projects_index',
     path: '/projects',
@@ -508,15 +510,40 @@ const INDEX_PAGES: SeedPage[] = [
   },
 ]
 
-async function ensureMedia(db: PrismaClient, rawUrl: string | undefined, actorId: string | null): Promise<string | null> {
+// Hosts allowlisted in next.config.js `images.remotePatterns` besides Cloudinary.
+// Stock/placeholder URLs on these hosts are imported as MediaAsset rows so their
+// heroes render until the assets are re-homed to Cloudinary (content/ops task).
+const ALLOWED_NON_CLOUDINARY = /^https:\/\/(images\.unsplash\.com|s3\.ap-south-1\.amazonaws\.com)\//i
+
+/** Best-effort `{ publicId, format }` for a non-Cloudinary image URL. The publicId is a
+ *  stable host+path slug (the dedup key — `public_id` is not DB-unique); format comes from
+ *  the file extension when present, else `jpg` (Unsplash serves JPEG via `auto=format`). */
+function parseNonCloudinaryImage(url: string): { publicId: string; format: string } | null {
+  if (!ALLOWED_NON_CLOUDINARY.test(url)) return null
+  let pathname: string
+  try {
+    const u = new URL(url)
+    pathname = `${u.hostname}${u.pathname}`
+  } catch {
+    return null
+  }
+  const ext = pathname.match(/\.([a-z0-9]+)$/i)
+  const format = ext ? ext[1].toLowerCase() : 'jpg'
+  const publicId = `external/${pathname.replace(/^\/+|\/+$/g, '').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`
+  return { publicId, format }
+}
+
+export async function ensureMedia(db: PrismaClient, rawUrl: string | undefined, actorId: string | null): Promise<string | null> {
   if (!rawUrl) return null
   const url = rawUrl.trim()
-  const parsed = parseCloudinaryUrl(url)
+  const parsed = parseCloudinaryUrl(url) ?? parseNonCloudinaryImage(url)
   if (!parsed) return null
   const existing = await db.mediaAsset.findFirst({ where: { publicId: parsed.publicId }, select: { id: true } })
   if (existing) return existing.id
   const filename = parsed.publicId.split('/').pop() ?? parsed.publicId
   const created = await db.mediaAsset.create({
+    // `provider` is Cloudinary-only in v1 (schema MediaProvider enum); the stored `url` is the
+    // real (non-Cloudinary) delivery URL and the next/image loader passes it through unchanged.
     data: { resourceType: 'image', provider: 'cloudinary', publicId: parsed.publicId, url, format: parsed.format, originalFilename: `${filename}.${parsed.format}`, tags: ['pages'], createdById: actorId, updatedById: actorId },
   })
   return created.id
