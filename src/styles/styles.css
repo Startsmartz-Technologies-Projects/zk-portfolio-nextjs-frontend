@@ -30,6 +30,14 @@ body {
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 img { display: block; max-width: 100%; }
+/* Site-wide default for next/image `fill` images (rendered with position:absolute):
+   cover the positioned parent — crop overflow, no distortion. Low specificity so the
+   deliberate `contain` exceptions (.nav-logo-img img, .lightbox img) override it. */
+img[style*="position:absolute"],
+img[style*="position: absolute"] {
+  object-fit: cover;
+  object-position: center;
+}
 
 h1, h2, h3, h4, h5 {
   font-family: var(--display);

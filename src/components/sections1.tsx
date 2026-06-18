@@ -207,19 +207,19 @@ export function Hero({ variant }: { variant?: string }) {
 export function Expertise() {
   const cards = [
     {
-      tag: "01 - Public",
+      tag: "Public",
       title: "Government Projects",
       img: IMG.expGov,
       body: "Reliable execution for public infrastructure and development works under LGED, RHD and municipal tenders.",
     },
     {
-      tag: "03 - Private",
+      tag: "Private",
       title: "Private Projects",
       img: IMG.expPriv,
       body: "Premium residential homes, apartments and private buildings with disciplined quality finishing.",
     },
     {
-      tag: "02 - Commercial",
+      tag: "Commercial",
       title: "Commercial Projects",
       img: IMG.expCom,
       body: "Modern solutions for business buildings, industrial facilities and commercial developments across Bangladesh.",

@@ -34,7 +34,7 @@ export function MediaImage({ media, fill, sizes, className, priority, width, hei
   const alt = media.alt ?? ''
 
   if (fill) {
-    return <Image src={media.url} alt={alt} fill sizes={sizes} className={className} priority={priority} />
+    return <Image src={media.url} fill alt={alt} sizes={sizes} className={className} priority={priority} />
   }
 
   const w = width ?? media.width ?? undefined
