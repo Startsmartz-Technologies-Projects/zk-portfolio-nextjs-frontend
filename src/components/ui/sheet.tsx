@@ -56,7 +56,9 @@ const SheetContent = React.forwardRef<
     <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
-      className={cn(sheetVariants({ side }), className)}
+      // `admin-scope` so this portalled content (rendered at <body>, outside the admin
+      // layout's `.admin-scope`) inherits the admin design tokens — see dropdown-menu.tsx.
+      className={cn("admin-scope", sheetVariants({ side }), className)}
       {...props}
     >
       {children}
