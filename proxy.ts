@@ -5,7 +5,12 @@ import { resolveRedirect } from '@/lib/data/seo'
 import { isAdminPath, toRedirect } from '@/src/lib/seo/proxy-redirect'
 
 // Next 16 proxy (formerly middleware) — always runs on the Node.js runtime, so it can use
-// Prisma directly. Two concerns share the one proxy file:
+// Prisma directly (resolveRedirect) and read process.env dynamically (AUTH_SECRET). Without
+// this declaration Next.js defaults to Edge runtime where env vars are baked in at build
+// time — causing AUTH_SECRET to be undefined in Docker where .env is excluded from the build.
+export const runtime = 'nodejs'
+
+// Two concerns share the one proxy file:
 //   1. /admin/*  — session guard (auth-be-2).
 //   2. public/*  — SEO redirect resolution (web-fe-redirects / FR-SEO-011/020): consult the
 //      redirect store (stale slug / legacy-id / legacy .html → current path) and 301/302.
