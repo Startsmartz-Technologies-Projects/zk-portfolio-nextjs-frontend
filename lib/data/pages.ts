@@ -152,6 +152,19 @@ function toSectionPublic(s: SectionRow, stats: StatResolver) {
       .filter(Boolean)
     return { ...base, items }
   }
+  // Story: mixed items — stat items (statKey) get their value/unit resolved in place;
+  // collage image items pass through unchanged.
+  if (s.type === 'story') {
+    const items = s.items.map((i) => {
+      const item = toItemAdmin(i)
+      if (i.statKey) {
+        const r = stats.resolve(i.statKey)
+        if (r) return { ...item, value: r.value, unit: r.unit }
+      }
+      return item
+    })
+    return { ...base, items }
+  }
   return { ...base, items: s.items.map(toItemAdmin) }
 }
 
