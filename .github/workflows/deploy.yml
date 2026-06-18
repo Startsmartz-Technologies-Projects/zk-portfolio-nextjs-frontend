@@ -17,12 +17,47 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
-          # Force the action to show us the full SSH handshake logs
-          debug: true
-          # Stops the script if any command fails
           script_stop: true
-          # Bypasses the "Host key verification failed" error
           use_insecure_cipher: true
           script: |
-            echo "Successfully connected as $(whoami)"
-            bash ~/deploy-portfolio.sh
+            cd ~/zk-portfolio-nextjs-frontend
+
+            # Remove existing container
+            docker rm -f zakir-portfolio-frontend 2>/dev/null || true
+
+            # Pull latest code
+            git pull origin main
+
+            # Set DATABASE_URL for migration + build
+            export DATABASE_URL='${{ secrets.DATABASE_URL }}'
+
+            # Apply migrations
+            npx prisma migrate deploy
+
+            # Seed database (skip if already seeded)
+            npm run db:seed
+
+            # Build image with DATABASE_URL available at build time
+            docker build --no-cache \
+              --build-arg DATABASE_URL="$DATABASE_URL" \
+              -t zakir-portfolio-frontend .
+
+            # Run container with all runtime env vars
+            docker run -d \
+              --name zakir-portfolio-frontend \
+              -p 4020:4020 \
+              -e NODE_ENV=production \
+              -e COOKIE_SECURE=false \
+              -e AUTH_SECRET='${{ secrets.AUTH_SECRET }}' \
+              -e DATABASE_URL="$DATABASE_URL" \
+              -e CLOUDINARY_CLOUD_NAME='${{ secrets.CLOUDINARY_CLOUD_NAME }}' \
+              -e CLOUDINARY_API_KEY='${{ secrets.CLOUDINARY_API_KEY }}' \
+              -e CLOUDINARY_API_SECRET='${{ secrets.CLOUDINARY_API_SECRET }}' \
+              -e BOOTSTRAP_ADMIN_EMAIL='${{ secrets.BOOTSTRAP_ADMIN_EMAIL }}' \
+              -e BOOTSTRAP_ADMIN_PASSWORD='${{ secrets.BOOTSTRAP_ADMIN_PASSWORD }}' \
+              --restart unless-stopped \
+              zakir-portfolio-frontend
+
+            # Verify deployment
+            docker ps | grep zakir-portfolio-frontend
+            docker logs --tail 50 zakir-portfolio-frontend
