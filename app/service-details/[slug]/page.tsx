@@ -7,12 +7,10 @@ import { getPublicSeoDefaults } from "@/lib/data/seo";
 import { buildMetadata } from "@/src/lib/seo/build-metadata";
 import { ServiceJsonLd, FaqJsonLd, BreadcrumbJsonLd } from "@/src/components/seo/json-ld";
 import { isImageRef } from "@/src/lib/media/ref";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
-
 // Public Service detail route (services-fe-public §A/§F). Server-rendered from
 // getPublishedServiceBySlug; generateMetadata + Service/FAQPage/BreadcrumbList JSON-LD.
 // Draft/archived/deleted slugs → 404 (BR-3). Legacy "Service Details.html" → Wave-A proxy redirect.
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 type Params = { slug: string };
 const imgUrl = (m: unknown) => (isImageRef(m as never) ? (m as { url: string }).url : null);

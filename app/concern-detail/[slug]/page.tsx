@@ -6,12 +6,10 @@ import { getPublicSeoDefaults } from "@/lib/data/seo";
 import { buildMetadata } from "@/src/lib/seo/build-metadata";
 import { JsonLd, BreadcrumbJsonLd } from "@/src/components/seo/json-ld";
 import { isImageRef } from "@/src/lib/media/ref";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
-
 // Public Concern profile route (concerns-fe-public §A/§B/§E). Server-rendered from
 // getPublishedConcernBySlug; generateMetadata + Organization/BreadcrumbList JSON-LD.
 // Draft/archived/deleted + legacy_id slugs → 404 (legacy_id 301s via the Wave-A proxy).
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 type Params = { slug: string };
 const imgUrl = (m: unknown) => (isImageRef(m as never) ? (m as { url: string }).url : null);

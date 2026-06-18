@@ -1,17 +1,16 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { LetsCollaboratePageContent, type CollaborateChrome } from "@/src/components/lets-collaborate-page-content";
 import { getPublishedPage } from "@/lib/data/pages";
 import { getSiteChrome } from "@/src/lib/site/chrome";
 import { getOptionSets } from "@/lib/leads/options";
 import { pageMetadata } from "@/src/lib/pages/page-metadata";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
 
 // Lets-Collaborate route (pages-fe-public §A/§E/§G). The page chrome — hero, trust-hook chips,
 // intent-card labels, contact lines — is server-fetched from getPublishedPage('lets-collaborate')
 // + the SITE chrome bundle and threaded into the (client) page, which keeps the working inquiry
 // form. The form's data wiring is the separate leads-fe-public-form task (Wave D); this brief owns
 // only the chrome + intent labels.
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("lets-collaborate", {

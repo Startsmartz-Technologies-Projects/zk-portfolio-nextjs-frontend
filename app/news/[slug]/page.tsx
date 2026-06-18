@@ -7,12 +7,10 @@ import { getPublicSeoDefaults } from "@/lib/data/seo";
 import { buildMetadata } from "@/src/lib/seo/build-metadata";
 import { NewsArticleJsonLd, BreadcrumbJsonLd } from "@/src/components/seo/json-ld";
 import { isImageRef } from "@/src/lib/media/ref";
-import { REVALIDATE } from "@/src/lib/site/taxonomy";
-
 // Public News detail route (news-fe-public §A/§B/§F). Server-rendered from getPublishedStoryBySlug;
 // generateMetadata + NewsArticle/BreadcrumbList JSON-LD. Byline = the SITE newsroom default.
 // Draft/archived/deleted + legacy_id slugs → 404 (legacy_id 301s via the Wave-A proxy).
-export const revalidate = REVALIDATE;
+export const revalidate = 60;
 
 type Params = { slug: string };
 const imgUrl = (m: unknown) => (isImageRef(m as never) ? (m as { url: string }).url : null);
