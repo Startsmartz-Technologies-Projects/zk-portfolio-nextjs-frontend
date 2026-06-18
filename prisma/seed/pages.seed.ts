@@ -75,7 +75,7 @@ export const PAGES_SEED: SeedPage[] = [
     key: 'home',
     path: '/',
     adminTitle: 'Home Page',
-    seoMetaTitle: 'Zakir Enterprise — Construction & Infrastructure in Bangladesh',
+    seoMetaTitle: 'Zakir Enterprise — Construction & Infrastructure',
     seoMetaDescription: "Bangladesh's foundation of strength & trust. Government, commercial and private construction delivered with disciplined execution across 64 districts.",
     sections: [
       {
@@ -226,7 +226,7 @@ export const PAGES_SEED: SeedPage[] = [
     key: 'about',
     path: '/about',
     adminTitle: 'About Page',
-    seoMetaTitle: 'About Zakir Enterprise — Building Excellence Through Quality & Trust',
+    seoMetaTitle: 'About Zakir Enterprise — Quality & Trust',
     seoMetaDescription: 'A leading construction and engineering company in Bangladesh with 16+ years delivering infrastructure, commercial and residential projects.',
     sections: [
       {
