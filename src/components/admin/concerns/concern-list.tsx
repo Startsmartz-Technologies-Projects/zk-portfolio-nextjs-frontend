@@ -272,13 +272,14 @@ export function ConcernList({ isAdmin }: { isAdmin: boolean }) {
             <EmptyState icon={<Building2 className="h-8 w-8 text-muted-foreground" />} title="No concerns yet" description="Create your first concern." action={<Button asChild size="sm"><Link href="/admin/concerns/new">New concern</Link></Button>} />
           )
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative w-full overflow-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border [&_th]:h-11 [&_th]:bg-secondary/40 [&_th]:px-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">
                   <th className="w-8"></th>
                   <th className="w-14"></th>
-                  <th>Concern</th>
+                  {/* Concern absorbs spare width so the row fills the table (no right-side gap). */}
+                  <th className="w-full">Concern</th>
                   <th>Status</th>
                   <th>Default</th>
                   <th className="w-10"></th>

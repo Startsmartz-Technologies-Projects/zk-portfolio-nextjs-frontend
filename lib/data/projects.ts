@@ -561,9 +561,10 @@ export async function getPreviewUrl(id: string): Promise<{ preview_url: string }
   const secret = process.env.AUTH_SECRET ?? 'dev-secret'
   const sig = createHmac('sha256', secret).update(`${id}.${exp}`).digest('hex').slice(0, 32)
   const token = `${exp}.${sig}`
-  const settings = await db.seoSettings.findFirst({ select: { metadataBase: true } })
-  const base = (settings?.metadataBase ?? '').replace(/\/$/, '')
-  return { preview_url: `${base}${PROJECTS_BASE_PATH}/${p.slug}?preview=${token}` }
+  // Relative URL — the admin opens it via window.open, so it resolves against the
+  // current origin (localhost in dev, the live host in prod). Don't prefix metadataBase,
+  // which points at the production domain and would send local previews to the live site.
+  return { preview_url: `${PROJECTS_BASE_PATH}/${p.slug}?preview=${token}` }
 }
 
 export const PROJECTS_REVALIDATE_TAG = PROJECTS_TAG

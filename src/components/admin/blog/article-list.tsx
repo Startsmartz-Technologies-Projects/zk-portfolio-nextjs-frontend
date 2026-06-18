@@ -34,6 +34,8 @@ export function ArticleList() {
     {
       key: "title",
       header: "Title",
+      // Title absorbs the table's spare width so the rest size to content (no right-side gap).
+      className: "w-full",
       cell: (r) => (
         <div className="flex flex-col">
           <span className="line-clamp-1 font-medium">{r.title}</span>

@@ -394,9 +394,10 @@ export async function getPreviewUrl(publicKey: string): Promise<{ preview_url: s
   const { createHmac } = await import('node:crypto')
   const exp = Date.now() + 1000 * 60 * 30
   const sig = createHmac('sha256', process.env.AUTH_SECRET ?? 'dev-secret').update(`${p.id}.${exp}`).digest('hex').slice(0, 32)
-  const settings = await db.seoSettings.findFirst({ select: { metadataBase: true } })
-  const base = (settings?.metadataBase ?? '').replace(/\/$/, '')
-  return { preview_url: `${base}${p.path}?preview=${exp}.${sig}` }
+  // Relative URL — resolves against the current origin (localhost in dev, live host in
+  // prod). Don't prefix metadataBase: it points at the production domain and would send
+  // local previews to the live site.
+  return { preview_url: `${p.path}?preview=${exp}.${sig}` }
 }
 
 export const PAGES_REVALIDATE_TAG = PAGES_TAG

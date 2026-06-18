@@ -27,7 +27,8 @@ export default async function PagesListPage() {
           <thead>
             <tr className="border-b border-border [&_th]:h-11 [&_th]:bg-secondary/40 [&_th]:px-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">
               <th className="w-10"></th>
-              <th>Page</th>
+              {/* Page absorbs spare width so the row fills the table (no right-side gap). */}
+              <th className="w-full">Page</th>
               <th>Path</th>
               <th>Status</th>
               <th>Sections</th>

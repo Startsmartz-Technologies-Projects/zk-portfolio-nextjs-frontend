@@ -196,12 +196,13 @@ export function UsersAdmin({ principalId }: UsersAdminProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-[10px] border border-border bg-card shadow-sm">
+      <div className="relative w-full overflow-auto rounded-[10px] border border-border bg-card shadow-sm">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border [&_th]:h-11 [&_th]:bg-secondary/40 [&_th]:px-3 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">
               <th>Name</th>
-              <th>Email</th>
+              {/* Email absorbs spare width so the row fills the table (no right-side gap). */}
+              <th className="w-full">Email</th>
               <th>Role</th>
               <th>Status</th>
               <th>Last login</th>
