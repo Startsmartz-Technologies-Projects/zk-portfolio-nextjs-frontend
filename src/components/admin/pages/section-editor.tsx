@@ -31,10 +31,13 @@ import { Thumb } from "@/src/components/admin/shared/list-primitives";
 import { blankItem } from "./page-form";
 import {
   COLLECTION_SECTION_TYPES,
+  SECTION_FIELD_CONFIG,
   STAT_SECTION_TYPES,
   sectionLabel,
   type SectionAdmin,
+  type SectionChromeField,
   type SectionItemAdmin,
+  type SectionItemField,
 } from "./types";
 
 // Stat keys offered in the stat picker — CompanyStat keys + the derived metrics the
@@ -62,6 +65,15 @@ export function SectionEditor({
   const isStat = STAT_SECTION_TYPES.includes(section.type);
   const isCollection = COLLECTION_SECTION_TYPES.includes(section.type);
 
+  // Per-type field visibility: a section listed in SECTION_FIELD_CONFIG shows only the
+  // declared fields (the public renderer ignores the rest); unlisted types show everything.
+  const fieldConfig = SECTION_FIELD_CONFIG[section.type];
+  const showChrome = (f: SectionChromeField) => !fieldConfig?.chrome || fieldConfig.chrome.includes(f);
+  const itemFields = fieldConfig?.item;
+  // A section that renders no item fields (e.g. final_cta, contact_panel — config `item: []`)
+  // hides the whole Items editor. Stat/collection types manage items via their own editors.
+  const hasItemEditor = isStat || !itemFields || itemFields.length > 0;
+
   function setItems(items: SectionItemAdmin[]) {
     onChange({ items });
   }
@@ -79,40 +91,52 @@ export function SectionEditor({
           <code className="text-[11px] text-muted-foreground">{section.type}</code>
         </div>
 
-        {/* Chrome fields (apply to every type) */}
-        <Field label="Eyebrow" htmlFor="sec-eyebrow" helper="Small label above the heading.">
-          <Input id="sec-eyebrow" value={section.eyebrow ?? ""} onChange={(e) => onChange({ eyebrow: e.target.value })} />
-        </Field>
-        <Field label="Heading" htmlFor="sec-heading">
-          <Input id="sec-heading" value={section.heading ?? ""} onChange={(e) => onChange({ heading: e.target.value })} />
-        </Field>
-        <Field label="Subheading" htmlFor="sec-subheading">
-          <Input id="sec-subheading" value={section.subheading ?? ""} onChange={(e) => onChange({ subheading: e.target.value })} />
-        </Field>
-        <Field label="Body" htmlFor="sec-body">
-          <Textarea id="sec-body" rows={3} value={section.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} />
-        </Field>
+        {/* Chrome fields — gated by the section type's field config (defaults to all). */}
+        {showChrome("eyebrow") && (
+          <Field label="Eyebrow" htmlFor="sec-eyebrow" helper="Small label above the heading.">
+            <Input id="sec-eyebrow" value={section.eyebrow ?? ""} onChange={(e) => onChange({ eyebrow: e.target.value })} />
+          </Field>
+        )}
+        {showChrome("heading") && (
+          <Field label="Heading" htmlFor="sec-heading">
+            <Input id="sec-heading" value={section.heading ?? ""} onChange={(e) => onChange({ heading: e.target.value })} />
+          </Field>
+        )}
+        {showChrome("subheading") && (
+          <Field label="Subheading" htmlFor="sec-subheading">
+            <Input id="sec-subheading" value={section.subheading ?? ""} onChange={(e) => onChange({ subheading: e.target.value })} />
+          </Field>
+        )}
+        {showChrome("body") && (
+          <Field label="Body" htmlFor="sec-body">
+            <Textarea id="sec-body" rows={3} value={section.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} />
+          </Field>
+        )}
 
         {/* Background image */}
-        <Field label="Background image" helper="Optional; needs alt text to publish if set.">
-          <div className="flex items-center gap-3">
-            <Thumb media={section.background_image} alt="" className="h-14 w-24" />
-            <Button type="button" variant="outline" size="sm" onClick={pickBackground} className="gap-1">
-              <ImageIcon className="h-4 w-4" /> {section.background_image ? "Replace" : "Choose"}
-            </Button>
-            {section.background_image && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ background_image: null })} aria-label="Remove background">
-                <X className="h-4 w-4" />
+        {showChrome("background_image") && (
+          <Field label="Background image" helper="Optional; needs alt text to publish if set.">
+            <div className="flex items-center gap-3">
+              <Thumb media={section.background_image} alt="" className="h-14 w-24" />
+              <Button type="button" variant="outline" size="sm" onClick={pickBackground} className="gap-1">
+                <ImageIcon className="h-4 w-4" /> {section.background_image ? "Replace" : "Choose"}
               </Button>
-            )}
-          </div>
-        </Field>
+              {section.background_image && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ background_image: null })} aria-label="Remove background">
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </Field>
+        )}
 
         {/* CTAs */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <CtaField label="Primary CTA" cta={section.cta_primary} onChange={(v) => onChange({ cta_primary: v })} />
-          <CtaField label="Secondary CTA" cta={section.cta_secondary} onChange={(v) => onChange({ cta_secondary: v })} />
-        </div>
+        {showChrome("cta") && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <CtaField label="Primary CTA" cta={section.cta_primary} onChange={(v) => onChange({ cta_primary: v })} />
+            <CtaField label="Secondary CTA" cta={section.cta_secondary} onChange={(v) => onChange({ cta_secondary: v })} />
+          </div>
+        )}
       </TabCard>
 
       {/* Type-specific content */}
@@ -137,11 +161,11 @@ export function SectionEditor({
             </Field>
           </div>
         </TabCard>
-      ) : (
+      ) : hasItemEditor ? (
         <TabCard>
-          <ItemsEditor section={section} isStat={isStat} pick={pick} onChange={setItems} />
+          <ItemsEditor section={section} isStat={isStat} itemFields={itemFields} pick={pick} onChange={setItems} />
         </TabCard>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -173,11 +197,13 @@ function CtaField({
 function ItemsEditor({
   section,
   isStat,
+  itemFields,
   pick,
   onChange,
 }: {
   section: SectionAdmin;
   isStat: boolean;
+  itemFields: SectionItemField[] | undefined;
   pick: ReturnType<typeof useMediaPicker>;
   onChange: (items: SectionItemAdmin[]) => void;
 }) {
@@ -221,6 +247,7 @@ function ItemsEditor({
                   key={item.id}
                   item={item}
                   isStat={isStat}
+                  itemFields={itemFields}
                   pick={pick}
                   onChange={(patch) => patchItem(item.id, patch)}
                   onRemove={() => onChange(items.filter((i) => i.id !== item.id))}
@@ -237,18 +264,21 @@ function ItemsEditor({
 function ItemRow({
   item,
   isStat,
+  itemFields,
   pick,
   onChange,
   onRemove,
 }: {
   item: SectionItemAdmin;
   isStat: boolean;
+  itemFields: SectionItemField[] | undefined;
   pick: ReturnType<typeof useMediaPicker>;
   onChange: (patch: Partial<SectionItemAdmin>) => void;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const imageUrl = item.image && "url" in item.image ? item.image.url : null;
+  const showItem = (f: SectionItemField) => !itemFields || itemFields.includes(f);
 
   async function pickImage() {
     const r = await pick({ resourceType: "image", title: "Choose item image" });
@@ -302,35 +332,53 @@ function ItemRow({
             </>
           ) : (
             <>
-              <div className="flex items-center gap-3">
-                <Thumb media={imageUrl ? { id: "i", url: imageUrl, alt: null, width: null, height: null } : null} alt="" className="h-12 w-16" />
-                <Button type="button" variant="outline" size="sm" onClick={pickImage}>{item.image ? "Replace image" : "Add image"}</Button>
-                {item.image && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ image: null })} aria-label="Remove image"><X className="h-4 w-4" /></Button>
-                )}
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Field label="Title" htmlFor={`it-title-${item.id}`}>
-                  <Input id={`it-title-${item.id}`} value={item.title ?? ""} onChange={(e) => onChange({ title: e.target.value })} />
+              {showItem("image") && (
+                <div className="flex items-center gap-3">
+                  <Thumb media={imageUrl ? { id: "i", url: imageUrl, alt: null, width: null, height: null } : null} alt="" className="h-12 w-16" />
+                  <Button type="button" variant="outline" size="sm" onClick={pickImage}>{item.image ? "Replace image" : "Add image"}</Button>
+                  {item.image && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ image: null })} aria-label="Remove image"><X className="h-4 w-4" /></Button>
+                  )}
+                </div>
+              )}
+              {(showItem("title") || showItem("tag")) && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {showItem("title") && (
+                    <Field label="Title" htmlFor={`it-title-${item.id}`}>
+                      <Input id={`it-title-${item.id}`} value={item.title ?? ""} onChange={(e) => onChange({ title: e.target.value })} />
+                    </Field>
+                  )}
+                  {showItem("tag") && (
+                    <Field label="Tag" htmlFor={`it-tag-${item.id}`}>
+                      <Input id={`it-tag-${item.id}`} value={item.tag ?? ""} onChange={(e) => onChange({ tag: e.target.value })} />
+                    </Field>
+                  )}
+                </div>
+              )}
+              {showItem("body") && (
+                <Field label="Body" htmlFor={`it-body-${item.id}`}>
+                  <Textarea id={`it-body-${item.id}`} rows={2} value={item.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} />
                 </Field>
-                <Field label="Tag" htmlFor={`it-tag-${item.id}`}>
-                  <Input id={`it-tag-${item.id}`} value={item.tag ?? ""} onChange={(e) => onChange({ tag: e.target.value })} />
-                </Field>
-              </div>
-              <Field label="Body" htmlFor={`it-body-${item.id}`}>
-                <Textarea id={`it-body-${item.id}`} rows={2} value={item.body ?? ""} onChange={(e) => onChange({ body: e.target.value })} />
-              </Field>
-              <div className="grid gap-2 sm:grid-cols-3">
-                <Field label="Icon" htmlFor={`it-icon-${item.id}`}>
-                  <Input id={`it-icon-${item.id}`} value={item.icon ?? ""} onChange={(e) => onChange({ icon: e.target.value })} />
-                </Field>
-                <Field label="Link label" htmlFor={`it-ll-${item.id}`}>
-                  <Input id={`it-ll-${item.id}`} value={item.link_label ?? ""} onChange={(e) => onChange({ link_label: e.target.value })} />
-                </Field>
-                <Field label="Link URL" htmlFor={`it-lu-${item.id}`}>
-                  <Input id={`it-lu-${item.id}`} value={item.link_url ?? ""} onChange={(e) => onChange({ link_url: e.target.value })} />
-                </Field>
-              </div>
+              )}
+              {(showItem("icon") || showItem("link")) && (
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {showItem("icon") && (
+                    <Field label="Icon" htmlFor={`it-icon-${item.id}`}>
+                      <Input id={`it-icon-${item.id}`} value={item.icon ?? ""} onChange={(e) => onChange({ icon: e.target.value })} />
+                    </Field>
+                  )}
+                  {showItem("link") && (
+                    <>
+                      <Field label="Link label" htmlFor={`it-ll-${item.id}`}>
+                        <Input id={`it-ll-${item.id}`} value={item.link_label ?? ""} onChange={(e) => onChange({ link_label: e.target.value })} />
+                      </Field>
+                      <Field label="Link URL" htmlFor={`it-lu-${item.id}`}>
+                        <Input id={`it-lu-${item.id}`} value={item.link_url ?? ""} onChange={(e) => onChange({ link_url: e.target.value })} />
+                      </Field>
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>

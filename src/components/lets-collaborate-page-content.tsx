@@ -17,7 +17,14 @@ export type CollaborateChrome = {
   intentHeading: string | null;
   intentSub: string | null;
   intentItems: Array<{ icon: string; title: string; description: string }>;
-  contact: { phone: string; email: string; officeAddress: string };
+  contact: {
+    phone: string;
+    email: string;
+    officeAddress: string;
+    whatsapp: string;
+    businessHours: string;
+    coverageSummary: string;
+  };
 };
 
 // Controlled option sets the form renders + validates against (leads-fe-public-form §A2), resolved
@@ -110,6 +117,17 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
   const serviceOptions = options?.services ?? [...SERVICE_ITEMS];
   const budgetOptions = options?.budgets ?? [];
   const timelineOptions = options?.timelines ?? [];
+
+  // Contact chrome from SITE settings, each with a static fallback so an unset field never
+  // blanks the page. WhatsApp/business-hours/coverage are now admin-editable (Site Settings).
+  const whatsappUrl = chrome?.contact.whatsapp || WHATSAPP_URL;
+  const businessHours = chrome?.contact.businessHours || "Sun - Thu, 9:00 - 18:00 (GMT+6)";
+  const coverage = chrome?.contact.coverageSummary || "All 64 districts";
+  const phone = chrome?.contact.phone || "+8801791026074";
+  const email = chrome?.contact.email || "zakirenterprise307@gmail.com";
+  const officeAddress = chrome?.contact.officeAddress || "House 42, Road 11, Banani, Dhaka 1213, Bangladesh";
+  // tel: links want a clean number; the WhatsApp fallback URL already embeds the default number.
+  const telHref = `tel:${phone.replace(/\s+/g, "")}`;
 
   const [intent, setIntent] = React.useState<InquiryType | "">("");
   const [form, setForm] = React.useState<FormState>(INITIAL_FORM);
@@ -295,7 +313,7 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                 {/* <a href="#form" className="btn btn-outline-light">
                   Start Discussion <ArrowUpRight />
                 </a> */}
-                <a href="tel:+8801700000000" className="btn btn-outline-light">
+                <a href={telHref} className="btn btn-outline-light">
                   Call Now
                 </a>
               </div>
@@ -313,11 +331,11 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                 </li>
                 <li>
                   <span className="k">Coverage</span>
-                  <span className="v">All 64 districts</span>
+                  <span className="v">{coverage}</span>
                 </li>
                 <li>
                   <span className="k">Desk</span>
-                  <span className="v">zakirenterprise307@gmail.com</span>
+                  <span className="v">{email}</span>
                 </li>
               </ul>
             </aside>
@@ -380,33 +398,32 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                 <h5>Contact</h5>
                 <ul>
                   <li>
-                    <strong>Phone</strong>+8801791026074
+                    <strong>Phone</strong>{phone}
                   </li>
                   <li>
-                    <strong>Email</strong>zakirenterprise307@gmail.com
+                    <strong>Email</strong>{email}
                   </li>
                   <li>
-                    <strong>Head Office</strong>House 42, Road 11, Banani,
-                    <br />
-                    Dhaka 1213, Bangladesh
+                    <strong>Head Office</strong>
+                    <span style={{ whiteSpace: "pre-line" }}>{officeAddress}</span>
                   </li>
                   <li>
-                    <strong>Business Hours</strong>Sun - Thu, 9:00 - 18:00 (GMT+6)
+                    <strong>Business Hours</strong>{businessHours}
                   </li>
                 </ul>
               </div>
 
               <div className="side-card quick">
                 <h5>Quick Actions</h5>
-                <a href={WHATSAPP_URL} {...OPEN_IN_NEW_TAB}>
+                <a href={whatsappUrl} {...OPEN_IN_NEW_TAB}>
                   <span>WhatsApp Team</span>
                   <Arrow />
                 </a>
-                <a href="tel:+8801791026074">
+                <a href={telHref}>
                   <span>Direct Call</span>
                   <Arrow />
                 </a>
-                <a href="mailto:zakirenterprise307@gmail.com">
+                <a href={`mailto:${email}`}>
                   <span>Email Desk</span>
                   <Arrow />
                 </a>
@@ -621,7 +638,7 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                     <button type="submit" className="btn btn-primary" disabled={submitting}>
                       {submitting ? "Submitting…" : "Submit Collaboration Request"} <Arrow />
                     </button>
-                    <a href={WHATSAPP_URL} className="btn btn-outline-dark" {...OPEN_IN_NEW_TAB}>
+                    <a href={whatsappUrl} className="btn btn-outline-dark" {...OPEN_IN_NEW_TAB}>
                       Talk on WhatsApp <ArrowUpRight />
                     </a>
                     <div className="submit-note">By submitting, you agree to be contacted by the Zakir Enterprise project team.</div>
@@ -684,22 +701,18 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
           <div className="map-info">
             <h5>Head Office - Dhaka</h5>
             <h3>Zakir Enterprise Ltd.</h3>
+            <p style={{ whiteSpace: "pre-line" }}>{officeAddress}</p>
             <p>
-              House 42, Road 11, Banani,
-              <br />
-              Dhaka 1213, Bangladesh
+              <strong>Phone</strong>{phone}
             </p>
             <p>
-              <strong>Phone</strong>+8801791026074
-            </p>
-            <p>
-              <strong>Email</strong>zakirenterprise307@gmail.com
+              <strong>Email</strong>{email}
             </p>
             <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
               <a href="#" className="btn btn-primary" style={{ padding: "12px 18px", fontSize: 11 }}>
                 Get Directions <Arrow size={12} />
               </a>
-              <a href="tel:+8801791026074" className="btn btn-outline-dark" style={{ padding: "12px 18px", fontSize: 11 }}>
+              <a href={telHref} className="btn btn-outline-dark" style={{ padding: "12px 18px", fontSize: 11 }}>
                 Call Office
               </a>
             </div>
@@ -717,10 +730,10 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
               </h2>
               <p>Our project desk is staffed across business hours. For urgent coordination, tender deadlines or ongoing site issues, reach us directly.</p>
               <div className="final-cta-btns">
-                <a href="tel:+8801791026074" className="btn btn-primary">
+                <a href={telHref} className="btn btn-primary">
                   Call Now <Arrow />
                 </a>
-                <a href={WHATSAPP_URL} className="btn btn-outline-light" {...OPEN_IN_NEW_TAB}>
+                <a href={whatsappUrl} className="btn btn-outline-light" {...OPEN_IN_NEW_TAB}>
                   WhatsApp Us
                 </a>
                 {/* <a href="#form" className="btn btn-outline-light">
@@ -730,7 +743,7 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
             </div>
 
             <div className="final-cta-lines">
-              <a href="tel:+8801791026074" className="fc-line">
+              <a href={telHref} className="fc-line">
                 <div className="ic">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
                     <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .6 3a2 2 0 0 1-.5 2L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2-.5c1 .3 2 .5 3 .6a2 2 0 0 1 1.7 2.1z" />
@@ -738,14 +751,14 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                 </div>
                 <div>
                   <span className="k">Direct Line</span>
-                  <span className="v">+880 1791 026 074</span>
+                  <span className="v">{phone}</span>
                 </div>
                 <span className="chev">
                   <Arrow size={14} />
                 </span>
               </a>
 
-              <a href={WHATSAPP_URL} className="fc-line" {...OPEN_IN_NEW_TAB}>
+              <a href={whatsappUrl} className="fc-line" {...OPEN_IN_NEW_TAB}>
                 <div className="ic">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20.5 3.5A11.5 11.5 0 0 0 2.1 17.2L1 22l4.9-1.1A11.5 11.5 0 1 0 20.5 3.5zm-8.4 17.5a9.5 9.5 0 0 1-4.8-1.3l-.3-.2-2.9.7.6-2.8-.2-.3a9.5 9.5 0 1 1 7.6 3.9zm5.2-6.6c-.3-.1-1.8-.8-2-1s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a7.8 7.8 0 0 1-2.3-1.4 8.7 8.7 0 0 1-1.6-2c-.1-.3 0-.4.1-.6l.4-.4.3-.5c.1-.2 0-.3 0-.5s-.6-1.4-.8-1.9-.4-.4-.6-.4h-.5c-.2 0-.5 0-.7.3a3 3 0 0 0-1 2.2 5.2 5.2 0 0 0 1 2.7c.2.3 1.6 2.5 3.9 3.5a13 13 0 0 0 1.3.5 3.1 3.1 0 0 0 1.4.1 2.4 2.4 0 0 0 1.5-1 1.9 1.9 0 0 0 .1-1c0-.2-.2-.2-.5-.4z" />
@@ -760,7 +773,7 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                 </span>
               </a>
 
-              <a href="mailto:zakirenterprise307@gmail.com" className="fc-line">
+              <a href={`mailto:${email}`} className="fc-line">
                 <div className="ic">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
                     <rect x="3" y="5" width="18" height="14" />
@@ -769,7 +782,7 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
                 </div>
                 <div>
                   <span className="k">Email Desk</span>
-                  <span className="v">zakirenterprise307@gmail.com</span>
+                  <span className="v">{email}</span>
                 </div>
                 <span className="chev">
                   <Arrow size={14} />
@@ -781,7 +794,7 @@ export function LetsCollaboratePageContent({ chrome, options }: { chrome?: Colla
       </section>
 
       <a
-        href={WHATSAPP_URL}
+        href={whatsappUrl}
         className="whatsapp-sticky"
         aria-label="Chat on WhatsApp"
         {...OPEN_IN_NEW_TAB}

@@ -211,7 +211,7 @@ function Inner({ profile, brand, stats, settings, canViewAuditLog, initialTab }:
               <Field label="Legal name" htmlFor="legalName">
                 <Input id="legalName" {...profileForm.register("legalName")} />
               </Field>
-              <Field label="Tagline" htmlFor="tagline">
+              <Field label="Tagline" htmlFor="tagline" helper="Short slogan shown in the footer under the logo.">
                 <Input id="tagline" {...profileForm.register("tagline")} />
               </Field>
               <Field label="Brand description" htmlFor="brandDescription" helper="Shown in the chrome / about; Bangla allowed.">
@@ -247,17 +247,17 @@ function Inner({ profile, brand, stats, settings, canViewAuditLog, initialTab }:
                   <Input id="phone" {...profileForm.register("phone")} />
                 </Field>
               </div>
-              <Field label="WhatsApp" htmlFor="whatsapp" error={pErr.whatsapp?.message} helper="Optional WhatsApp link (https://…).">
+              <Field label="WhatsApp" htmlFor="whatsapp" error={pErr.whatsapp?.message} helper="Full WhatsApp link (https://wa.me/…). Powers the WhatsApp buttons on Let's Collaborate.">
                 <Input id="whatsapp" {...profileForm.register("whatsapp")} />
               </Field>
               <Field label="Office address" htmlFor="officeAddress" error={pErr.officeAddress?.message} helper="Bangla allowed.">
                 <Textarea id="officeAddress" rows={2} {...profileForm.register("officeAddress")} />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Business hours" htmlFor="businessHours">
+                <Field label="Business hours" htmlFor="businessHours" helper="Shown on the Let's Collaborate contact card.">
                   <Input id="businessHours" {...profileForm.register("businessHours")} />
                 </Field>
-                <Field label="Coverage summary" htmlFor="coverageSummary">
+                <Field label="Coverage summary" htmlFor="coverageSummary" helper="Shown on the Let's Collaborate hero card.">
                   <Input id="coverageSummary" {...profileForm.register("coverageSummary")} />
                 </Field>
               </div>

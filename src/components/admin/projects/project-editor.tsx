@@ -723,33 +723,28 @@ function GalleryTab({ pick }: { pick: Pick }) {
         summary={(row) => (
           <span className="flex items-center gap-2">
             <CoverThumb cover={row.url ? { id: String(row.media_id), url: String(row.url), alt: null, width: null, height: null } : null} alt="" className="h-8 w-12" />
-            <span className="truncate">{(row.caption as string) || "No caption"}</span>
           </span>
         )}
-        renderRow={({ index }) => <GalleryRow index={index} control={control} register={register} />}
+        renderRow={({ index }) => <GalleryRow index={index} control={control} />}
       />
     </TabCard>
   );
 }
 
+// The gallery is media-backed: the public detail page renders only the image (the per-item
+// caption was never shown on the frontend, so it's no longer editable here). The image's alt
+// text — required to publish — is edited in the media library, not on this row.
 function GalleryRow({
   index,
   control,
-  register,
 }: {
   index: number;
   control: ReturnType<typeof useFormReturn>["control"];
-  register: ReturnType<typeof useFormReturn>["register"];
 }) {
   const url = useWatchField(control, `gallery.${index}.url`);
   return (
     <div className="flex items-start gap-3">
       <CoverThumb cover={url ? { id: "g", url: String(url), alt: null, width: null, height: null } : null} alt="" className="h-16 w-24" />
-      <div className="flex-1">
-        <Field label="Caption" htmlFor={`gallery.${index}.caption`}>
-          <Input id={`gallery.${index}.caption`} {...register(`gallery.${index}.caption` as const)} />
-        </Field>
-      </div>
     </div>
   );
 }

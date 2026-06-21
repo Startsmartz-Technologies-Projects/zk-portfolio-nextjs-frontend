@@ -45,6 +45,36 @@ describe('toSiteChrome', () => {
     expect(c.favicon?.url).toBe('fav.png')
     // the "#" placeholder social is dropped; only the real href survives
     expect(c.socials).toEqual([{ platform: 'facebook', url: 'https://fb.com/zk' }])
+    // optional company fields default to '' when null (consumers fall back to static copy)
+    expect(c.tagline).toBe('')
+    expect(c.whatsapp).toBe('')
+    expect(c.businessHours).toBe('')
+    expect(c.coverageSummary).toBe('')
+  })
+
+  it('projects the optional company fields when set', () => {
+    const c = toSiteChrome(
+      makeBundle({
+        company: {
+          name: 'Zakir Enterprise',
+          legal_name: 'Zakir Enterprise Ltd.',
+          tagline: 'Building Bangladesh',
+          brand_description: 'We build.',
+          establishment_year: 2010,
+          email: 'hi@zk.com',
+          phone: '+880123',
+          whatsapp: 'https://wa.me/8801700000000',
+          office_address: 'Dhaka, Bangladesh',
+          business_hours: 'Sun–Thu, 9–18',
+          coverage_summary: 'All 64 districts',
+          copyright_text: '© 2026 Zakir Enterprise',
+        },
+      }),
+    )
+    expect(c.tagline).toBe('Building Bangladesh')
+    expect(c.whatsapp).toBe('https://wa.me/8801700000000')
+    expect(c.businessHours).toBe('Sun–Thu, 9–18')
+    expect(c.coverageSummary).toBe('All 64 districts')
   })
 
   it('falls back to the primary logo when no footer slot is set', () => {

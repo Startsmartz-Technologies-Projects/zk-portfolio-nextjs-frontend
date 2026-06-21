@@ -184,6 +184,7 @@ export function Footer({ site }: { site: SiteChrome }) {
                 <MediaImage media={site.logoFooter} fallback={<strong>{site.brandName}</strong>} />
               </span>
             </Link>
+            {site.tagline ? <p className="footer-tagline">{site.tagline}</p> : null}
             {site.brandDescription ? <p>{site.brandDescription}</p> : null}
             <div className="footer-contact">
               <strong>Head Office</strong>

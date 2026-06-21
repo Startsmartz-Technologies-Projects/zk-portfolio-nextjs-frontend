@@ -20,8 +20,12 @@ export interface SiteChrome {
   favicon: PublicMediaRef | null
   phone: string
   email: string
+  whatsapp: string
   brandDescription: string
+  tagline: string
   officeAddress: string
+  businessHours: string
+  coverageSummary: string
   copyright: string
   socials: SiteSocial[]
 }
@@ -37,8 +41,12 @@ export function toSiteChrome(bundle: SiteBundle): SiteChrome {
     favicon: bundle.brand.favicon,
     phone: c?.phone ?? '',
     email: c?.email ?? '',
+    whatsapp: c?.whatsapp ?? '',
     brandDescription: c?.brand_description ?? '',
+    tagline: c?.tagline ?? '',
     officeAddress: c?.office_address ?? '',
+    businessHours: c?.business_hours ?? '',
+    coverageSummary: c?.coverage_summary ?? '',
     copyright: c?.copyright_text ?? '',
     // Only configured platforms with a real href (drop the legacy "#" placeholders).
     socials: bundle.socials

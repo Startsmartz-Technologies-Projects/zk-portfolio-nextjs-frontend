@@ -42,7 +42,14 @@ export default async function LetsCollaboratePage() {
     intentHeading: intentCards?.heading ?? null,
     intentSub: intentCards?.subheading ?? null,
     intentItems: itemsOf(intentCards).map((i) => ({ icon: i.icon ?? "", title: i.title ?? "", description: i.body ?? "" })),
-    contact: { phone: site.phone, email: site.email, officeAddress: site.officeAddress },
+    contact: {
+      phone: site.phone,
+      email: site.email,
+      officeAddress: site.officeAddress,
+      whatsapp: site.whatsapp,
+      businessHours: site.businessHours,
+      coverageSummary: site.coverageSummary,
+    },
   };
 
   // Controlled form option sets (leads-fe-public-form §A2) — code constants, resolved server-side

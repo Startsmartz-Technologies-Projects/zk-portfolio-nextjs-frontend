@@ -214,10 +214,9 @@ function StoryTab({ tab, form, isAdmin }: { tab: Tab; form: UseFormReturn<StoryF
           summary={(row) => (
             <span className="flex items-center gap-2">
               <Thumb media={row.url ? { id: String(row.media_id), url: String(row.url), alt: null, width: null, height: null } : null} alt="" className="h-8 w-12" />
-              <span className="truncate">{(row.caption as string) || "No caption"}</span>
             </span>
           )}
-          renderRow={({ index }) => <GalleryRow index={index} control={control} register={register} />}
+          renderRow={({ index }) => <GalleryRow index={index} control={control} />}
         />
       </TabCard>
     );
@@ -232,24 +231,19 @@ function StoryTab({ tab, form, isAdmin }: { tab: Tab; form: UseFormReturn<StoryF
   );
 }
 
+// Media-backed gallery: the public news page renders only the image (the per-item caption
+// was never shown on the frontend, so it's no longer editable here).
 function GalleryRow({
   index,
   control,
-  register,
 }: {
   index: number;
   control: UseFormReturn<StoryFormValues>["control"];
-  register: UseFormReturn<StoryFormValues>["register"];
 }) {
   const url = useWatch({ control, name: `gallery.${index}.url` as const });
   return (
     <div className="flex items-start gap-3">
       <Thumb media={url ? { id: "g", url: String(url), alt: null, width: null, height: null } : null} alt="" className="h-16 w-24" />
-      <div className="flex-1">
-        <Field label="Caption" htmlFor={`gallery.${index}.caption`}>
-          <Input id={`gallery.${index}.caption`} {...register(`gallery.${index}.caption` as const)} />
-        </Field>
-      </div>
     </div>
   );
 }
