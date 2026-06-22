@@ -130,7 +130,7 @@ function HeroHeading({ heading, accent }: { heading: string; accent?: string }) 
 // "15+" stamp right), distinct from the dark full-bleed home hero. Its signature is the
 // `settings.stamp` badge. Markup mirrors the original about-page-content `about-hero`.
 type AboutStamp = { value?: string; unit?: string; label?: string };
-type AboutHeroSettings = { stamp?: AboutStamp; tag?: string };
+type AboutHeroSettings = { stamp?: AboutStamp; tag?: string; accent?: string };
 const aboutHeroSettings = (s: unknown): AboutHeroSettings => (s && typeof s === "object" ? (s as AboutHeroSettings) : {});
 
 function AboutHero({ s }: { s: PageSection }) {
@@ -144,7 +144,7 @@ function AboutHero({ s }: { s: PageSection }) {
         <div className="about-hero-grid">
           <div>
             {(s.eyebrow || s.subheading) && <span className="microlabel">{s.eyebrow ?? s.subheading}</span>}
-            {s.heading && <h1>{s.heading}</h1>}
+            {s.heading && <HeroHeading heading={s.heading} accent={settings.accent} />}
             {s.body && <p className="sub">{s.body}</p>}
             <div className="about-hero-buttons">
               {s.cta_primary && (
