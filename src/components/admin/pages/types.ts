@@ -99,6 +99,7 @@ export type SectionChromeField =
 export type SectionItemField =
   | "image"
   | "title"
+  | "subtitle"
   | "tag"
   | "body"
   | "icon"
@@ -113,8 +114,7 @@ export interface SectionFieldConfig {
 
 export const SECTION_FIELD_CONFIG: Partial<Record<SectionType, SectionFieldConfig>> = {
   // hero: eyebrow/subheading microlabel, heading, body lede, bg image, both CTAs; items = title + subtitle.
-  // (subtitle has no editor input — items keep title only.)
-  hero: { chrome: ["eyebrow", "heading", "subheading", "body", "background_image", "cta"], item: ["title"] },
+  hero: { chrome: ["eyebrow", "heading", "subheading", "body", "background_image", "cta"], item: ["title", "subtitle"] },
   // about_intro: eyebrow/subheading, heading, body lead, bg image, primary CTA; item bullets = title only.
   about_intro: { chrome: ["eyebrow", "heading", "subheading", "body", "background_image", "cta"], item: ["title"] },
   // expertise_cards: SectionHead (eyebrow/heading/subheading/body); items = image, tag, title, body, link.

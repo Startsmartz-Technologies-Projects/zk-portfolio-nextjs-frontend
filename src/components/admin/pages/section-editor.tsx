@@ -29,6 +29,7 @@ import { useMediaPicker } from "@/src/components/admin/media/media-picker-provid
 import { Field, TabCard, Textarea } from "@/src/components/admin/shared/form-fields";
 import { Thumb } from "@/src/components/admin/shared/list-primitives";
 import { blankItem } from "./page-form";
+import { DisplaySettingsEditor, hasDisplaySettings } from "./display-settings-editor";
 import {
   COLLECTION_SECTION_TYPES,
   SECTION_FIELD_CONFIG,
@@ -138,6 +139,9 @@ export function SectionEditor({
           </div>
         )}
       </TabCard>
+
+      {/* Display-only settings (badges, accents, captions stored in `settings`). */}
+      {hasDisplaySettings(section.type) && <DisplaySettingsEditor section={section} onChange={onChange} />}
 
       {/* Type-specific content */}
       {isCollection ? (
@@ -341,11 +345,16 @@ function ItemRow({
                   )}
                 </div>
               )}
-              {(showItem("title") || showItem("tag")) && (
+              {(showItem("title") || showItem("subtitle") || showItem("tag")) && (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {showItem("title") && (
                     <Field label="Title" htmlFor={`it-title-${item.id}`}>
                       <Input id={`it-title-${item.id}`} value={item.title ?? ""} onChange={(e) => onChange({ title: e.target.value })} />
+                    </Field>
+                  )}
+                  {showItem("subtitle") && (
+                    <Field label="Subtitle" htmlFor={`it-subtitle-${item.id}`}>
+                      <Input id={`it-subtitle-${item.id}`} value={item.subtitle ?? ""} onChange={(e) => onChange({ subtitle: e.target.value })} />
                     </Field>
                   )}
                   {showItem("tag") && (
