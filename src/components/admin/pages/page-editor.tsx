@@ -65,6 +65,8 @@ export interface PageEditorProps {
   canViewAuditLog: boolean;
   seoDefaults: SeoDefaults;
   metadataBase: string;
+  /** Live stat-picker keys (computed metrics + CompanyStat keys from Site Settings). */
+  statKeys: string[];
 }
 
 export function PageEditor(props: PageEditorProps) {
@@ -75,7 +77,7 @@ export function PageEditor(props: PageEditorProps) {
   );
 }
 
-function Inner({ initial, canViewAuditLog, seoDefaults, metadataBase }: PageEditorProps) {
+function Inner({ initial, canViewAuditLog, seoDefaults, metadataBase, statKeys }: PageEditorProps) {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -270,6 +272,7 @@ function Inner({ initial, canViewAuditLog, seoDefaults, metadataBase }: PageEdit
                 key={selected.id}
                 section={selected}
                 pageKey={pageKey}
+                statKeys={statKeys}
                 onChange={(patch) => updateSection(selected.id, patch)}
               />
             ) : (

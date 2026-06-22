@@ -1,6 +1,10 @@
 import { z } from 'zod'
 
 export const TERM_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+// Company-stat keys are referenced by the page stat resolver and seed using underscores
+// (years_experience, team_size, client_confidence_pct, …) — a separate, looser rule from the
+// hyphen-only term/URL slug above. Lowercase letters/numbers separated by hyphens OR underscores.
+export const STAT_KEY_RE = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/
 
 const socialPlatform = z.enum(['facebook', 'linkedin', 'instagram', 'youtube', 'twitter', 'other'])
 
@@ -48,7 +52,7 @@ export const companyStatsSchema = z.object({
   stats: z
     .array(
       z.object({
-        key: z.string().regex(TERM_SLUG_RE, 'key must be slug-like'),
+        key: z.string().regex(STAT_KEY_RE, 'key must be slug-like (lowercase, numbers, - or _)'),
         label: z.string().min(1),
         value: z.string().min(1),
         unit: z.string().nullable().optional(),

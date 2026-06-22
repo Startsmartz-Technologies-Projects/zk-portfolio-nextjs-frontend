@@ -30,10 +30,13 @@ import { Field, TabCard, Textarea } from "@/src/components/admin/shared/form-fie
 import { Thumb } from "@/src/components/admin/shared/list-primitives";
 import { blankItem } from "./page-form";
 import { DisplaySettingsEditor, hasDisplaySettings, isSplitLayoutHero } from "./display-settings-editor";
+import { StoryItemsEditor } from "./story-items-editor";
 import {
   COLLECTION_SECTION_TYPES,
   SECTION_FIELD_CONFIG,
+  STAT_KEYS,
   STAT_SECTION_TYPES,
+  SVC_ICON_KINDS,
   sectionLabel,
   type SectionAdmin,
   type SectionChromeField,
@@ -41,24 +44,16 @@ import {
   type SectionItemField,
 } from "./types";
 
-// Stat keys offered in the stat picker — CompanyStat keys + the derived metrics the
-// resolver supports (lib/data/pages buildStatResolver).
-const STAT_KEYS = [
-  "years_experience",
-  "projects_count",
-  "districts_covered",
-  "team_size",
-  "client_confidence_pct",
-  "on_schedule_pct",
-];
-
 export function SectionEditor({
   section,
   pageKey,
+  statKeys = STAT_KEYS,
   onChange,
 }: {
   section: SectionAdmin;
   pageKey: PageKey;
+  /** Live stat-picker keys; defaults to the static list when not threaded in. */
+  statKeys?: string[];
   onChange: (patch: Partial<SectionAdmin>) => void;
 }) {
   void pageKey;
@@ -132,11 +127,15 @@ export function SectionEditor({
           </Field>
         )}
 
-        {/* CTAs */}
-        {showChrome("cta") && (
+        {/* CTAs — primary/secondary are independent flags; a section shows only the buttons it renders. */}
+        {(showChrome("cta_primary") || showChrome("cta_secondary")) && (
           <div className="grid gap-3 sm:grid-cols-2">
-            <CtaField label="Primary CTA" cta={section.cta_primary} onChange={(v) => onChange({ cta_primary: v })} />
-            <CtaField label="Secondary CTA" cta={section.cta_secondary} onChange={(v) => onChange({ cta_secondary: v })} />
+            {showChrome("cta_primary") && (
+              <CtaField label="Primary CTA" cta={section.cta_primary} onChange={(v) => onChange({ cta_primary: v })} />
+            )}
+            {showChrome("cta_secondary") && (
+              <CtaField label="Secondary CTA" cta={section.cta_secondary} onChange={(v) => onChange({ cta_secondary: v })} />
+            )}
           </div>
         )}
       </TabCard>
@@ -166,9 +165,14 @@ export function SectionEditor({
             </Field>
           </div>
         </TabCard>
+      ) : section.type === "story" ? (
+        // Story packs collage photos + stats into one items list; a dedicated editor splits them.
+        <TabCard>
+          <StoryItemsEditor section={section} statKeys={statKeys} onChange={setItems} />
+        </TabCard>
       ) : hasItemEditor ? (
         <TabCard>
-          <ItemsEditor section={section} isStat={isStat} itemFields={itemFields} pick={pick} onChange={setItems} />
+          <ItemsEditor section={section} isStat={isStat} itemFields={itemFields} statKeys={statKeys} pick={pick} onChange={setItems} />
         </TabCard>
       ) : null}
     </div>
@@ -203,12 +207,14 @@ function ItemsEditor({
   section,
   isStat,
   itemFields,
+  statKeys,
   pick,
   onChange,
 }: {
   section: SectionAdmin;
   isStat: boolean;
   itemFields: SectionItemField[] | undefined;
+  statKeys: string[];
   pick: ReturnType<typeof useMediaPicker>;
   onChange: (items: SectionItemAdmin[]) => void;
 }) {
@@ -253,6 +259,7 @@ function ItemsEditor({
                   item={item}
                   isStat={isStat}
                   itemFields={itemFields}
+                  statKeys={statKeys}
                   pick={pick}
                   onChange={(patch) => patchItem(item.id, patch)}
                   onRemove={() => onChange(items.filter((i) => i.id !== item.id))}
@@ -270,6 +277,7 @@ function ItemRow({
   item,
   isStat,
   itemFields,
+  statKeys,
   pick,
   onChange,
   onRemove,
@@ -277,6 +285,7 @@ function ItemRow({
   item: SectionItemAdmin;
   isStat: boolean;
   itemFields: SectionItemField[] | undefined;
+  statKeys: string[];
   pick: ReturnType<typeof useMediaPicker>;
   onChange: (patch: Partial<SectionItemAdmin>) => void;
   onRemove: () => void;
@@ -312,7 +321,7 @@ function ItemRow({
                     className="h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="">Custom (value/unit below)</option>
-                    {STAT_KEYS.map((k) => (
+                    {statKeys.map((k) => (
                       <option key={k} value={k}>{k}</option>
                     ))}
                   </select>
@@ -346,6 +355,11 @@ function ItemRow({
                   )}
                 </div>
               )}
+              {showItem("value") && (
+                <Field label="Year" htmlFor={`it-value-${item.id}`} helper="Shown as the step marker, e.g. 2010 or “Next”.">
+                  <Input id={`it-value-${item.id}`} value={item.value ?? ""} onChange={(e) => onChange({ value: e.target.value })} />
+                </Field>
+              )}
               {(showItem("title") || showItem("subtitle") || showItem("tag")) && (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {showItem("title") && (
@@ -373,8 +387,18 @@ function ItemRow({
               {(showItem("icon") || showItem("link")) && (
                 <div className="grid gap-2 sm:grid-cols-3">
                   {showItem("icon") && (
-                    <Field label="Icon" htmlFor={`it-icon-${item.id}`}>
-                      <Input id={`it-icon-${item.id}`} value={item.icon ?? ""} onChange={(e) => onChange({ icon: e.target.value })} />
+                    <Field label="Icon" htmlFor={`it-icon-${item.id}`} helper="Pick a built-in icon shape.">
+                      <select
+                        id={`it-icon-${item.id}`}
+                        value={item.icon ?? ""}
+                        onChange={(e) => onChange({ icon: e.target.value || null })}
+                        className="h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="">None</option>
+                        {SVC_ICON_KINDS.map((k) => (
+                          <option key={k} value={k}>{k}</option>
+                        ))}
+                      </select>
                     </Field>
                   )}
                   {showItem("link") && (
@@ -388,6 +412,18 @@ function ItemRow({
                     </>
                   )}
                 </div>
+              )}
+              {showItem("is_active") && (
+                <label className="flex items-center gap-2 text-sm" htmlFor={`it-active-${item.id}`}>
+                  <input
+                    id={`it-active-${item.id}`}
+                    type="checkbox"
+                    checked={item.is_active ?? false}
+                    onChange={(e) => onChange({ is_active: e.target.checked })}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  Highlight as the current step
+                </label>
               )}
             </>
           )}

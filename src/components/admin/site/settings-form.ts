@@ -146,12 +146,14 @@ export function toBrandInput(b: BrandFormValues) {
 
 // ── Company stats ──────────────────────────────────────────────────────────
 
-const STAT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Mirrors STAT_KEY_RE in lib/validation/site (the authoritative server rule). Stat keys are
+// referenced by the page resolver/seed with underscores, so allow `-` and `_` (not just `-`).
+const STAT_KEY_RE = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
 
 export const statsFormSchema = z.object({
   stats: z.array(
     z.object({
-      key: z.string().min(1, "Enter a key.").regex(STAT_SLUG_RE, "Use lowercase letters, numbers, and hyphens."),
+      key: z.string().min(1, "Enter a key.").regex(STAT_KEY_RE, "Use lowercase letters, numbers, hyphens, or underscores."),
       label: z.string().min(1, "Enter a label."),
       value: z.string().min(1, "Enter a value."),
       unit: z.string(),

@@ -45,6 +45,10 @@ const TabsContent = React.forwardRef<
     ref={ref}
     className={cn(
       "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      // Radix only sets `hidden` on inactive panels when they are NOT forceMounted; with
+      // forceMount (used to keep panel forms mounted across tab switches) every panel stays
+      // visible. Hide inactive panels ourselves off the data-state Radix still sets.
+      "data-[state=inactive]:hidden",
       className,
     )}
     {...props}

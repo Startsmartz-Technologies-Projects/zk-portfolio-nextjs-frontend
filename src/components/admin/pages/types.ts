@@ -45,6 +45,53 @@ export function sectionLabel(type: string): string {
 /** Section types that resolve their item values from SITE (read-only stat items). */
 export const STAT_SECTION_TYPES: SectionType[] = ["stat_strip", "achievements"];
 
+/**
+ * Computed metrics the public stat resolver derives (NOT stored as CompanyStat rows):
+ * years_experience (from establishment year), projects_count + districts_covered (from
+ * published projects). See lib/data/pages buildStatResolver. Always offered in stat pickers.
+ */
+export const COMPUTED_STAT_KEYS = ["years_experience", "projects_count", "districts_covered"];
+
+/**
+ * Static fallback list of stat-picker keys (computed metrics + the seeded CompanyStat keys).
+ * Prefer the live list built by `statKeyOptions(companyStatKeys)` — the editor threads the
+ * actual CompanyStat keys from Site Settings so newly-added stats are selectable. This constant
+ * is the fallback when no live list is provided.
+ */
+export const STAT_KEYS = [
+  ...COMPUTED_STAT_KEYS,
+  "team_size",
+  "client_confidence_pct",
+  "on_schedule_pct",
+];
+
+/** Build the stat-picker option list: computed metrics first, then the live CompanyStat keys
+ *  (deduped, computed keys never repeated even if a CompanyStat row shares the name). */
+export function statKeyOptions(companyStatKeys: string[]): string[] {
+  const seen = new Set(COMPUTED_STAT_KEYS);
+  const extra = companyStatKeys.filter((k) => !seen.has(k));
+  return [...COMPUTED_STAT_KEYS, ...extra];
+}
+
+/**
+ * Valid `icon` (kind) values for item icon pickers — the keys of the `shapes` map in SvcIcon
+ * (src/components/site-ui.tsx). An unknown value silently falls back to the `building` icon, so
+ * the editor offers these as a dropdown. KEEP IN SYNC with SvcIcon's `shapes`.
+ */
+export const SVC_ICON_KINDS = [
+  "building",
+  "road",
+  "bridge",
+  "earth",
+  "drain",
+  "concrete",
+  "foundation",
+  "renov",
+  "finish",
+  "special",
+  "equip",
+] as const;
+
 /** Section types whose records come from a collection feed (chrome + source_key + max_items, no items). */
 export const COLLECTION_SECTION_TYPES: SectionType[] = [
   "featured_projects",
@@ -76,13 +123,20 @@ export const COLLECTION_SOURCE_KEYS: Partial<Record<SectionType, string>> = {
  * fields the public renderer (src/components/pages/section-renderer.tsx) actually outputs
  * for that section type — so admins aren't shown inputs that have no effect on the live page.
  *
- * Derived field-by-field from the renderer. Two renderer quirks are honoured here:
- *  - the "eyebrow" microlabel reads `eyebrow ?? subheading`, and
- *  - `SectionHead`'s right-column lede reads `subheading ?? body`.
- * So where either of a fallback pair feeds a rendered slot, BOTH are kept (seeded content
- * stores the same copy in different keys across pages).
+ * Derived field-by-field from the renderer. The renderer reads `subheading` two ways, and BOTH
+ * are now consolidated onto a single first-class field so admins never see two inputs feeding
+ * one rendered slot:
+ *  - the "eyebrow" microlabel reads `eyebrow ?? subheading` → on those sections (hero,
+ *    about_intro, story, timeline, …) only `eyebrow` is exposed; subheading-only labels were
+ *    migrated into `eyebrow`.
+ *  - `SectionHead`'s right-column lede reads `subheading ?? body` → on those sections
+ *    (stat_strip, expertise_cards, featured_*, mvv, why_us, intent_cards, contact_panel) only
+ *    `body` is exposed as the lede.
+ * So `subheading` is no longer exposed by any config (the type member is kept for forward use).
  *
- * NOTE: `cta` covers both primary + secondary CTAs. Fields rendered only from `settings`
+ * NOTE: `cta_primary`/`cta_secondary` are separate flags — a section lists only the CTA
+ * buttons its renderer actually outputs (e.g. story/about_intro/featured_* render the primary
+ * button only). Fields rendered only from `settings`
  * (hero ticker/accent, about overlay, leadership quote/signature, story badge, mvv values,
  * testimonial initials) have no first-class editor input today and are unaffected by this map.
  * Stat sections (stat_strip, achievements) use the stat item editor and collection sections
@@ -95,7 +149,8 @@ export type SectionChromeField =
   | "subheading"
   | "body"
   | "background_image"
-  | "cta";
+  | "cta_primary"
+  | "cta_secondary";
 export type SectionItemField =
   | "image"
   | "title"
@@ -103,7 +158,9 @@ export type SectionItemField =
   | "tag"
   | "body"
   | "icon"
-  | "link";
+  | "link"
+  | "value" // a plain item value — e.g. the Timeline step's year (renderer reads `value`)
+  | "is_active"; // the Timeline "current step" highlight (renderer reads `is_active`)
 
 export interface SectionFieldConfig {
   /** Section-level (chrome) fields to show. Omit to show all. */
@@ -113,46 +170,46 @@ export interface SectionFieldConfig {
 }
 
 export const SECTION_FIELD_CONFIG: Partial<Record<SectionType, SectionFieldConfig>> = {
-  // hero: eyebrow/subheading microlabel, heading, body lede, bg image, both CTAs; items = title + subtitle.
-  hero: { chrome: ["eyebrow", "heading", "subheading", "body", "background_image", "cta"], item: ["title", "subtitle"] },
-  // about_intro: eyebrow/subheading, heading, body lead, bg image, primary CTA; item bullets = title only.
-  about_intro: { chrome: ["eyebrow", "heading", "subheading", "body", "background_image", "cta"], item: ["title"] },
-  // expertise_cards: SectionHead (eyebrow/heading/subheading/body); items = image, tag, title, body, link.
-  expertise_cards: { chrome: ["eyebrow", "heading", "subheading", "body"], item: ["image", "tag", "title", "body", "link"] },
+  // hero: eyebrow microlabel, heading, body lede, bg image, both CTAs; items = title + subtitle.
+  hero: { chrome: ["eyebrow", "heading", "body", "background_image", "cta_primary", "cta_secondary"], item: ["title", "subtitle"] },
+  // about_intro: eyebrow, heading, body lead, bg image, primary CTA only; item bullets = title only.
+  about_intro: { chrome: ["eyebrow", "heading", "body", "background_image", "cta_primary"], item: ["title"] },
+  // expertise_cards: SectionHead (eyebrow/heading + body lede); items = image, tag, title, body, link.
+  expertise_cards: { chrome: ["eyebrow", "heading", "body"], item: ["image", "tag", "title", "body", "link"] },
   // stat_strip: SectionHead chrome only; items handled by the stat editor (no item-field config needed).
-  stat_strip: { chrome: ["eyebrow", "heading", "subheading", "body"] },
-  // featured_* (collection): SectionHead + primary CTA; records come from the feed, not items.
-  featured_projects: { chrome: ["eyebrow", "heading", "subheading", "body", "cta"] },
-  featured_services: { chrome: ["eyebrow", "heading", "subheading", "body", "cta"] },
-  featured_certifications: { chrome: ["eyebrow", "heading", "subheading", "body", "cta"] },
-  // logo_wall: eyebrow/subheading + heading only; items = title (the logo text).
-  logo_wall: { chrome: ["eyebrow", "heading", "subheading"], item: ["title"] },
-  // testimonials: eyebrow/subheading, heading, body intro; items = body (quote) + title (author) + subtitle (role).
+  stat_strip: { chrome: ["eyebrow", "heading", "body"] },
+  // featured_* (collection): SectionHead + primary CTA only; records come from the feed, not items.
+  featured_projects: { chrome: ["eyebrow", "heading", "body", "cta_primary"] },
+  featured_services: { chrome: ["eyebrow", "heading", "body", "cta_primary"] },
+  featured_certifications: { chrome: ["eyebrow", "heading", "body", "cta_primary"] },
+  // logo_wall: eyebrow + heading only; items = title (the logo text).
+  logo_wall: { chrome: ["eyebrow", "heading"], item: ["title"] },
+  // testimonials: eyebrow, heading, body intro; items = body (quote) + title (author) + subtitle (role).
   // subtitle has no editor input → items keep title + body.
-  testimonials: { chrome: ["eyebrow", "heading", "subheading", "body"], item: ["title", "body"] },
+  testimonials: { chrome: ["eyebrow", "heading", "body"], item: ["title", "body"] },
   // cta_banner: eyebrow, heading, body, bg image, both CTAs; items = title + subtitle feature chips.
-  cta_banner: { chrome: ["eyebrow", "heading", "body", "background_image", "cta"], item: ["title"] },
+  cta_banner: { chrome: ["eyebrow", "heading", "body", "background_image", "cta_primary", "cta_secondary"], item: ["title"] },
   // final_cta: eyebrow, heading, body, both CTAs; no items.
-  final_cta: { chrome: ["eyebrow", "heading", "body", "cta"], item: [] },
-  // story: eyebrow/subheading, heading, body, primary CTA; items = image (collage) + value/title (stats).
-  // value has no plain-item input; image + title are the editable item fields used.
-  story: { chrome: ["eyebrow", "heading", "subheading", "body", "cta"], item: ["image", "title"] },
+  final_cta: { chrome: ["eyebrow", "heading", "body", "cta_primary", "cta_secondary"], item: [] },
+  // story: eyebrow, heading, body, primary CTA only. Items (collage photos + stats) are managed
+  // by the dedicated StoryItemsEditor, not the generic item editor, so `item` is unused here.
+  story: { chrome: ["eyebrow", "heading", "body", "cta_primary"] },
   // mvv: SectionHead; items = icon, title, body (values come from item.meta — no editor input).
-  mvv: { chrome: ["eyebrow", "heading", "subheading", "body"], item: ["icon", "title", "body"] },
-  // timeline: eyebrow/subheading, heading, body; items = value(year)/title/body — value has no plain input.
-  timeline: { chrome: ["eyebrow", "heading", "subheading", "body"], item: ["title", "body"] },
-  // leadership_message: eyebrow/subheading, heading, body, portrait (bg image); quote/signature live in settings.
-  leadership_message: { chrome: ["eyebrow", "heading", "subheading", "body", "background_image"], item: [] },
+  mvv: { chrome: ["eyebrow", "heading", "body"], item: ["icon", "title", "body"] },
+  // timeline: eyebrow, heading, body; items = year (value) + title + body + active-step toggle.
+  timeline: { chrome: ["eyebrow", "heading", "body"], item: ["value", "title", "body", "is_active"] },
+  // leadership_message: eyebrow, heading, body, portrait (bg image); quote/signature live in settings.
+  leadership_message: { chrome: ["eyebrow", "heading", "body", "background_image"], item: [] },
   // why_us: SectionHead; items = icon, title, body/subtitle.
-  why_us: { chrome: ["eyebrow", "heading", "subheading", "body"], item: ["icon", "title", "body"] },
-  // achievements: eyebrow/subheading + heading; items handled by the stat editor.
-  achievements: { chrome: ["eyebrow", "heading", "subheading"] },
-  // clients_filterable: eyebrow/subheading + heading; items = tag (sector) + title (client name).
-  clients_filterable: { chrome: ["eyebrow", "heading", "subheading"], item: ["tag", "title"] },
+  why_us: { chrome: ["eyebrow", "heading", "body"], item: ["icon", "title", "body"] },
+  // achievements: eyebrow + heading; items handled by the stat editor.
+  achievements: { chrome: ["eyebrow", "heading"] },
+  // clients_filterable: eyebrow + heading; items = tag (sector) + title (client name).
+  clients_filterable: { chrome: ["eyebrow", "heading"], item: ["tag", "title"] },
   // trust_hook: heading only; items = title (the trust chips).
   trust_hook: { chrome: ["heading"], item: ["title"] },
   // intent_cards: SectionHead; items = icon, title, body.
-  intent_cards: { chrome: ["eyebrow", "heading", "subheading", "body"], item: ["icon", "title", "body"] },
+  intent_cards: { chrome: ["eyebrow", "heading", "body"], item: ["icon", "title", "body"] },
   // contact_panel: SectionHead only; contact values come from SITE, not items.
-  contact_panel: { chrome: ["eyebrow", "heading", "subheading", "body"], item: [] },
+  contact_panel: { chrome: ["eyebrow", "heading", "body"], item: [] },
 };
