@@ -29,7 +29,7 @@ import { useMediaPicker } from "@/src/components/admin/media/media-picker-provid
 import { Field, TabCard, Textarea } from "@/src/components/admin/shared/form-fields";
 import { Thumb } from "@/src/components/admin/shared/list-primitives";
 import { blankItem } from "./page-form";
-import { DisplaySettingsEditor, hasDisplaySettings } from "./display-settings-editor";
+import { DisplaySettingsEditor, hasDisplaySettings, isSplitLayoutHero } from "./display-settings-editor";
 import {
   COLLECTION_SECTION_TYPES,
   SECTION_FIELD_CONFIG,
@@ -73,7 +73,8 @@ export function SectionEditor({
   const itemFields = fieldConfig?.item;
   // A section that renders no item fields (e.g. final_cta, contact_panel — config `item: []`)
   // hides the whole Items editor. Stat/collection types manage items via their own editors.
-  const hasItemEditor = isStat || !itemFields || itemFields.length > 0;
+  // A split-layout hero (one with a stamp) also draws no items, so hide its Items editor too.
+  const hasItemEditor = (isStat || !itemFields || itemFields.length > 0) && !isSplitLayoutHero(section);
 
   function setItems(items: SectionItemAdmin[]) {
     onChange({ items });

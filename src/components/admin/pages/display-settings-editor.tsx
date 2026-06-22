@@ -29,6 +29,17 @@ const asObj = (v: unknown): Settings => (v && typeof v === "object" && !Array.is
 /** A `{ value, unit, label }` stat-card sub-object (used by hero `stamp` and about `overlay`). */
 type StatCard = { value?: string; unit?: string; label?: string };
 const asStatCard = (v: unknown): StatCard => (v && typeof v === "object" ? (v as StatCard) : {});
+
+/**
+ * A hero with a `stamp` renders as the split layout (AboutHero) instead of the full-bleed
+ * hero — and the split layout draws NO items and no ticker/bottom strip. Callers use this to
+ * hide editors for fields that wouldn't render in the current hero mode.
+ */
+export function isSplitLayoutHero(section: SectionAdmin): boolean {
+  if (section.type !== "hero") return false;
+  const stamp = asStatCard(asObj(section.settings).stamp);
+  return Boolean(stamp.value || stamp.unit || stamp.label);
+}
 /** A `{ name, role }` signature sub-object (leadership_message). */
 type Signature = { name?: string; role?: string };
 const asSignature = (v: unknown): Signature => (v && typeof v === "object" ? (v as Signature) : {});
